@@ -65,6 +65,7 @@
 
 ;; 5. hightlight keywords in outputs?
 ;; 6. fix the output of `wajig udpate'.
+;; 7. re-cache for update installed pkgs seems not working?
 
 ;;; Code:
 
@@ -97,17 +98,17 @@
 (defvar wajig-running nil
   "Is wajig process running?")
 
-(defvar wajig-installed-pkgs
-  (wajig-update-installed-pkgs)
-  "Installed packages on the system. You can run
-`wajig-update-installed-pkgs' to keep update.")
-
 (defun wajig-update-installed-pkgs ()
   "Update `wajig-installed-pkgs'."
   (interactive)
   (setq wajig-installed-pkgs
 	(split-string
 	 (shell-command-to-string "sudo wajig list-installed"))))
+
+(defvar wajig-installed-pkgs
+  (wajig-update-installed-pkgs)
+  "Installed packages on the system. You can run
+`wajig-update-installed-pkgs' to keep update.")
 
 (defun wajig-process-sentinel (process event)
   "Set buffer read-only after a wajig command finishes."
@@ -116,6 +117,7 @@
     (with-current-buffer (get-buffer "*wajig*")
       (cond
        ((eq (process-status process) 'exit)
+	(goto-char (point-max))
 	(insert "------------- done --------------\n")
 	(set (make-local-variable 'buffer-read-only) t))
        ((eq (process-status process) 'signal)
@@ -127,8 +129,8 @@
     (let ((moving (= (point) (process-mark process))))
       (save-excursion
 	(goto-char (process-mark process))
-	;; (insert (replace-regexp-in-string "" "\n" output))
-	(insert output)
+	(insert (replace-regexp-in-string "" "\n" output))
+	;; (insert output)
 	(set-marker (process-mark process) (point)))
       (if moving (goto-char (process-mark process))))))
 
@@ -162,7 +164,7 @@ pkg is the package name to operate on."
 			   "\n\nNon-nil RE-CACHE forces re-caching `wajig-installed-pkgs'."))
 	      interactive `(interactive
 			    (list (wajig-completing-read ; require emacs22.
-				   ,(format "s$ sudo wajig %s " command)
+				   ,(format "$ sudo wajig %s " command)
 				   wajig-installed-pkgs))))
       (setq wajig-arglist nil	       ; show help from `wajig commands'
 	    docstring (progn
@@ -210,7 +212,7 @@ pkg is the package name to operate on."
 
 (defalias 'wajig-completing-read
   (if (fboundp 'ido-completing-read)
-      'ido-completing-read
+      'ido-completing-read		; added in Emacs 22
     'completing-read))
 
 ;; Wajig Command Without Arguments
@@ -350,7 +352,11 @@ pkg is the package name to operate on."
 
 (defun wajig-search-by-name (pkg)
   "Run `wajig search -n pkg' or `apt-cache search -n pkg'."
-  (interactive "s$ sudo wajig search -n ")
+  (interactive
+   (list
+    (wajig-completing-read
+     "$ apt-cache search -n "
+     wajig-installed-pkgs)))
   (wajig-do `("apt-cache" "search" ,pkg "-n")))
 
 (defun wajig-show-at-point ()
