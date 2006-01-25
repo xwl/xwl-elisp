@@ -115,18 +115,19 @@
   (setq wajig-running nil)
   (save-excursion
     (with-current-buffer (get-buffer "*wajig*")
-      (cond
-       ((eq (process-status process) 'exit)
-	(goto-char (point-max))
-	(insert "------------- done --------------\n")
-	(set (make-local-variable 'buffer-read-only) t))
-       ((eq (process-status process) 'signal)
-	(message "wajig process killed"))))))
+      (let ((inhibit-read-only t))
+	(cond
+	 ((eq (process-status process) 'exit)
+	  (goto-char (point-max))
+	  (insert "------------- done --------------\n"))
+	 ((eq (process-status process) 'signal)
+	  (message "wajig process killed")))))))
 
 (defun wajig-process-filter (process output)
   "Filter wajig command outputs."
   (with-current-buffer (process-buffer process)
-    (let ((moving (= (point) (process-mark process))))
+    (let ((moving (= (point) (process-mark process)))
+	  (inhibit-read-only t))
       (save-excursion
 	(goto-char (process-mark process))
 	(insert (replace-regexp-in-string "" "\n" output))
@@ -176,36 +177,36 @@ pkg is the package name to operate on."
        (defun ,wajig-command ,wajig-arglist
 	 ,docstring
 	 ,interactive
-	 (wajig)
-	 (set (make-local-variable 'buffer-read-only) nil)
-	 (erase-buffer)
-	 (if wajig-running
-	     (error "Wajig process already exists")
-	   (setq wajig-running t)
-	   (setq wajig-process
-		 ,(if arglist
-		      `(progn
-			 (when re-cache
-			   (wajig-update-installed-pkgs))
-			 (start-process "wajig" "*wajig*"
-					"sudo" "wajig" ,command ,(car arglist)))
-		    `(start-process "wajig" "*wajig*"
-				    "sudo" "wajig" ,command)))
-	   (set-process-filter wajig-process 'wajig-process-filter)
-	   (set-process-sentinel wajig-process 'wajig-process-sentinel))))))
+	 (let ((inhibit-read-only t))
+	   (wajig)
+	   (erase-buffer)
+	   (if wajig-running
+	       (error "Wajig process already exists")
+	     (setq wajig-running t)
+	     (setq wajig-process
+		   ,(if arglist
+			`(progn
+			   (when re-cache
+			     (wajig-update-installed-pkgs))
+			   (start-process "wajig" "*wajig*"
+					  "sudo" "wajig" ,command ,(car arglist)))
+		      `(start-process "wajig" "*wajig*"
+				      "sudo" "wajig" ,command)))
+	     (set-process-filter wajig-process 'wajig-process-filter)
+	     (set-process-sentinel wajig-process 'wajig-process-sentinel)))))))
 
 (defun wajig-do (command-string)
   "Run COMMAND-STRING in *wajig* buffer."
-  (wajig)
-  (set (make-local-variable 'buffer-read-only) nil)
-  (erase-buffer)
-  (if wajig-running
-      (error "Wajig process already exists")
-    (setq wajig-running t)
-    (setq wajig-process
-	  (apply 'start-process "wajig" "*wajig*" command-string))
-    (set-process-filter wajig-process 'wajig-process-filter)
-    (set-process-sentinel wajig-process 'wajig-process-sentinel)))
+  (let ((inhibit-read-only t))
+    (wajig)
+    (erase-buffer)
+    (if wajig-running
+	(error "Wajig process already exists")
+      (setq wajig-running t)
+      (setq wajig-process
+	    (apply 'start-process "wajig" "*wajig*" command-string))
+      (set-process-filter wajig-process 'wajig-process-filter)
+      (set-process-sentinel wajig-process 'wajig-process-sentinel))))
 
 ;; Compatibility
 ;; -------------
@@ -459,7 +460,6 @@ pkg is the package name to operate on."
 \\{wajig-mode-map}"
   (wajig-mode-help)
   (set-syntax-table wajig-mode-syntax-table)
-  ;; (set (make-local-variable 'buffer-read-only) t)
   (run-hooks 'wajig-mode-hook))
 
 (defun wajig ()
