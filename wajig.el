@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; $Id: wajig.el,v 0.3 2006/02/24 00:22:39 xwl Exp $
+;; $Id: wajig.el,v 0.4 2006/03/01 14:59:13 xwl Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -252,47 +252,124 @@ buffer."
 ;; -------------
 
 (defalias 'wajig-completing-read
-  (if (fboundp 'ido-completing-read)
+  (if (and (fboundp 'ido-completing-read)
+	   ido-mode)
       'ido-completing-read		; added in Emacs 22
     'completing-read))
 
-;; Wajig Command Without Arguments
-;; -------------------------------
+;; Wajig Commands Without Arguments
+;; --------------------------------
 
-(mapc
- (lambda (command)
-   ;; FIXME: Is this the correct way, using `eval'?
-   (eval `(define-wajig-command ,command)))
- '(
-   auto-clean auto-download clean commands daily-upgrade
-   describe-new detail-new dist-upgrade docs file-download
-   file-remove fix-configure fix-install fix-missing init integrity
-   help large last-update list list-all list-cache list-commands
-   list-daemons list-hold list-installed list-log list-orphans
-   local-dist-upgrade local-upgrade non-free orphans policy reset
-   search-apt setup showdistupgrade showinstall showremove
-   showupgrade size sizes snapshot tasksel toupgrade update
-   ))
+(define-wajig-command auto-clean)
+(define-wajig-command auto-download)
+(define-wajig-command clean)
+(define-wajig-command commands)
+(define-wajig-command daily-upgrade)
+(define-wajig-command describe-new)
+(define-wajig-command detail-new)
+(define-wajig-command dist-upgrade)
+(define-wajig-command docs)
+(define-wajig-command file-download)
+(define-wajig-command file-remove)
+(define-wajig-command fix-configure)
+(define-wajig-command fix-install)
+(define-wajig-command fix-missing)
+(define-wajig-command init)
+(define-wajig-command integrity)
+(define-wajig-command help)
+(define-wajig-command large)
+(define-wajig-command last-update)
+(define-wajig-command list)
+(define-wajig-command list-all)
+(define-wajig-command list-cache)
+(define-wajig-command list-commands)
+(define-wajig-command list-daemons)
+(define-wajig-command list-hold)
+(define-wajig-command list-installed)
+(define-wajig-command list-log)
+(define-wajig-command list-orphans)
+(define-wajig-command local-dist-upgrade)
+(define-wajig-command local-upgrade)
+(define-wajig-command non-free)
+(define-wajig-command orphans)
+(define-wajig-command policy)
+(define-wajig-command reset)
+(define-wajig-command search-apt)
+(define-wajig-command setup)
+(define-wajig-command showdistupgrade)
+(define-wajig-command showinstall)
+(define-wajig-command showremove)
+(define-wajig-command showupgrade)
+(define-wajig-command size)
+(define-wajig-command sizes)
+(define-wajig-command snapshot)
+(define-wajig-command tasksel)
+(define-wajig-command toupgrade)
+(define-wajig-command update)
 
-;; Wajig Command With One Argument
-;; -------------------------------
+;; Wajig Commands With One Argument
+;; --------------------------------
 
-(mapc
- (lambda (command)
-   (eval `(define-wajig-command ,command (pkg))))
- '(
-   auto-install available build build-depend changelog dependents
-   describe detail download file-install find-file find-pkg force
-   hold install/dist list-names list-files list-scripts list-section
-   list-status list-wide move news package readme recommended
-   reconfigure recursive reload repackage restart rpm2deb rpminstall
-   rpmtodeb search show source start status status-match
-   status-search stop suggested unhold unofficial update-alts
-   update-pci-ids update-usb-ids versions whatis whichpkg
-
-   install purge purge-depend purge-orphans reinstall remove
-   remove-depend remove-orphans upgrade
-   ))
+(define-wajig-command auto-install (pkg))
+(define-wajig-command available (pkg))
+(define-wajig-command build (pkg))
+(define-wajig-command build-depend (pkg))
+(define-wajig-command changelog (pkg))
+(define-wajig-command dependents (pkg))
+(define-wajig-command describe (pkg))
+(define-wajig-command detail (pkg))
+(define-wajig-command download (pkg))
+(define-wajig-command file-install (pkg))
+(define-wajig-command find-file (pkg))
+(define-wajig-command find-pkg (pkg))
+(define-wajig-command force (pkg))
+(define-wajig-command hold (pkg))
+(define-wajig-command install (pkg))
+(define-wajig-command install/dist (pkg))
+(define-wajig-command list-files (pkg))
+(define-wajig-command list-names (pkg))
+(define-wajig-command list-scripts (pkg))
+(define-wajig-command list-section (pkg))
+(define-wajig-command list-status (pkg))
+(define-wajig-command list-wide (pkg))
+(define-wajig-command move (pkg))
+(define-wajig-command news (pkg))
+(define-wajig-command package (pkg))
+(define-wajig-command purge (pkg))
+(define-wajig-command purge-depend (pkg))
+(define-wajig-command purge-orphans (pkg))
+(define-wajig-command readme (pkg))
+(define-wajig-command recommended (pkg))
+(define-wajig-command reconfigure (pkg))
+(define-wajig-command recursive (pkg))
+(define-wajig-command reinstall (pkg))
+(define-wajig-command reload (pkg))
+(define-wajig-command remove (pkg))
+(define-wajig-command remove-depend (pkg))
+(define-wajig-command remove-orphans (pkg))
+(define-wajig-command repackage (pkg))
+(define-wajig-command restart (pkg))
+(define-wajig-command rpm2deb (pkg))
+(define-wajig-command rpminstall (pkg))
+(define-wajig-command rpmtodeb (pkg))
+(define-wajig-command search (pkg))
+(define-wajig-command show (pkg))
+(define-wajig-command source (pkg))
+(define-wajig-command start (pkg))
+(define-wajig-command status (pkg))
+(define-wajig-command status-match (pkg))
+(define-wajig-command status-search (pkg))
+(define-wajig-command stop (pkg))
+(define-wajig-command suggested (pkg))
+(define-wajig-command unhold (pkg))
+(define-wajig-command unofficial (pkg))
+(define-wajig-command update-alts (pkg))
+(define-wajig-command update-pci-ids (pkg))
+(define-wajig-command update-usb-ids (pkg))
+(define-wajig-command upgrade (pkg))
+(define-wajig-command versions (pkg))
+(define-wajig-command whatis (pkg))
+(define-wajig-command whichpkg (pkg))
 
 ;; Addtional/Redefined Commands
 ;; ----------------------------
@@ -381,9 +458,9 @@ buffer."
     (define-key map "E" 'wajig-edit-sources)
     (define-key map "h" 'wajig-help)
     (define-key map "i" 'wajig-install)
+    (define-key map "K" 'wajig-kill)
     (define-key map "L" 'wajig-list-files)
     (define-key map "m" 'wajig-manually)
-    (define-key map "N" 'wajig-news)
     (define-key map "o" 'wajig-show)
     (define-key map "R" 'wajig-remove)
     (define-key map "S" 'wajig-search)
@@ -399,7 +476,8 @@ buffer."
     (define-key map (kbd "Q c") 'wajig-changelog)
     (define-key map (kbd "Q i") 'wajig-query-installed)
     (define-key map (kbd "Q l") 'wajig-list-log)
-    (define-key map (kbd "Q n") 'wajig-non-free)
+    (define-key map (kbd "Q N") 'wajig-non-free)
+    (define-key map (kbd "Q n") 'wajig-news)
     (define-key map (kbd "Q r") 'wajig-readme)
     (define-key map (kbd "Q S") 'wajig-list-scripts)
     (define-key map (kbd "Q s") 'wajig-status)
@@ -422,13 +500,21 @@ buffer."
   "Syntax table used while in `wajig-mode'.")
 
 (defvar wajig-font-lock-keywords
-  '(("\\(Package: \\)\\(.*\\)"
-     (1 font-lock-keyword-face nil t)
-     (2 font-lock-function-name-face nil t))
-    ("Conflicts: "
+  `(("^Package:\\(.*\\)"
+     (1 font-lock-function-name-face nil t))
+    ("^Conflicts:"
      (0 font-lock-warning-face nil t))
-    ("^[a-zA-Z].*: "
-     (0 font-lock-keyword-face nil t)))
+    ("^Description:\\(.*\n\\)"
+     (1 font-lock-function-name-face nil t))
+    (,(concat
+       "^\\("
+       (regexp-opt
+	'("Package" "Priority" "Section" "Installed-Size" "Maintainer"
+	  "Architecture" "Version" "Depends" "Suggests" "Filename"
+	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
+	  "Conffiles"))
+       "\\):")
+     (0 font-lock-keyword-face t t)))
   "Keywords to highlight in wajig mode.")
 
 (define-derived-mode wajig-mode nil "Wajig"
