@@ -221,9 +221,9 @@ pkg is the package name to operate on."
        ,interactive
        (let ((inhibit-read-only t))
 	 (wajig)
-	 (erase-buffer)
 	 (if wajig-running
 	     (error "Wajig process already exists")
+	   (erase-buffer)
 	   (setq wajig-running t)
 	   (setq wajig-process
 		 ,(if arglist
