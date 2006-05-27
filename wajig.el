@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; $Id: wajig.el,v 0.4 2006/03/01 14:59:13 xwl Exp $
+;; $Id: wajig.el,v 0.41 2006/03/01 14:59:13 xwl Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -512,7 +512,7 @@ buffer."
 	'("Package" "Priority" "Section" "Installed-Size" "Maintainer"
 	  "Architecture" "Version" "Depends" "Suggests" "Filename"
 	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
-	  "Conffiles"))
+	  "Conffiles" "Source" "Provides" "Pre-Depends"))
        "\\):")
      (0 font-lock-keyword-face t t)))
   "Keywords to highlight in wajig mode.")
