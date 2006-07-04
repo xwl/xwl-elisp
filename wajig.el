@@ -104,6 +104,22 @@
   :type 'string
   :group 'wajig)
 
+(defcustom wajig-bin-path '("~/bin" "/usr/local/bin" "/usr/bin" "/bin"
+                            "/usr/games" "/usr/bin/X11" "/usr/games")
+  "User's bin path."
+  :type 'list
+  :group 'wajig)
+
+(defcustom wajig-sbin-path '("/usr/local/sbin" "/usr/sbin" "/sbin")
+  "Sbin path."
+  :type 'list
+  :group 'wajig)
+
+(defcustom wajig-frequent-commands '("ps -ef")
+  "Frequently running commands. See `wajig-run-frequent-commands'."
+  :type 'list
+  :group 'wajig)
+
 
 ;;; Wajig Commands
 
@@ -185,8 +201,8 @@ keep update.")
   (interactive)
   (when wajig-process
     (unless (eq (process-status wajig-process) 'exit)
-      (delete-process wajig-process)
-      (setq wajig-running nil))))
+      (delete-process wajig-process))
+    (setq wajig-running nil)))
 
 (defmacro define-wajig-command (command &optional arglist)
   "Define a new wajig command. COMMAND is one of wajig commands,
@@ -235,7 +251,7 @@ pkg is the package name to operate on."
 	   (set-process-sentinel wajig-process 'wajig-process-sentinel))))))
 
 (defun wajig-do (command-string)
-  "Run COMMAND-STRING list(e.g., '(\"cmd\" \"arg1\" ...)) in *wajig*
+  "Run COMMAND-STRING, e.g., '(\"cmd\" \"arg1\" ...) in *wajig*
 buffer."
   (let ((inhibit-read-only t))
     (wajig)
@@ -398,9 +414,59 @@ buffer."
   (interactive)
   (wajig-show (current-word)))
 
+(defun wajig-update-command-path-alist ()
+  "Update `wajig-command-path-alist' immediately."
+  (interactive)
+  (setq wajig-command-path-alist '())
+  ;; bin path
+  (mapc
+   (lambda (path)
+     (mapc
+      (lambda (cmd)
+        (unless (assoc cmd wajig-command-path-alist)
+          (setq wajig-command-path-alist
+                (append wajig-command-path-alist
+                        `((,(file-name-nondirectory cmd) . ,cmd))))))
+      (split-string
+       (shell-command-to-string
+        (concat "find " path " -maxdepth 1 -type f -perm -u+x")))))
+   wajig-bin-path)
+  ;; sbin path
+  (mapc
+   (lambda (path)
+     (mapc
+      (lambda (cmd)
+        (unless (assoc cmd wajig-command-path-alist)
+          (setq wajig-command-path-alist
+                (append
+                 wajig-command-path-alist
+                 `((,(file-name-nondirectory cmd)
+                    .
+                    ,(concat "sudo " cmd)))))))
+      (split-string
+       (shell-command-to-string
+        (concat "find " path " -maxdepth 1 -type f -perm -u+x")))))
+   wajig-sbin-path))
+
+(defvar wajig-command-path-alist
+  (wajig-update-command-path-alist)
+  "An assoc list of command and its full path. You could run
+`wajig-update-command-path-alist' to keep update.
+e.g., '((\"ls\" . \"/bin/ls\")). ")
+
 (defun wajig-manually (command-str)
   "Run special commands manually."
-  (interactive "s$ ")
+  (interactive
+   (list
+    (ido-completing-read
+     "$ "
+     (mapcar
+      (lambda (command-path)
+        (car command-path))
+      wajig-command-path-alist))))
+  (when (assoc command-str wajig-command-path-alist)
+    (setq command-str
+          (cdr (assoc command-str wajig-command-path-alist))))
   (wajig-do (split-string command-str)))
 
 (defun wajig-source (pkg)
@@ -446,6 +512,53 @@ buffer."
   (interactive)
   (wajig-do '("sudo" "apt-get" "upgrade")))
 
+(defun wajig-run-frequent-commands (command-str)
+  "Run frequent commands, such \"ps -ef\". See
+`wajig-frequent-commands'."
+  (interactive
+   (list
+    (ido-completing-read
+     "$ "
+     wajig-frequent-commands)))
+  (wajig-do (split-string command-str)))
+
+;; Network Admin
+;; -------------
+
+(defun wajig-network-ifconfig ()
+  "$ sudo ifconfig    Display status of active interfaces"
+  (interactive)
+  (wajig-do '("sudo" "ifconfig")))
+
+(defun wajig-network-netstat (option)
+  "$ netstat OPTION
+
+OPTION could be:
+    -r        Print routing tables
+    -na, -a   Print network connections"
+  (interactive
+   (list
+    (ido-completing-read
+     "$ netstat "
+     '("-r" "-na" "-a"))))
+  (wajig-do `("netstat" ,option)))
+
+(defun wajig-network-ping (host)
+  "$ ping HOST"
+  (interactive "s$ ping ")
+  (wajig-do `("ping" ,host)))
+
+(defun wajig-network-traceroute (host)
+  "$ traceroute HOST"
+  (interactive "s$ traceroute ")
+  (wajig-do `("traceroute" ,host)))
+
+(defun wajig-network-nmap (host-or-network)
+  "$ nmap -A -T4 HOST-OR-NETWORK"
+  (interactive "s$ nmap -A -T4 ")
+  (wajig-do `("nmap" "-A" "-T4" ,host-or-network)))
+
+
 
 ;;; Wajig Mode
 
@@ -464,6 +577,7 @@ buffer."
     (define-key map "o" 'wajig-show)
     (define-key map "R" 'wajig-remove)
     (define-key map "S" 'wajig-search)
+    (define-key map "r" 'wajig-run-frequent-commands)
     (define-key map "s" 'wajig-search-by-name)
     (define-key map "t" 'wajig-toupgrade)
     (define-key map "u" 'wajig-update)
@@ -491,6 +605,12 @@ buffer."
     ;; cursor movement
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
+    ;; network admin
+    (define-key map (kbd "N i") 'wajig-network-ifconfig)
+    (define-key map (kbd "N n") 'wajig-network-netstat)
+    (define-key map (kbd "N p") 'wajig-network-ping)
+    (define-key map (kbd "N t") 'wajig-network-traceroute)
+    (define-key map (kbd "N m") 'wajig-network-nmap)
     map))
 
 (defvar wajig-mode-syntax-table
@@ -512,7 +632,7 @@ buffer."
 	'("Package" "Priority" "Section" "Installed-Size" "Maintainer"
 	  "Architecture" "Version" "Depends" "Suggests" "Filename"
 	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
-	  "Conffiles" "Source" "Provides" "Pre-Depends"))
+	  "Conffiles" "Source" "Provides" "Pre-Depends" "Recommends"))
        "\\):")
      (0 font-lock-keyword-face t t)))
   "Keywords to highlight in wajig mode.")
