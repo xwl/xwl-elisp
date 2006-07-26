@@ -3,9 +3,7 @@
 ;; Copyright (C) 2005, 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; $Id: wajig.el,v 0.41 2006/03/01 14:59:13 xwl Exp $
-
-;; This file is not part of GNU Emacs.
+;; Version: v 0.42
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -398,7 +396,7 @@ buffer."
 (defun wajig-edit-sources ()
   "Edit /etc/apt/sources.list using `tramp'."
   (interactive)
-  (find-file "/su::/etc/apt/sources.list"))
+  (find-file "/sudo::/etc/apt/sources.list"))
 
 (defun wajig-search-by-name (pkg)
   "Run `wajig search -n pkg' or `apt-cache search -n pkg'."
