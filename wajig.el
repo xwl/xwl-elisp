@@ -444,7 +444,8 @@ buffer."
       (split-string
        (shell-command-to-string
         (concat "find " path " -maxdepth 1 -type f -perm -u+x")))))
-   wajig-sbin-path))
+   wajig-sbin-path)
+  wajig-command-path-alist)
 
 (defvar wajig-command-path-alist
   (wajig-update-command-path-alist)
