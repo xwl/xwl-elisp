@@ -631,7 +631,8 @@ OPTION could be:
 	'("Package" "Priority" "Section" "Installed-Size" "Maintainer"
 	  "Architecture" "Version" "Depends" "Suggests" "Filename"
 	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
-	  "Conffiles" "Source" "Provides" "Pre-Depends" "Recommends"))
+	  "Conffiles" "Source" "Provides" "Pre-Depends" "Recommends"
+          "SHA1" "SHA256"))
        "\\):")
      (0 font-lock-keyword-face t t)))
   "Keywords to highlight in wajig mode.")
