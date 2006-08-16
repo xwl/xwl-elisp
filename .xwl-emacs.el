@@ -527,7 +527,9 @@ If SCHEME?, `run-scheme'."
       view-calendar-holidays-initially t)
 
 (setq other-holidays
-      '((holiday-chinese 5 11 "My Day !")))
+      '((holiday-chinese 5 11 "My Day !")
+        (holiday-chinese 7 7 "情人节")
+        (holiday-chinese 10 10 "海豹公主的生日！& 民国双十节")))
 
 (setq calendar-holidays
       (append calendar-holidays other-holidays))
@@ -782,8 +784,8 @@ prompts for name field."
 ;(require 'blank-mode)
 
 ;; TeX
-;; (require 'tex-site)
-;; (require 'preview)
+(require 'tex-site)
+(require 'preview)
 
 (defun xwl-LaTex-mode-hook ()
   (set (make-local-variable 'outline-regexp) "\%\%\%+ ")
@@ -941,6 +943,8 @@ the empty string."
 (setq dired-recursive-copies 'always
       dired-recursive-deletes 'top)
 
+(require 'dired-view)
+
 (defun xwl-dired-wvHtml ()
   (concat "wvHtml --charset=gb2312 * "
 	  (xwl-dired-get-filename-no-extention) ".html"))
@@ -970,7 +974,7 @@ the empty string."
 		(keyboard-quit)))
 
 	(,(regexp-opt
-	   '(".gif" ".png" ".bmp" ".jpg" ".tif"))
+	   '(".gif" ".png" ".bmp" ".jpg" ".tif" ".jpeg"))
 	 "xzgv")
 
 	(".htm[l]?" "firefox")
@@ -1088,10 +1092,13 @@ the empty string."
   (define-key dired-mode-map (kbd "s .") 'xwl-dired-sort-by-invisible-only)
 
   ;; (define-key dired-mode-map (kbd "l") 'xwl-dired-last-dir)
+;;   (define-key dired-mode-map (kbd ";") 'dired-view-minor-mode-toggle)
+;;   (define-key dired-mode-map (kbd ":") 'dired-view-minor-mode-dired-toggle)
 
 )
 
 (add-hook 'dired-mode-hook 'xwl-dired-mode-hook)
+(add-hook 'dired-mode-hook 'dired-view-minor-mode-on)
 ;;;; buffers
 
 ;; tabbar
@@ -1106,7 +1113,7 @@ the empty string."
 
 ;; ibuffer
 (require 'ibuffer)
-(global-set-key (kbd "C-x C-b") 'ibuffer)
+; (global-set-key (kbd "C-x C-b") 'ibuffer)
 (setq ibuffer-fontification-level t)
 (setq ibuffer-never-show-regexps nil)
 
@@ -1262,6 +1269,11 @@ the empty string."
 (require 'saveplace)
 (setq-default save-place t)
 ;;;; keys
+
+;; about keys' organizations
+
+;; C-c c *    invoke external programs, e.g., scheme, mysql.
+;; C-c e *    emms
 
 (global-set-key (kbd "C-x <left>") 'next-buffer)
 (global-set-key (kbd "C-x <right>") 'previous-buffer)
@@ -1453,14 +1465,14 @@ again will move forwad to the next Nth occurence of CHAR."
 ;;   (set-keyboard-coding-system 'chinese-gbk))
 
 ;; chinese-wubi
-;; (require 'wubi)
-;; (register-input-method
-;;  "chinese-wubi" "Chinese-GB" 'quail-use-package "wubi" "wubi")
-;; (wubi-load-local-phrases)
-;; (setq default-input-method "chinese-wubi")
+(require 'wubi)
+(register-input-method
+ "chinese-wubi" "Chinese-GB" 'quail-use-package "wubi" "wubi")
+(wubi-load-local-phrases)
+(setq default-input-method "chinese-wubi")
 
 (setq xwl-input-methods
-      '(;; "chinese-wubi"
+      '("chinese-wubi"
 	"japanese")
       xwl-current-input-methods xwl-input-methods)
 
@@ -1478,19 +1490,19 @@ again will move forwad to the next Nth occurence of CHAR."
 (global-set-key (kbd "C-,") 'wubi-toggle-quanjiao-banjiao)
 
 ;; fonts
-(when window-system
-  (unless (fboundp 'xwl-setup-font)
-    (create-fontset-from-fontset-spec
-     "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
-chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
-chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
+;; (when window-system
+;;   (unless (fboundp 'xwl-setup-font)
+;;     (create-fontset-from-fontset-spec
+;;      "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
+;; chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
+;; chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
 
-    (unless xwl-emacs-unicode-branch-p
-      (set-default-font "fontset-bvsmono110"))
-    (defun xwl-setup-font() 'font-setup-done)))
+;;     (unless xwl-emacs-unicode-branch-p
+;;       (set-default-font "fontset-bvsmono110"))
+;;     (defun xwl-setup-font() 'font-setup-done)))
 
 (if (or (string= (substring emacs-version 0 2) "21") ; Emacs <--> X
 	(not window-system))
@@ -1812,7 +1824,7 @@ Chinese and digits, which is useful when editing TeX files."
 (global-set-key (kbd "M-+") 'highlight-changes-next-change)
 (global-set-key (kbd "M-s") 'dictionary-search)
 (global-set-key (kbd "M-S") 'dictionary-search)
-(global-set-key (kbd "M-g") 'goto-line)
+;; (global-set-key (kbd "M-g") 'goto-line)
 ;; (global-set-key (kbd "%") 'xwl-match-paren)
 (global-set-key (kbd "C-M-k") 'kill-paragraph)
 (global-set-key (kbd "M-K") 'kill-sexp)
@@ -1916,6 +1928,11 @@ Chinese and digits, which is useful when editing TeX files."
 
 ;; html
 ;; (define-key html-mode-map (kbd "<") 'skeleton-pair-insert-maybe)
+
+
+(setq exec-path
+      ' ("~/bin" "/usr/local/bin" "/usr/bin" "/bin" "/usr/bin/X11"
+         "/usr/games" "/usr/lib/emacs/22.0.50/powerpc-linux-gnu"))
 
 
 ;;; PROGRAMMING
@@ -2079,13 +2096,22 @@ Chinese and digits, which is useful when editing TeX files."
 ;; sql
 (require 'wx-passwd)
 ;(load-file "~/.emacs.d/site-lisp/william/wx-passwd.el")
+
+(require 'sql)
+
 (setq sql-mysql-program "mysql"
-      sql-user          "william"
-      sql-password      pwsql
-      sql-database      "test"
+      sql-user          "root"
+      sql-password      "havefun"
+      sql-database      ""
       sql-server        "localhost")
 
 (add-hook 'sql-mode-hook 'smart-insert-operator-hook)
+(add-hook 'sql-interactive-mode-hook 'smart-insert-operator-hook)
+
+(global-set-key (kbd "C-c c m") 'sql-mysql)
+
+(define-key sql-interactive-mode-map (kbd "RET")
+  (lambda () (interactive) (insert ";") (comint-send-input)))
 
 ;; php
 (defun xwl-php-mode-hook ()
@@ -2359,21 +2385,22 @@ yacc source files."
 (global-set-key "\C-csD" 'cscope-dired-directory)
 ;;;; lisp, scheme, guile
 
+;; quack
+;; (require 'quack)
+;; (setq quack-fontify-style nil)
+
 ;; lisp
 (require 'lisp-mnt)
 (defun xwl-lisp-mode-hook ()
-  ;; (which-func-mode 1)
-  ;; (eldoc-mode -1)
+  (which-func-mode 1)
+  (eldoc-mode 1)
 
   (set (make-local-variable 'outline-regexp) ";;;+ ")
-;; \\|;;{{{ ")
   (outline-minor-mode 1)
 
-;;   (font-lock-add-keywords major-mode outline-font-lock-keywords)
-;;   (font-lock-mode -1)			; restart `font-lock-mode'.
-;;   (font-lock-mode 1)
-
-  (local-set-key (kbd "<backtab>") 'lisp-complete-symbol))
+  (local-set-key (kbd "<backtab>") 'lisp-complete-symbol)
+  (local-set-key (kbd "C-x C-r") 'eval-region)
+  (local-set-key (kbd "C-x C-b") 'eval-buffer))
 
 (add-hook 'lisp-mode-hook 'xwl-lisp-mode-hook)
 (add-hook 'lisp-interaction-mode-hook 'xwl-lisp-mode-hook)
@@ -2383,13 +2410,42 @@ yacc source files."
 (require 'scheme)
 (setq scheme-program-name "guile")
 (defun xwl-scheme-mode-hook ()
-  (setq comment-add 1))
+  (setq comment-add 1)
 
-(add-hook 'scheme-mode-hook 'xwl-lisp-mode-hook)
+  (set (make-local-variable 'outline-regexp) ";;;+ ")
+  (outline-minor-mode 1)
+
+  (local-set-key (kbd "C-x C-r") 'scheme-send-region)
+  (local-set-key (kbd "C-x C-b") 'xwl-scheme-send-buffer))
+
 (add-hook 'scheme-mode-hook 'xwl-scheme-mode-hook)
+
+(defun xwl-scheme-send-buffer ()
+  (interactive)
+  (scheme-send-region (point-min) (point-max)))
 
 ;; change `|' to normal (default, it's set to \")
 (modify-syntax-entry ?\| "_   " scheme-mode-syntax-table)
+
+;; (defun xwl-scheme-print-output ()
+;;   "Get last session's output."
+;;   (interactive)
+;;   (with-current-buffer scheme-buffer
+;;     (save-excursion
+;;       (goto-char (point-max))
+;;       (when (<= (current-column) (length "guile> "))
+;;         (search-backward "guile>")
+;;         (re-search-backward "guile> \\(\\(.*\n\\)+\\)")
+;;         (let ((str (match-string-no-properties 1)))
+;;           (message (substring str 0 (1- (length str)))))))))
+
+
+;; (defadvice scheme-send-last-sexp (after scheme-send-last-sexp-advice)
+;;   "Print output in minibuf."
+;;   (xwl-scheme-print-output))
+
+;; (ad-activate 'scheme-send-last-sexp)
+
 
 ;; guile
 (setq guile-program "guile")
@@ -2397,7 +2453,7 @@ yacc source files."
 ;; (require 'guile-scheme)
 ;; (setq initial-major-mode 'scheme-interaction-mode)
 
-(global-set-key (kbd "C-c n s") 'run-scheme)
+(global-set-key (kbd "C-c c s") 'run-scheme)
 
 
 ;;; INTERFACES
@@ -2506,7 +2562,7 @@ yacc source files."
 (require 'erc-match)
 (erc-match-mode 1)
 (setq erc-current-nick-highlight-type 'nick-or-keyword)
-(setq erc-keywords '("xwl"))
+(setq erc-keywords '("xwl" "emms"))
 (setq erc-pals nil)
 
 ;; (global-set-key (kbd "C-c C-2") 'erc-track-switch-buffer)
@@ -2688,8 +2744,6 @@ so as to keep an eye on work when necessarily."
     (emms-minimalistic)
   (emms-devel))
 
-;; (emms-mode-line-enable)
-
 ;; players
 (setq emms-player-mpg321-command-name "mpg123"
       emms-player-mplayer-command-name "sudo"
@@ -2704,13 +2758,12 @@ so as to keep an eye on work when necessarily."
 
 ;; coding
 (setq emms-info-mp3info-coding-system 'gbk
-      emms-lyrics-coding-system 'gbk)
+      emms-lyrics-coding-system 'gbk
+      emms-cache-file-coding-system 'utf-8)
 
 ;; files
 (setq emms-source-file-default-directory "~/music/songs"
-      emms-lyrics-dir "~/music/lyrics"
-      ;; xwl-emms-playlist-file "~/.emms/playlist"
-      )
+      emms-lyrics-dir "~/music/lyrics")
 
 ;; mode line format
 (setq emms-mode-line-format "[ %s ]"
@@ -2760,12 +2813,6 @@ so as to keep an eye on work when necessarily."
 
 (global-set-key (kbd "<f3>") 'emms-playlist-mode-go)
 
-(setq xwl-emms-playlist "~/.emacs.d/.playlist")
-
-(defun xwl-emms-play-last ()
-  "Play recent playlist."
-  (interactive)
-  (emms-pbi-open-playlist xwl-emms-playlist))
 
 (defun xwl-emms-google-track ()
   (interactive)
@@ -3062,6 +3109,7 @@ This is a good function to put in `emms-player-finished-hook'."
   (define-key emms-playlist-mode-map (kbd "s U") 'emms-score-up-file-on-line)
   (define-key emms-playlist-mode-map (kbd "s D") 'emms-score-down-file-on-line))
 
+;; TODO, weird?
 (add-hook 'emms-playlist-mode-hooks 'xwl-emms-playlist-mode-hook)
 
 ;; (global-set-key (kbd "C-c e t") 'emms-play-directory-tree)
@@ -3072,7 +3120,6 @@ This is a good function to put in `emms-player-finished-hook'."
 (global-set-key (kbd "C-c e o") 'emms-show)
 (global-set-key (kbd "C-c e h") 'emms-shuffle)
 ;; (global-set-key (kbd "C-c e e") 'emms-play-file)
-(global-set-key (kbd "C-c e l") 'xwl-emms-play-last)
 (global-set-key (kbd "C-c e SPC") 'emms-pause)
 (global-set-key (kbd "C-c e f") 'emms-no-next)
 (global-set-key (kbd "C-c e a") 'emms-add-directory-tree)
@@ -3126,6 +3173,11 @@ This is a good function to put in `emms-player-finished-hook'."
 
 (setq emms-info-asynchronously nil)
 
+;; (setq emms-player-finished-hook
+;;       '(emms-mode-line-blank
+;;         emms-playing-time-stop
+;;         emms-lyrics-stop
+;;         my-emms-player-finished-hook))
 ;;;; trueice
 
 ;; interface
@@ -3287,6 +3339,17 @@ store into a file to download later."
 
 ;;;; muse
 
+(require 'muse)
+(require 'muse-mode)
+(require 'muse-colors)
+(require 'muse-project)
+
+(require 'muse-html)
+(require 'muse-texinfo)
+(require 'muse-latex)
+(require 'muse-journal)
+;; (require 'muse-latexcjk)
+
 (setq muse-project-alist
       '(("default"
 	 ("~/studio/muse/default" :default "index")
@@ -3307,16 +3370,6 @@ store into a file to download later."
           :major-mode planner-mode
           :visit-link planner-visit-link)
          (:base "planner-xhtml" :path "/home/web/planner"))))
-
-(require 'muse)
-(require 'muse-mode)
-(require 'muse-colors)
-(require 'muse-project)
-
-(require 'muse-html)
-(require 'muse-texinfo)
-(require 'muse-latex)
-;; (require 'muse-latexcjk)
 
 (setq muse-mode-auto-p t)
 
@@ -3444,6 +3497,7 @@ Will result in,
   "Make buffer writable and fill its frame."
   (let ((inhibit-read-only t))
     ad-do-it
+    (planner-trunk-tasks)
     (delete-other-windows)))
 
 (defadvice planner-create-task (around planner-writable)
@@ -3456,9 +3510,15 @@ Will result in,
   (let ((inhibit-read-only t))
     ad-do-it))
 
+(defadvice planner-task-done (around planner-writable)
+  "Turn off buffer read-only."
+  (let ((inhibit-read-only t))
+    ad-do-it))
+
 (ad-activate 'plan)
 (ad-activate 'planner-create-task)
 (ad-activate 'planner-create-note)
+(ad-activate 'planner-task-done)
 
 ;; planner-browser
 ;; (require 'planner-browser)
@@ -3604,7 +3664,16 @@ Will result in,
       gnus-use-cross-reference nil)
 
 (setq gnus-select-method '(nnfolder ""))
-(setq gnus-secondary-select-methods '((nntp "128.230.129.221")))
+(setq gnus-secondary-select-methods
+      '((nntp "128.230.129.221")
+        (nntp "news.gmane.org")
+        (nntp "news.mozilla.org")
+        (nntp "news.cn99.com")
+        (nntp "news.yaako.com")
+        (nntp "webking.online.jn.sd.cn")
+        ;; (nntp "news.newsfan.net") ; due to gb2312 issue
+        (nnslashdot "")
+        ))
 
 (defun xwl-gnus-add-newsgroups-maybe ()
   "If at midnight(or, between 23:00-07:00), at newsgroups, since
@@ -3615,13 +3684,8 @@ speed is usually fast at this time."
 ;; 	    (and (>= hour 0) (<= hour 7)))
 	(setq gnus-secondary-select-methods
 	      '(;; (nntp "128.230.129.221") ; fast reading only...
-		;; (nntp "sea.gmane.org")
-		;; (nntp "news.cn99.com")
 		;; (nntp "news.individual.net")
-		;; (nntp "news.yaako.com")
-		;; (nntp "news.newsfan.net")
 		;; (nntp "localhost")
-		;; (nntp "webking.online.jn.sd.cn")
 		))
 ;;       (setq gnus-secondary-select-methods nil))
 	))
@@ -3631,19 +3695,21 @@ speed is usually fast at this time."
 
 (setq mail-archive-file-name "~/.emacs.d/outgoing")
 
-(setq send-mail-function 'smtpmail-send-it)
+(setq mail-user-agent 'gnus-user-agent)
 
-(setq mail-user-agent 'gnus-user-agent
-      message-send-mail-function 'smtpmail-send-it)
+;; (setq send-mail-function 'smtpmail-send-it)
+;; (setq smtpmail-default-smtp-server "localhost")
 
-(setq smtpmail-default-smtp-server "localhost")
-
-(setq mail-sources '((file)))
+(defun xwl-sendmail-by-localhost ()
+  "Send mail using localhost."
+  (interactive)
+  (setq message-send-mail-function 'message-send-mail-with-sendmail))
 
 ;; starttls.el, pop3.el, starttls, gnutls-bin
 (defun xwl-sendmail-by-google ()
   "Enable sendmail by google."
   (interactive)
+  (setq message-send-mail-function 'smtpmail-send-it)
   (require 'starttls)
   (setq smtpmail-smtp-server "smtp.gmail.com"
 	smtpmail-smtp-service 587
@@ -3651,6 +3717,24 @@ speed is usually fast at this time."
 	`(("smtp.gmail.com" 587 "william.xwl@gmail.com" ,pwgmail))
 	smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil)))
   (message "sendmail by google enabled."))
+
+(defun xwl-sendmail-select ()
+  "Select sendmail methods. You know, some ML doesn't allow
+sendmail directly from localhost without a valid domain name."
+  (save-excursion
+    (let ((to (save-excursion
+                (message-narrow-to-headers)
+                (or (message-fetch-field "to")
+                    ""))))
+      (cond ((string-match "lists.sourceforge.net" to)
+             (message "Will sendmail by google.")
+             (xwl-sendmail-by-google))
+            (t
+             (xwl-sendmail-by-localhost))))))
+
+(add-hook 'message-setup-hook 'xwl-sendmail-select)
+
+(setq mail-sources '((file)))
 
 ;;;; Posting Styles
 ;; ----------------
@@ -3664,51 +3748,52 @@ speed is usually fast at this time."
 ;; the summary buffer
 (setq gnus-ignored-from-addresses nil)
 
-(defun xwl-fortune-signature ()
-  "Return fortune result as string."
-  (concat "William\n\n"
-	  (ansi-color-filter-apply
-	   (shell-command-to-string "fortune"))))
+(defun xwl-fortune-signature (&optional cn-p)
+  "Return fortune result as string.
+Optional CN-P non-nil will use Chinese name."
+  (let ((name "William"))
+    (and cn-p (setq name "火柴"))
+    (concat name "\n\n"
+            (ansi-color-filter-apply
+             (shell-command-to-string "fortune")))))
+
+(defun xwl-fortune-signature-cn ()
+  "Just a chinese version wrapper around `xwl-fortune-signature'.
+
+FIMXE: does `gnus-posting-styles' accept functions with
+arguments?"
+  (xwl-fortune-signature t))
 
 ;; The entire alist will be iterated over!
 (setq gnus-posting-styles
-      '((".*"
+      `((".*"
 	 (name user-full-name)
 	 (address user-mail-address)
 	 (organization "the Church of Emacs")
 	 ;; (signature "William"))
          (signature xwl-fortune-signature))
 
-	`(,(regexp-opt			; mailing lists
-	    (mapcar (lambda (list-group)
-		      (cadr list-group))
-		    xwl-mailing-list-group-alist))
-	  (signature "William"))
-
-;; 	("debian-chinese-gb"
-;; 	 (signature
-;; 	  (format
-;; 	   "%s\n\n%s\n %s\n"
-;; 	   "William"
-;; 	   "((email . \"william.xwl@gmail.com\")"
-;; 	   "(blog  . \"http://williamxu.wordpress.com\"))")))
-
-;; 	("nipl"
-;; 	 (signature
-;; 	  (format
-;; 	   "%s\n\n%s\n %s\n"
-;; 	   "William"
-;; 	   "((email . \"william.xwl@gmail.com\")"
-;; 	   "(net   . \"http://xwl.nipl.net\"))")))
+;; 	(,(regexp-opt			; mailing lists
+;; 	    (mapcar (lambda (list-group)
+;; 		      (cadr list-group))
+;; 		    xwl-mailing-list-group-alist))
+;; 	  (signature "William"))
 
 	("hotmail"
-	 (address "william.xwl@hotmail.com")
-	 (signature
-	  (format
-	   "%s\n\n%s\n %s\n"
-	   "William"
-	   "((email . \"william.xwl@hotmail.com\")"
-	   "(blog  . \"http://williamxu.wordpress.com\"))")))))
+	 (address "william.xwl@hotmail.com"))
+
+        (,(concat ".*"
+                   (regexp-opt
+                    '("webking.online.jn.sd.cn"
+                      "news.newsfan.net"
+                      "cn."))
+                   ".*")
+          (name "火柴")
+          (signature xwl-fortune-signature-cn))
+
+        ("cn.comp.os.linux"
+         (name user-full-name)
+         (signature xwl-fortune-signature))))
 
 ;;;; Mailing-lists & Mail Groups
 ;; -----------------------------
@@ -3776,6 +3861,8 @@ speed is usually fast at this time."
              ruby-talk@ruby-lang.org
              ruby-core@ruby-lang.org
              ruby-doc@ruby-lang.org
+
+             pdesc@ddtp.debian.net
 	     ))
 
 	("dev@nipl.net"     "nipl.dev")
@@ -3881,44 +3968,45 @@ speed is usually fast at this time."
 	       `(any ,(car arg) ,(cadr arg)))
 	     xwl-mailing-list-group-alist)
 
-	  ("subject" ".*orkut.*" "general")
-	  ("subject" ".*[Free as in Freedom] Comment:.*" "general")
-	  (from ".*douban.com.*"           "general")
-	  (from "webmaster@linuxfans.org"  "general")
-	  (from "mailman-owner@mozdev.org" "general")
-	  (from ".*xiaonei@exun.com.*"     "general")
-	  (from ".*noreply@googlegroups.com.*" "general")
-	  (from "卓越网 <eweekly@ew.joyo.com>" "general")
-          (from "Google Alerts <googlealerts-noreply@google.com>" "general")
-          (from ".*sender@maillist.csdn.net.*" "general")
-          (from "MySQL AB <newsletter@mysql.com>" "general")
-          (from "mailman-owner@python.org" "general")
+	  ("subject"
+           ,(concat ".*"
+                    (regexp-opt
+                     '("orkut"
+                       "confirm"
+                       "unsubscribed"))
+                    ".*")
+           "general")
 
-          (from "\"豆瓣最近评论\" <william@localhost>" "douban")
+	  (from
+           ,(concat ".*"
+                    (regexp-opt
+                     '("douban.com"
+                       "webmaster@linuxfans.org"
+                       "mailman-owner@mozdev.org"
+                       "xiaonei@exun.com"
+                       "noreply@googlegroups.com"
+                       "eweekly@ew.joyo.com"
+                       "sender@maillist.csdn.net"
+                       "newsletter@mysql.com"
+                       "mailman-owner@python.org"
+                       "Gmane Autoauthorizer"))
+                    ".*")
+           "general")
+
+
 	  (to "william@localhost" "rss")
 
-	  (to   "william_xuuu@163.com"    "trash")
-	  (from ".*taobao.com.*"          "trash")
-	  (from ".*foe@foe.org.*"         "trash")
-	  (from ".*shfapsy@126.com.*"     "trash")
-	  (from ".*pio@gambrinusco.com.*" "trash")
-	  (from ".*eweekly@ew.joyo.com"   "trash")
-	  (from "信利达公司 <abcd888@126.com>" "trash")
-	  (from ".*zhilong1027@fescomail.net.*" "trash")
-	  (from ".*egizht@retea.se.*" "trash")
-          (from ".*jsj@djdj.com.*" "trash")
-          (from ".*e05g07091747@soho.com.*" "trash")
-          (from "Paypal Services <Service@paypal.us>" "trash")
-          (from ".*sender@maillist.csdn.net.*" "trash")
+	  (to ,(regexp-opt
+                '("william.xwl@gmail.com"
+                  "xwl02@mails.tsinghua.edu.cn"
+                  "xuweilin@mail.tsinghua.org.cn"))
+              (: xwl-notify-important))
 
-	  (to   "william.xwl@gmail.com"         (: xwl-notify-important))
-	  (to   "xwl02@mails.tsinghua.edu.cn"   (: xwl-notify-important))
-	  (to   "xuweilin@mail.tsinghua.org.cn" (: xwl-notify-important))
-	  (from ".*@mails.thu.edu.cn"           (: xwl-notify-important))
+	  (from ".*@mails.thu.edu.cn" (: xwl-notify-important))
 
-	  (to "william.xwl@hotmail.com"     "hotmail")
+	  (to "william.xwl@hotmail.com" "hotmail")
 
-	  (to "matchsticker@newsmth.*"      "newsmth")
+	  (to "matchsticker@newsmth.*" "newsmth")
 	  (to ,(regexp-opt xwl-mailbox-lists) "general")
 
 	  "trash"))
@@ -3936,13 +4024,20 @@ speed is usually fast at this time."
 		 (nnfolder-inhibit-expiry t)))
 
 (setq gnus-message-archive-group   ; nnfolder+archive:outgoing.important
-      `((,(regexp-opt
-	   (mapcar (lambda (list-group)
-		     (cadr list-group))
-		   xwl-mailing-list-group-alist))
-	 "outgoing.news")
-	("sun" "outgoing.work")
-	(".*" "outgoing.important")))
+      `(("^important$" "outgoing.important")
+;;         (,(regexp-opt
+;; 	   (mapcar (lambda (list-group)
+;; 		     (cadr list-group))
+;; 		   xwl-mailing-list-group-alist))
+;; 	 "outgoing.news")
+;;         (,(concat ".*"
+;;                   (regexp-opt
+;;                    '("webking.online.jn.sd.cn"
+;;                      "news.cn99.com"
+;;                      "news.newsfan.net"))
+;;                   ".*")
+;;          "outgoing.news")
+	(".*" "outgoing.news")))
 
 ;; set some default email and news headers
 (setq message-default-mail-headers nil	;"Fcc: ~/.emacs.d/outgoing"
@@ -3971,26 +4066,29 @@ speed is usually fast at this time."
 ;; ----------------
 
 ;; A workaround for unsupported charsets
-;; (define-coding-system-alias 'gb18030 'gb2312)
+(define-coding-system-alias 'gb18030 'gb2312)
 (define-coding-system-alias 'x-gbk 'gb2312)
-;; (define-coding-system-alias 'gbk 'gb2312)
+(define-coding-system-alias 'gbk 'gb2312)
 
 ;; This controls outgoing mails' charset.
-(setq mm-coding-system-priorities '(utf-8 gb2312 gbk))
+(setq mm-coding-system-priorities '(utf-8 gb2312))
+
 ;; (sort-coding-systems '(utf-8 gbk chinese-iso-8bit gb2312))
 
 ;;    (setq gnus-default-charset 'cn-gb
 ;; 	gnus-newsgroup-ignored-charsets
 ;; 	'(unknown-8bit x-unknown iso-8859-1 ISO-8859-15 GB18030)))
 
-(setq gnus-group-name-charset-group-alist '((".*" . cn-gb)))
+(setq gnus-group-name-charset-group-alist
+      '((".*" . gb2312)))
 
 (setq gnus-summary-show-article-charset-alist
-      '((1 . cn-gb2312)
-	(2 . cn-gbk)
-	(3 . big5)
-	(4 . windows-1252)
-	(5 . utf-8)))
+      '((1 . utf-8)
+        (2 . cn-gb2312)
+	(3 . big5)))
+
+(setq gnus-group-name-charset-method-alist
+      '(((nntp "news.newsfan.net") . gb2312)))
 
 ;;;; Group
 ;; -------
@@ -4011,49 +4109,28 @@ speed is usually fast at this time."
 (setq gnus-extra-headers '(Content-Type To Newsgroups))
 (setq nnmail-extra-headers gnus-extra-headers)
 
-;; attachment symbol
-;; from http://lists.gnu.org/archive/html/help-gnu-emacs/2003-12/msg00160.html
-(defun gnus-user-format-function-ct (header)
-  "Display content type of message in summary line.
+(require 'rs-gnus-summary)
 
-You need to add `Content-Type' to `nnmail-extra-headers' and
-`gnus-extra-headers', see Info node `(gnus)To From Newsgroups'."
-  (let ((case-fold-search t)
-        (ctype (cdr (assq 'Content-Type (mail-header-extra header)))))
-    (cond
-     ;; FIXME: Use a customizable list instead:
-     ((or (not ctype) (string-match "^text/plain" ctype)) " ")
-
-     ((string-match "^text/html"             ctype) "h")
-     ((string-match "^multipart/mixed"       ctype) "m")
-     ((string-match "^multipart/alternative" ctype) "a")
-     ((string-match "^multipart/related"     ctype) "r")
-     ((string-match "^multipart/signed"      ctype) "s")
-     ((string-match "^multipart/encrypted"   ctype) "e")
-     ((string-match "^multipart/report"      ctype) "t")
-
-     (t "o"))))
+(defalias 'gnus-user-format-function-ct
+  'rs-gnus-summary-line-content-type)
 
 ;;(setq gnus-summary-line-format "%U%R%z%-6d  %5k  %-20f%B%s\n")
 (setq gnus-summary-line-format
       "%U%R%z%10&user-date; %u&ct; %5k  %-20f%B(%t) %s\n")
 
-(setq gnus-sum-thread-tree-root            "" ; "* "
-      gnus-sum-thread-tree-false-root      "" ; "* "
-      gnus-sum-thread-tree-single-leaf     "\\"
-      gnus-sum-thread-tree-indent          "  "
-      gnus-sum-thread-tree-leaf-with-other "| "
-      gnus-sum-thread-tree-vertical        "")
+(defun xwl-gnus-summary-tree-plain ()
+  "My old plain summary tree."
+  (interactive)
+  (setq gnus-sum-thread-tree-root            "" ; "* "
+        gnus-sum-thread-tree-false-root      "" ; "* "
+        gnus-sum-thread-tree-single-leaf     "\\"
+        gnus-sum-thread-tree-single-indent   ""
+        gnus-sum-thread-tree-indent          "  "
+        gnus-sum-thread-tree-leaf-with-other "| "
+        gnus-sum-thread-tree-vertical        ""))
 
-(setq gnus-visible-headers
-      (concat "^\\("
-	      (regexp-opt
-	       '("From" "To" "CC" "Subject" "Date"
-		 "User-Agent" "X-Mailer" "X-Newsreader"
-		 "NNTP-Posting-Host"
-		 "Organization"
-		 "Content-Type"))
-	      "\\):"))
+(rs-gnus-summary-tree-arrows-wide)
+
 
 ;; vi
 (defun xwl-vi-like-hook ()
@@ -4095,11 +4172,40 @@ You need to add `Content-Type' to `nnmail-extra-headers' and
 ;;;; Article
 ;; ---------
 
+(setq gnus-visible-headers
+      (concat "^\\("
+	      (regexp-opt
+	       '("From" "To" "CC" "Subject" "Date"
+		 "User-Agent" "X-Mailer" "X-Newsreader"
+		 "NNTP-Posting-Host"
+		 "Organization"
+		 "Content-Type"
+                 "Newsgroups"))
+	      "\\):"))
+
 ;; (remove-hook 'gnus-article-prepare-hook 'gnus-article-fill-long-lines)
 (add-hook 'gnus-article-prepare-hook 'less-minor-mode-on)
 
 (defun xwl-gnus-article-mode-hook ()
-  (local-set-key (kbd "q") 'delete-window))
+  (local-set-key (kbd "q") 'delete-window)
+  (xwl-gnus-article-show-ip)
+)
+
+(defun xwl-gnus-article-show-ip ()
+  "Show author's ip info in newsgroups."
+  (save-excursion
+    (message-narrow-to-headers)
+    (when (search-forward-regexp
+           "NNTP-Posting-Host: \\([0-9.]+\\)" nil t)
+      (end-of-line)
+      (insert-and-inherit " (")
+      (insert-and-inherit
+       (car
+        (split-string
+         (shell-command-to-string
+          (concat "ip.scm " (match-string 1)))
+         "\n")))
+      (insert-and-inherit ")"))))
 
 (add-hook 'gnus-article-prepare-hook 'xwl-gnus-article-mode-hook)
 
@@ -4127,8 +4233,6 @@ You need to add `Content-Type' to `nnmail-extra-headers' and
   (xwl-gnus-add-newsgroups-maybe))
 
 (ad-activate 'gnus)
-
-(global-set-key (kbd "<f6>") 'gnus)
 
 (defun xwl-gnus-group-mode-hook ()
   (xwl-vi-like-hook)
