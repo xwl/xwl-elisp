@@ -943,7 +943,7 @@ the empty string."
 (setq dired-recursive-copies 'always
       dired-recursive-deletes 'top)
 
-(require 'dired-view)
+;; (require 'dired-view)
 
 (defun xwl-dired-wvHtml ()
   (concat "wvHtml --charset=gb2312 * "
@@ -1098,7 +1098,14 @@ the empty string."
 )
 
 (add-hook 'dired-mode-hook 'xwl-dired-mode-hook)
-(add-hook 'dired-mode-hook 'dired-view-minor-mode-on)
+;;(remove-hook 'dired-mode-hook 'dired-view-minor-mode-on)
+
+(require 'dired-isearch)
+(define-key dired-mode-map (kbd "C-s") 'dired-isearch-forward-regexp)
+(define-key dired-mode-map (kbd "C-r") 'dired-isearch-backward-regexp)
+(define-key dired-mode-map (kbd "ESC C-s") 'dired-isearch-forward)
+(define-key dired-mode-map (kbd "ESC C-r") 'dired-isearch-backward)
+
 ;;;; buffers
 
 ;; tabbar
@@ -2408,6 +2415,7 @@ yacc source files."
 
 ;; scheme
 (require 'scheme)
+(require 'srfi)
 (setq scheme-program-name "guile")
 (defun xwl-scheme-mode-hook ()
   (setq comment-add 1)
@@ -2756,6 +2764,8 @@ so as to keep an eye on work when necessarily."
 			 emms-player-ogg123
 			 emms-player-mpg321))
 
+(setq emms-player-next-function 'emms-score-next-noerror)
+
 ;; coding
 (setq emms-info-mp3info-coding-system 'gbk
       emms-lyrics-coding-system 'gbk
@@ -2811,7 +2821,7 @@ so as to keep an eye on work when necessarily."
 
 (define-key emms-playlist-mode-map (kbd "S s") 'emms-playlist-sort-by-score)
 
-(global-set-key (kbd "<f3>") 'emms-playlist-mode-go)
+(global-set-key (kbd "<f3>") 'emms-playlist-mode-go-popup)
 
 
 (defun xwl-emms-google-track ()
@@ -2892,21 +2902,27 @@ This is a good function to put in `emms-player-finished-hook'."
              (min (/ playing-time 60))
              (sec (% playing-time 60))
              (album (emms-track-get track 'info-album)))
-        (format "%-4d%-6s%02d:%02d    %-20s《%s》 - %s"
+;;         (format "%-4d%-6s%02d:%02d    %-20s《%s》 - %s"
+;;                 score
+;;                 (or year "")
+;;                 (or min "")
+;;                 (or sec "")
+;;                 (or artist (error "Bad artist"))
+;;                 (or album "")
+;;                 (or title (error "Bad title")))
+
+        (format "%-3d%s - %s"
                 score
-                (or year "")
-                (or min "")
-                (or sec "")
                 (or artist (error "Bad artist"))
-                (or album "")
-                (or title (error "Bad title"))))
+                (or title (error "Bad title")))
+        )
     (error
      (let ((basic
             (if (eq 'file type)
                 (file-name-sans-extension
                  (file-name-nondirectory name))
               (concat (symbol-name type) ":" name))))
-       (format "%-4d%s" score basic))))))
+       (format "%-3d%s" score basic))))))
 
 (setq emms-track-description-function
       'my-emms-track-description-function)
@@ -3943,8 +3959,8 @@ arguments?"
       '("william.xwl@gmail.com"
 	"william.xwl@hotmail.com"
 	"william_xuuu@163.com"
-	"xwl02@mails.tsinghua.edu.cn"
-	"xuweilin@mail.tsinghua.org.cn"
+	;; "xwl02@mails.tsinghua.edu.cn"
+	"xuweilin@tsinghua.org.cn"
 	"matchsticker.bbs@newsmth.org"
 
 	"william.xwl.list@gmail.com"
@@ -4196,14 +4212,14 @@ arguments?"
   (save-excursion
     (message-narrow-to-headers)
     (when (search-forward-regexp
-           "NNTP-Posting-Host: \\([0-9.]+\\)" nil t)
+           "NNTP-Posting-Host: \\([0-9.]+\\)" nil t) ; a-zA-Z
       (end-of-line)
       (insert-and-inherit " (")
       (insert-and-inherit
        (car
         (split-string
          (shell-command-to-string
-          (concat "ip.scm " (match-string 1)))
+          (concat "ip.scm " (match-string-no-properties 1)))
          "\n")))
       (insert-and-inherit ")"))))
 
@@ -4630,12 +4646,21 @@ arguments?"
 (when window-system
   (color-theme-xwl))
 
+;;; FUN
+
+(require 'highlight-tail)
+(highlight-tail-reload)
+(remove-hook 'minor-mode-alist '(highlight-tail-mode " ht"))
+(add-hook 'minor-mode-alist '(highlight-tail-mode " Ht"))
+
 ;;; POST
 
 (set-default-font "10x20")
 
 ;; (defalias 'w3m-safe-view-this-url 'browse-url-at-point)
 ;; (defalias 'w3m-view-this-url 'browse-url-at-point)
+
+(open-dribble-file "~/.emacs-key-log")
 
 ;; see .xwl-emacs-main.el and .xwl-emacs-gnus.el
 
