@@ -3,7 +3,8 @@
 ;; Copyright (C) 2005, 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: v 0.43
+;; Version: v 0.44
+;; Last updated: 2006/08/24 00:10:59
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,8 +33,10 @@
 ;; within Emacs. :-)
 
 ;; Put this file into your load-path and the following into your ~/.emacs:
-;;   (require 'wajig)
-;;
+
+;;    (autoload 'wajig "wajig"
+;;             "Create a *wajig* buffer." t)
+
 ;; Then, simply run `M-x wajig'.
 
 ;; Features
