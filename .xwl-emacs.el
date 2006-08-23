@@ -471,7 +471,7 @@ If SCHEME?, `run-scheme'."
 
 (defun xwl-write-file-hook ()
   ;; write-file-hooks must return nil if success.
-  ;; (xwl-update-date)
+  (xwl-update-date)
   (nuke-trailing-whitespace))
 
 (add-hook 'write-file-hooks 'xwl-write-file-hook)
@@ -938,7 +938,6 @@ the empty string."
 (require 'wdired)
 (autoload 'wdired-change-to-wdired-mode "wdired")
 
-(require 'dired-single)
 (require 'dired-x)
 (setq dired-recursive-copies 'always
       dired-recursive-deletes 'top)
@@ -950,7 +949,8 @@ the empty string."
 	  (xwl-dired-get-filename-no-extention) ".html"))
 
 (defun xwl-start-process-shell-command (cmd)
-  "Don't create a separate output buffer."
+  "Don't create a separate output buffer.
+This is run asynchronously, compared to `shell-command'."
   (start-process-shell-command cmd nil cmd))
 
 ;; redefine this function to disable output buffer.
@@ -1077,9 +1077,8 @@ the empty string."
 
   (local-set-key (kbd "* f") 'find-name-dired)
   (local-set-key (kbd "* g") 'grep-find)
-  (define-key dired-mode-map (kbd "RET") 'joc-dired-single-buffer)
+  ; (define-key dired-mode-map (kbd "RET") 'joc-dired-single-buffer)
   (define-key dired-mode-map (kbd "T") 'dired-advertised-find-file)
-  (define-key dired-mode-map (kbd "^") '(lambda () (interactive) (joc-dired-single-buffer "..")))
   (define-key dired-mode-map (kbd "v") 'xwl-dired-w3m-find-file)
   (define-key dired-mode-map (kbd "r") 'wdired-change-to-wdired-mode)
 
@@ -1120,7 +1119,7 @@ the empty string."
 
 ;; ibuffer
 (require 'ibuffer)
-; (global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
 (setq ibuffer-fontification-level t)
 (setq ibuffer-never-show-regexps nil)
 
@@ -2046,7 +2045,7 @@ Chinese and digits, which is useful when editing TeX files."
 
 (ad-activate 'darcs-changes)
 
-(require 'darcsum)
+; (require 'darcsum)
 
 (require 'vc-darcs)
 (add-to-list 'vc-handled-backends 'DARCS)
@@ -2392,9 +2391,7 @@ yacc source files."
 (global-set-key "\C-csD" 'cscope-dired-directory)
 ;;;; lisp, scheme, guile
 
-;; quack
-;; (require 'quack)
-;; (setq quack-fontify-style nil)
+(require 'bracketphobia)
 
 ;; lisp
 (require 'lisp-mnt)
@@ -2458,6 +2455,14 @@ yacc source files."
 ;; guile
 (setq guile-program "guile")
 
+;; guile debugger
+
+;; (defadvice gds-help-symbol (after jump-to-help)
+;;   (other-window 1))
+;;   (less-minor-mode-on))
+
+;; (ad-activate 'gds-help-symbol)
+
 ;; (require 'guile-scheme)
 ;; (setq initial-major-mode 'scheme-interaction-mode)
 
@@ -2511,7 +2516,8 @@ yacc source files."
 ;; 	   ))
 
 ;; debian pkg manager
-(require 'wajig)
+(autoload 'wajig "wajig"
+  "Create a *wajig* buffer." t)
 (global-set-key (kbd "<f10>") 'wajig)
 
 (setq wajig-frequent-commands
@@ -2764,8 +2770,6 @@ so as to keep an eye on work when necessarily."
 			 emms-player-ogg123
 			 emms-player-mpg321))
 
-(setq emms-player-next-function 'emms-score-next-noerror)
-
 ;; coding
 (setq emms-info-mp3info-coding-system 'gbk
       emms-lyrics-coding-system 'gbk
@@ -2823,7 +2827,6 @@ so as to keep an eye on work when necessarily."
 
 (global-set-key (kbd "<f3>") 'emms-playlist-mode-go-popup)
 
-
 (defun xwl-emms-google-track ()
   (interactive)
   (let* ((file
@@ -2853,28 +2856,16 @@ so as to keep an eye on work when necessarily."
   (setq emms-no-next-p t)
   (message "Will finish current song, then stop."))
 
-(defun emms-next-noerror ()
-  "Start playing the next track in the EMMS playlist.
-Unlike `emms-next', this function doesn't signal an error when called
-at the end of the playlist.
-This function should only be called when no player is playing.
-This is a good function to put in `emms-player-finished-hook'."
+(defun xwl-emms-next-noerror ()
+  "Wrap `emms-score-next-noerror' with `emms-no-next-p' check."
   (interactive)
-  (when emms-player-playing-p
-    (error "A track is already being played"))
   (cond (emms-no-next-p
 	 (emms-stop)
 	 (setq emms-no-next-p nil))
-	(emms-repeat-track
-	 (emms-start))
-	((condition-case nil
-	     (progn
-	       (emms-playlist-current-select-next)
-	       t)
-	   (error nil))
-	 (emms-start))
 	(t
-	 (message "No next track in playlist"))))
+         (emms-score-next-noerror))))
+
+(setq emms-player-next-function 'xwl-emms-next-noerror)
 
 ;; %a is artist.
 ;; %t is title.
@@ -3506,7 +3497,7 @@ Will result in,
 (require 'planner-trunk)
 (setq planner-trunk-rule-list
       '(("\\`[0-9][0-9][0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]\\'" nil
-         ("长期" "读书" "杂项" "工作"))))
+         ("每天" "长期" "读书" "杂项" "工作" "TaskPool"))))
 (add-hook 'planner-mode-hook 'planner-trunk-tasks)
 
 (defadvice plan (around writable-and-fill)
@@ -3688,7 +3679,7 @@ Will result in,
         (nntp "news.yaako.com")
         (nntp "webking.online.jn.sd.cn")
         ;; (nntp "news.newsfan.net") ; due to gb2312 issue
-        (nnslashdot "")
+        ;; (nnslashdot "")
         ))
 
 (defun xwl-gnus-add-newsgroups-maybe ()
@@ -3822,35 +3813,13 @@ arguments?"
 		    (@-pos (string-match "@" list-str)))
 	       `(,list-str ,(substring list-str 0 @-pos))))
 	   '(
-;;           gcc-help@gcc.gnu.org
 	     gtk-list@gnome.org
 	     sawfish-list@gnome.org
 	     conkeror@mozdev.org
 
-	     help-gnu-emacs@gnu.org
-	     emacs-devel@gnu.org
 	     gnu-emacs-sources@gnu.org
-	     emacs-wiki-discuss@nongnu.org
-	     emms-help@gnu.org
 	     emms-patches@gnu.org
-;;	     darcs-users@darcs.net
-;;	     muse-el-commits@gna.org
-	     debian-emacsen@lists.debian.org
-             bbdb-info@lists.sourceforge.net
-             planner-el-discuss@gna.org
-
-	     debian-powerpc@lists.debian.org
-	     debian-chinese-gb@lists.debian.org
-	     debian-news@lists.debian.org
-             debian-user@lists.debian.org
-             debian-devel-announce@lists.debian.org
-             debian-devel@lists.debian.org
-
-;; 	     penguinppc-team@lists.penguinppc.org
-;; 	     yaboot-announce@lists.penguinppc.org
-;; 	     yaboot-users@lists.penguinppc.org
-;; 	     yaboot-devel@lists.penguinppc.org
-;; 	     linuxppc-dev@ozlabs.org
+             ;;	     darcs-users@darcs.net
 
 	     zhcon-users@lists.sourceforge.net
 	     ;; TODO, fix this
@@ -3866,45 +3835,11 @@ arguments?"
 	     ctrenzaibj@googlegroups.com
 	     emacs-cn@googlegroups.com
 
-	     python-chinese@lists.python.cn
-             tutor@python.org
-	     python-dev@python.org
-	     python-list@python.org
-	     python-announce-list@python.org
-	     comp-lang-python-announce@moderators.isc.org
-             python-announce@python.org
-
-             ruby-talk@ruby-lang.org
-             ruby-core@ruby-lang.org
-             ruby-doc@ruby-lang.org
-
              pdesc@ddtp.debian.net
 	     ))
 
-	("dev@nipl.net"     "nipl.dev")
-	("admins@nipl.net"  "nipl.admins")
-	("math@nipl.net"    "nipl.math")
-	("music@nipl.net"   "nipl.music")
-	("people@nipl.net"  "nipl.people")
-	("support@nipl.net" "nipl.support")
-	("welcome@nipl.net" "nipl.welcome")
-
-	("noreply-orkut@google.com"     "general")
-
 	;; local mails
-	(".*Cron Daemon.*\\|.*root\\|Mailer-Daemon@williamxwl" "local")
-
-	(,(concat  ".*"
-		   (regexp-opt
-		    '("Service@Paypal.com"
-		      "apolinar@rozen.com"
-		      "drchris_lumka@yahoo.com"
-		      "@octave.org"
-		      "aw-confirm@ebay.com"
-                      "cartoes@uol.com.br"
-                      "zhilong1027@lianluo.com"))
-		   ".*")
-	 "trash")))
+	(".*Cron Daemon.*\\|.*root\\|Mailer-Daemon@williamxwl" "local")))
 
 ;; gnus parameters
 (setq gnus-parameters
@@ -3973,7 +3908,7 @@ arguments?"
 (defun xwl-notify-important ()
   "Notify me when important mails incoming."
   (xwl-start-process-shell-command
-   "zenity --info --text \"You've Got Mail \!\" --title \"Gnus\"")
+    "zenity --info --text \"You've Got Mail \!\" --title \"Gnus\"")
   "important")
 
 (setq nnmail-split-fancy-match-partial-words t)
@@ -4024,6 +3959,8 @@ arguments?"
 
 	  (to "matchsticker@newsmth.*" "newsmth")
 	  (to ,(regexp-opt xwl-mailbox-lists) "general")
+
+          (from ".*@localhost" "local")
 
 	  "trash"))
 
@@ -4650,8 +4587,6 @@ arguments?"
 
 (require 'highlight-tail)
 (highlight-tail-reload)
-(remove-hook 'minor-mode-alist '(highlight-tail-mode " ht"))
-(add-hook 'minor-mode-alist '(highlight-tail-mode " Ht"))
 
 ;;; POST
 
@@ -4663,5 +4598,14 @@ arguments?"
 (open-dribble-file "~/.emacs-key-log")
 
 ;; see .xwl-emacs-main.el and .xwl-emacs-gnus.el
+
+;; (toggle-debug-on-error)
+
+;; (load-file "/home/william/share/emacs/site-lisp/gds-server.el")
+;; (load-file "/home/william/share/emacs/site-lisp/gds-scheme.el")
+;; (load-file "/home/william/share/emacs/site-lisp/gds.el")
+
+;; (require 'gds)
+;; (global-set-key (kbd "<f1> g") 'gds-help-symbol)
 
 ;;; .xwl-emacs.el ends here
