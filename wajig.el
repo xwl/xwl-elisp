@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: v 0.44
-;; Last updated: 2006/08/24 00:10:59
+;; Last updated: 2006/08/24 21:25:46
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -635,7 +635,7 @@ OPTION could be:
 	  "Architecture" "Version" "Depends" "Suggests" "Filename"
 	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
 	  "Conffiles" "Source" "Provides" "Pre-Depends" "Recommends"
-          "SHA1" "SHA256"))
+          "SHA1" "SHA256" "Enhances"))
        "\\):")
      (0 font-lock-keyword-face t t)))
   "Keywords to highlight in wajig mode.")
