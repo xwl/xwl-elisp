@@ -4,10 +4,10 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.11
-
+;; Last updated: 2006/08/26 18:58:59
 ;;; Commentary:
 
-;; William Xu's ultimate `.emacs' !
+;; William Xu's Ultimate `.emacs' !
 
 ;;; History
 
@@ -40,46 +40,13 @@
 ;;
 ;;                                -- William Xu
 ;;
-;; 2003/07/03, my linux life started(Mandrake)
-;; 2003/11/?, my Emacs life started(Mandrake -> RedHat), along with the
-;; born of - Emacs@smth.org
-;;
-;; In the first two or three weeks, learning Emacs, was really a challenge.
-;; It was really tough for a beginner, i had thought of quitting at times,
-;; but luckily, i didn't give up. To begin, i've read the tutorial, Sam's
-;; Teaching you Emacs in 24 hours, and used a card, read all the posts in
-;; Emacs@smth..., etc. After serveral weeks(not a short time, hmm), i got
-;; accustomed to Emacs' life, the way of looking for, installing,
-;; configing, new packages, and the way of getting on-line help. (First
-;; Stage)
-;;
-;; New semester begun(around Feb, 2004), after striking for as long as a
-;; week,(not a short time, again, hmm, ;-), most of which was spent on
-;; looking for the driver for my video card, i successfully switched from
-;; RedHat to Debian, which i fell in love with immediately, and which
-;; seemed as a heaven for me, who was living with RedHat in the
-;; past. Debian is really great, saves me masses of time! Meanwhile, still
-;; playing with Emacs, and got to know Wang Yin from BBS, whose homepage
-;; was very popular among Linux fans at smth. At first glance, his homepage
-;; was just so so. While later, when i found his Emacs part, especially the
-;; Emacs Features' introduction part, which was really amazing, a very long
-;; html page, full of bunches of Emacs's great features, charming. I was
-;; shocked! Wow, so wonderful! I kept on finishing that page all that night
-;; until light was off. It was at that time, that i first had a truly
-;; feeling of happiness, as an Emacs user. Soon many new features was
-;; added to my Emacs. Thanks Wang, who showed me the great charm of
-;; Emacs.(Second Stage)
-;;
-;; Now, i'm here, writing my history of life with Emacs in Emacs, ;-) Love
-;; Emacs, Love Life!
+;; See `xwl-private.el' for more.
 
 ;;; Change Log
 
-;; See `darcs changlog'.
+;; See `darcs changelog'.
 
 ;;; Code
-
-(setq at-home? t)
 
 ;; a special version of emacs. (default is cvs version)
 (setq xwl-emacs-special-p
@@ -96,8 +63,7 @@
   ;; (shell-command "mplayer ~/share/sounds/default/emacs.ogg &")
   (delete-other-windows))
 
-(when at-home?
-  (xwl-emacs-reloaded-begin))
+(xwl-emacs-reloaded-begin)
 
 ;; load path
 ;; ---------
@@ -151,8 +117,7 @@
 ;; general
 ;; -------
 
-(when at-home?
-  (require 'xwl-lib))
+(require 'xwl-lib)
 
 ;; xwl-word-count-analysis (how many times a word has appeared).
 (defun xwl-word-count-analysis (start end)
@@ -438,9 +403,8 @@ If SCHEME?, `run-scheme'."
       backup-by-copying-when-linked t
       backup-by-copying-when-mismatch t)
 
-(when at-home?
-  (setq backup-directory-alist
-	'(("." . "~/src/backup/.emacs.backups" ))))
+(setq backup-directory-alist
+      '(("." . "~/src/backup/.emacs.backups" )))
 
 ;; screen-lines
 (require 'screen-lines)
@@ -529,7 +493,7 @@ If SCHEME?, `run-scheme'."
 (setq other-holidays
       '((holiday-chinese 5 11 "My Day !")
         (holiday-chinese 7 7 "情人节")
-        (holiday-chinese 10 10 "海豹公主的生日！& 民国双十节")))
+        (holiday-chinese 10 10 "海豚公主的生日！& 民国双十节")))
 
 (setq calendar-holidays
       (append calendar-holidays other-holidays))
@@ -1435,7 +1399,10 @@ again will move forwad to the next Nth occurence of CHAR."
 
 (defun xwl-insert-date ()
   (interactive)
-  (insert (format-time-string "%Y/%m/%d %H:%M:%S" (current-time))))
+  (insert (xwl-get-date)))
+
+(defun xwl-get-date ()
+  (format-time-string "%Y/%m/%d %H:%M:%S" (current-time)))
 
 (defun xwl-update-date ()
   "Auto update '[Ll]ast [Uu]pdated:' part if exists, after file saved."
@@ -1656,7 +1623,7 @@ again will move forwad to the next Nth occurence of CHAR."
 	(rmail-mode . 1048576)
 	(tex-mode . 1048576)))
 
-;; misc
+;;;; misc
 (setq kill-ring-max 100
       ring-bell-function 'ignore
       uniquify-buffer-name-style 'forward
@@ -1940,6 +1907,38 @@ Chinese and digits, which is useful when editing TeX files."
       ' ("~/bin" "/usr/local/bin" "/usr/bin" "/bin" "/usr/bin/X11"
          "/usr/games" "/usr/lib/emacs/22.0.50/powerpc-linux-gnu"))
 
+;; (redefined)Use file's full path as buffer name when opening files
+;; with same names.
+(defun create-file-buffer (filename)
+  (let ((lastname (file-name-nondirectory filename)))
+    (if (string= lastname "")
+    (setq lastname filename))
+    (if (get-buffer lastname)
+        (generate-new-buffer filename)
+      (generate-new-buffer lastname))))
+
+(defun xwl-revert-buffer-with-sudo ()
+  "Revert buffer using tramp sudo.
+And also reserve changes made by non-root user before."
+  (interactive)
+  (let ((buf (current-buffer))
+        (filename (buffer-file-name))
+        (buf-content (when (buffer-modified-p)
+                       (widen)
+                       (buffer-string))))
+    (with-current-buffer buf
+      (save-excursion
+        (if (file-writable-p filename)
+            (revert-buffer)
+          (kill-buffer (current-buffer))
+          (find-file (concat "/sudo::" filename))
+          (when buf-content
+            (setq buffer-read-only nil)
+            (erase-buffer)
+            (insert buf-content)))))))
+
+(global-set-key (kbd "C-c m R") 'xwl-revert-buffer-with-sudo)
+
 
 ;;; PROGRAMMING
 
@@ -2100,14 +2099,14 @@ Chinese and digits, which is useful when editing TeX files."
 (xwl-pascal-mode-hook)
 
 ;; sql
-(require 'wx-passwd)
+(require 'xwl-private)
 ;(load-file "~/.emacs.d/site-lisp/william/wx-passwd.el")
 
 (require 'sql)
 
 (setq sql-mysql-program "mysql"
       sql-user          "root"
-      sql-password      "havefun"
+      sql-password      pwsql
       sql-database      ""
       sql-server        "localhost")
 
@@ -2838,7 +2837,11 @@ so as to keep an eye on work when necessarily."
 	 (url
 	  (if (string-match "\\cc" file)
 	      ;; baidu couldn't handle chinese correctly?
-	      ;; 	      "http://mp3.baidu.com/m?f=ms&rn=10&tn=baidump3lyric&ct=150994944&word=hello&submit=%B0%D9%B6%C8%CB%D1%CB%F7&lm=-1"
+
+      ;; "http://mp3.baidu.com/m?f=ms&rn=10&tn=baidump3lyric&ct=150994944&word=hello
+       ;; &submit=%B0%D9%B6%C8%CB%D1%CB%F7&lm=-1"
+
+
 	      "http://mp3.baidu.com/"
 	    (concat "http://search.lyrics.astraweb.com/?word="
              ;;"http://www.lyrics007.com/cgi-bin/s.cgi?q="
@@ -3163,8 +3166,8 @@ so as to keep an eye on work when necessarily."
   (global-set-key (kbd "C-M-+") 'amixer-increment-volume))
 
 ;; score
-(require 'emms-score)
-(emms-score 1)
+;; (require 'emms-score)
+;; (emms-score 1)
 
 (setq my-emms-last-track nil)
 
@@ -3354,7 +3357,7 @@ store into a file to download later."
 (require 'muse-html)
 (require 'muse-texinfo)
 (require 'muse-latex)
-(require 'muse-journal)
+;; (require 'muse-journal)
 ;; (require 'muse-latexcjk)
 
 (setq muse-project-alist
@@ -3497,7 +3500,7 @@ Will result in,
 (require 'planner-trunk)
 (setq planner-trunk-rule-list
       '(("\\`[0-9][0-9][0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]\\'" nil
-         ("每天" "长期" "读书" "杂项" "工作" "TaskPool"))))
+         ("重要" "每天" "长期" "读书" "杂项" "工作" "TaskPool"))))
 (add-hook 'planner-mode-hook 'planner-trunk-tasks)
 
 (defadvice plan (around writable-and-fill)
@@ -3635,6 +3638,11 @@ Will result in,
 (define-key outline-mode-map (kbd "C-c C-u") 'xwl-outline-toggle-enter-exit)
 (define-key outline-mode-map (kbd "C-c C-q") 'xwl-outline-toggle-show-hide)
 (define-key outline-mode-map (kbd "C-c C-a") 'show-all)
+
+;;;; org
+
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
 
 ;;; GNUS
 
@@ -3656,7 +3664,7 @@ Will result in,
 
 ;; scan new mail every 5 minutes, it seems not work.
 ;; (require 'gnus-demon)
-(gnus-demon-add-handler 'gnus-demon-add-scanmail 5 nil)
+;; (gnus-demon-add-handler 'gnus-demon-add-scanmail 5 nil)
 
 ;;;; Newsgroup Servers
 ;; -------------------
@@ -3889,22 +3897,6 @@ arguments?"
 ;;;; Split Incoming Mails
 ;; ----------------------
 
-;; These will go to `mail.genenal'.
-(setq xwl-mailbox-lists
-      '("william.xwl@gmail.com"
-	"william.xwl@hotmail.com"
-	"william_xuuu@163.com"
-	;; "xwl02@mails.tsinghua.edu.cn"
-	"xuweilin@tsinghua.org.cn"
-	"matchsticker.bbs@newsmth.org"
-
-	"william.xwl.list@gmail.com"
-
-	"william_xuuu@sohu.com"
-	"william_xuuu99@sina.com.cn"
-	"william_xuuu@hotmail.com"
-	"william_xuuu@yahoo.com.cn"))
-
 (defun xwl-notify-important ()
   "Notify me when important mails incoming."
   (xwl-start-process-shell-command
@@ -3940,7 +3932,8 @@ arguments?"
                        "sender@maillist.csdn.net"
                        "newsletter@mysql.com"
                        "mailman-owner@python.org"
-                       "Gmane Autoauthorizer"))
+                       "Gmane Autoauthorizer"
+                       "pandonny@linuxsir.org.cn"))
                     ".*")
            "general")
 
@@ -4376,8 +4369,11 @@ arguments?"
       (view-highlight-face . highlight)
       (w3m-form-mouse-face . highlight)
       (widget-mouse-face . highlight))
-     (default ((t (:stipple nil :background "darkslategrey" :foreground "wheat" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :width normal :family "outline-andale mono"))))
-
+     (default ((t (:stipple nil :background "darkslategrey" :foreground
+                            "wheat" :inverse-video nil :box nil
+                            :strike-through nil :overline nil :underline
+                            nil :slant normal :weight normal :width
+                            normal :family "outline-andale mono"))))
      (Info-title-1-face ((t (:bold t :foreground "yellow" :weight bold))))
      (Info-title-2-face ((t (:bold t :foreground "lightblue" :weight bold))))
      (Info-title-3-face ((t (:bold t :weight bold))))
@@ -4430,13 +4426,18 @@ arguments?"
      (gnus-cite-face-8 ((t (:foreground "SpringGreen4"))))
      (gnus-cite-face-9 ((t (:foreground "SlateGray4"))))
      (gnus-emphasis-bold ((t (:bold t :foreground "greenyellow" :weight bold :family "Arial"))))
-     (gnus-emphasis-bold-italic ((t (:italic t :bold t :foreground "OrangeRed1" :slant italic :weight bold :family "arial"))))
+     (gnus-emphasis-bold-italic
+      ((t (:italic t :bold t :foreground "OrangeRed1" :slant italic :weight bold :family "arial"))))
      (gnus-emphasis-highlight-words ((t (:background "black" :foreground "khaki"))))
-     (gnus-emphasis-italic ((t (:italic t :bold t :foreground "orange" :slant italic :weight bold :family "Arial"))))
+     (gnus-emphasis-italic
+      ((t (:italic t :bold t :foreground "orange" :slant italic :weight bold :family "Arial"))))
      (gnus-emphasis-underline ((t (:foreground "greenyellow" :underline t))))
-     (gnus-emphasis-underline-bold ((t (:bold t :foreground "khaki" :underline t :weight bold :family "Arial"))))
-     (gnus-emphasis-underline-bold-italic ((t (:italic t :bold t :underline t :slant italic :weight bold :family "Arial"))))
-     (gnus-emphasis-underline-italic ((t (:italic t :foreground "orange" :underline t :slant italic :family "Arial"))))
+     (gnus-emphasis-underline-bold
+      ((t (:bold t :foreground "khaki" :underline t :weight bold :family "Arial"))))
+     (gnus-emphasis-underline-bold-italic
+      ((t (:italic t :bold t :underline t :slant italic :weight bold :family "Arial"))))
+     (gnus-emphasis-underline-italic
+      ((t (:italic t :foreground "orange" :underline t :slant italic :family "Arial"))))
      (gnus-group-mail-1-empty-face ((t (:foreground "Salmon4"))))
      (gnus-group-mail-1-face ((t (:bold t :foreground "firebrick1" :weight bold))))
      (gnus-group-mail-2-empty-face ((t (:foreground "turquoise4"))))
@@ -4474,7 +4475,9 @@ arguments?"
      (gnus-summary-high-ancient-face ((t (:bold t :foreground "MistyRose4" :weight bold))))
 
      (gnus-summary-high-ticked-face ((t (:bold t :foreground "coral" :weight bold))))
-     (gnus-summary-high-unread-face ((t (:italic t :bold t :foreground "red1" :slant italic :weight bold))))
+     (gnus-summary-high-unread-face ((t (:italic t :bold t :foreground
+                                                 "red1" :slant italic
+                                                 :weight bold))))
      (gnus-summary-low-ancient-face ((t (:italic t :foreground "DarkSeaGreen4" :slant italic))))
      (gnus-summary-low-read-face ((t (:foreground "SeaGreen4"))))
      (gnus-summary-low-ticked-face ((t (:italic t :foreground "Green4" :slant italic))))
@@ -4512,7 +4515,10 @@ arguments?"
      (message-cited-text-face ((t (:foreground "White"))))
      (message-header-cc-face ((t (:foreground "light cyan"))))
      (message-header-name-face ((t (:foreground "DodgerBlue1"))))
-     (message-header-newsgroups-face ((t (:italic t :bold t :foreground "LightSkyBlue3" :slant italic :weight bold))))
+     (message-header-newsgroups-face ((t (:italic t :bold t :foreground
+                                                  "LightSkyBlue3" :slant
+                                                  italic :weight
+                                                  bold))))
      (message-header-other-face ((t (:foreground "LightSkyBlue3"))))
      (message-header-subject-face ((t (:bold t :foreground "light cyan" :weight bold))))
      (message-header-to-face ((t (:bold t :foreground "light cyan" :weight bold))))
@@ -4558,7 +4564,10 @@ arguments?"
      (w3m-form-button-mouse-face ((t (:foreground "red" :underline t))))
      (w3m-form-button-pressed-face ((t (:foreground "red" :underline t))))
      (w3m-form-face ((t (:foreground "red" :underline t))))
-     (w3m-header-line-location-content-face ((t (:background "Gray20" :foreground "LightGoldenrod"))))
+     (w3m-header-line-location-content-face ((t (:background "Gray20"
+                                                             :foreground
+                                                             "LightGoldenrod"))))
+
      (w3m-header-line-location-title-face ((t (:background "Gray20" :foreground "Cyan"))))
      (w3m-history-current-url-face ((t (:background "cyan" :foreground "LightSkyBlue"))))
      (w3m-image-face ((t (:foreground "PaleGreen"))))
@@ -4597,15 +4606,12 @@ arguments?"
 
 (open-dribble-file "~/.emacs-key-log")
 
-;; see .xwl-emacs-main.el and .xwl-emacs-gnus.el
-
 ;; (toggle-debug-on-error)
-
-;; (load-file "/home/william/share/emacs/site-lisp/gds-server.el")
-;; (load-file "/home/william/share/emacs/site-lisp/gds-scheme.el")
-;; (load-file "/home/william/share/emacs/site-lisp/gds.el")
 
 ;; (require 'gds)
 ;; (global-set-key (kbd "<f1> g") 'gds-help-symbol)
+
+;; See `.xwl-emacs-main.el' and `.xwl-emacs-gnus.el' for next loadup
+;; step.
 
 ;;; .xwl-emacs.el ends here
