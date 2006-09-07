@@ -3,8 +3,8 @@
 ;; Copyright (C) 2005, 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: v 0.5
-;; Last updated: 2006/09/04 23:25:30
+;; Version: v 0.51
+;; Last updated: 2006/09/07 20:45:10
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -531,14 +531,12 @@ OPTION could be:
 
 (defun wajig-update-installed-pkgs ()
   "Update `wajig-installed-pkgs'."
-  (interactive)
   (setq wajig-installed-pkgs
 	(split-string
 	 (shell-command-to-string "sudo wajig list-installed"))))
 
 (defun wajig-update-daemons ()
   "Update daemons' list."
-  (interactive)
   (setq wajig-daemons
 	(split-string
 	 (replace-regexp-in-string
@@ -547,7 +545,6 @@ OPTION could be:
 
 (defun wajig-update-command-path-alist ()
   "Update `wajig-command-path-alist' immediately."
-  (interactive)
   (setq wajig-command-path-alist '())
   ;; bin path
   (mapc
