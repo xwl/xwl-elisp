@@ -4,8 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.11
-;; Last updated: 2006/08/26 18:58:59
-;;; Commentary:
+;; Last updated: 2006/09/13 00:32:17
 
 ;; William Xu's Ultimate `.emacs' !
 
@@ -491,12 +490,19 @@ If SCHEME?, `run-scheme'."
       view-calendar-holidays-initially t)
 
 (setq other-holidays
-      '((holiday-chinese 5 11 "My Day !")
-        (holiday-chinese 7 7 "情人节")
-        (holiday-chinese 10 10 "海豚公主的生日！& 民国双十节")))
+      '((holiday-chinese 5 11 "我的生日！")
+        (holiday-chinese 10 10 "海豚公主的生日！& 民国双十节")
+
+        (holiday-fixed 6 3 "jojo 的生日！")
+        (holiday-fixed 7 23 "xs 的生日！")))
 
 (setq calendar-holidays
       (append calendar-holidays other-holidays))
+
+(define-key calendar-mode-map (kbd "j") 'calendar-forward-week)
+(define-key calendar-mode-map (kbd "k") 'calendar-backward-week)
+(define-key calendar-mode-map (kbd "l") 'calendar-forward-day)
+(define-key calendar-mode-map (kbd "h") 'calendar-backward-day)
 
 ;; which week at school
 ;; --------------------
@@ -1405,16 +1411,18 @@ again will move forwad to the next Nth occurence of CHAR."
   (format-time-string "%Y/%m/%d %H:%M:%S" (current-time)))
 
 (defun xwl-update-date ()
-  "Auto update '[Ll]ast [Uu]pdated:' part if exists, after file saved."
+  "Auto update '[Ll]ast [Uu]pdated:' part if exists when saving.
+This should not affect `buffer-undo-list'."
   (interactive)
-  (save-excursion
-    (beginning-of-buffer)
-    (when (search-forward-regexp "Last\\ updated:" nil t)
-      (progn
-	(kill-line)
-	(insert " ")
-	(xwl-insert-date)))
-    nil))
+  (let ((old-list buffer-undo-list))
+    (save-excursion
+      (beginning-of-buffer)
+      (when (search-forward-regexp "Last\\ updated:" nil t)
+        (kill-line)
+        (insert " ")
+        (xwl-insert-date)))
+    (setq buffer-undo-list old-list))
+  nil)
 
 (global-set-key (kbd "C-c m d") 'xwl-insert-date)
 
@@ -1474,7 +1482,7 @@ again will move forwad to the next Nth occurence of CHAR."
 ;; chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
 
 ;;     (unless xwl-emacs-unicode-branch-p
-;;       (set-default-font "fontset-bvsmono110"))
+;;      (set-default-font "fontset-bvsmono110"))
 ;;     (defun xwl-setup-font() 'font-setup-done)))
 
 (if (or (string= (substring emacs-version 0 2) "21") ; Emacs <--> X
@@ -2474,7 +2482,7 @@ yacc source files."
 (autoload 'wget "wget" "wget interface for Emacs." t)
 (autoload 'wget-web-page "wget" "wget interface to download whole web page." t)
 (load "w3m-wget")
- (autoload 'w3-wget "w3-wget" "wget interface for Emacs/W3." t)
+(autoload 'w3-wget "w3-wget" "wget interface for Emacs/W3." t)
 ;(setq wget-basic-options (cons "-equiet=off" wget-basic-options))
 ;(setq wget-basic-options (cons "-P." wget-basic-options))
 (setq wget-download-directory "~/download/"
@@ -2489,7 +2497,7 @@ yacc source files."
 (add-hook 'octave-mode-hook 'xwl-octave-mode-hook)
 
 ;; sawfish
-(load-file "/usr/share/emacs/site-lisp/sawfish/sawfish.el") ; oops
+; (load-file "/usr/share/emacs/site-lisp/sawfish/sawfish.el") ; oops
 (autoload 'sawfish-mode "sawfish" "sawfish-mode" t)
 (defun xwl-sawfish-mode-hook ()
   (local-set-key (kbd "C-c <f1>  i")   'sawfish-info)
@@ -3183,11 +3191,6 @@ so as to keep an eye on work when necessarily."
 
 (setq emms-info-asynchronously nil)
 
-;; (setq emms-player-finished-hook
-;;       '(emms-mode-line-blank
-;;         emms-playing-time-stop
-;;         emms-lyrics-stop
-;;         my-emms-player-finished-hook))
 ;;;; trueice
 
 ;; interface
@@ -3381,6 +3384,10 @@ store into a file to download later."
           :visit-link planner-visit-link)
          (:base "planner-xhtml" :path "/home/web/planner"))))
 
+(global-set-key (kbd "C-c m 9")
+                (lambda () (interactive)
+                  (find-file "/ftp:williamxu@ftp.net9.org:/")))
+
 (setq muse-mode-auto-p t)
 
 (setq muse-html-header "/home/william/studio/muse/style/header.html"
@@ -3500,7 +3507,7 @@ Will result in,
 (require 'planner-trunk)
 (setq planner-trunk-rule-list
       '(("\\`[0-9][0-9][0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]\\'" nil
-         ("重要" "每天" "长期" "读书" "杂项" "工作" "TaskPool"))))
+         ("重要" "每天" "长期" "读书" "杂项" "工作" "TaskPool" "购物"))))
 (add-hook 'planner-mode-hook 'planner-trunk-tasks)
 
 (defadvice plan (around writable-and-fill)
@@ -3530,9 +3537,6 @@ Will result in,
 (ad-activate 'planner-create-note)
 (ad-activate 'planner-task-done)
 
-;; planner-browser
-;; (require 'planner-browser)
-
 ;; remind & diary
 ;; (require 'remind)
 (setq diary-file "~/.diary")
@@ -3545,6 +3549,12 @@ Will result in,
 ;;      (make-local-hook 'after-save-hook)
 ;;      (add-hook 'after-save-hook 'remind-parse-planner t t)
 ;;      (add-hook 'after-save-hook 'remind-export-to-diary t t)))
+
+;; (require 'planner-diary)
+;; (add-hook 'diary-display-hook 'fancy-diary-display)
+
+;; (setq planner-diary-use-diary t)
+;; (planner-diary-insinuate)
 
 ;;;; outline
 
@@ -3788,27 +3798,35 @@ arguments?"
 	 ;; (signature "William"))
          (signature xwl-fortune-signature))
 
-;; 	(,(regexp-opt			; mailing lists
-;; 	    (mapcar (lambda (list-group)
-;; 		      (cadr list-group))
-;; 		    xwl-mailing-list-group-alist))
-;; 	  (signature "William"))
+        ;; 	(,(regexp-opt			; mailing lists
+        ;; 	    (mapcar (lambda (list-group)
+        ;; 		      (cadr list-group))
+        ;; 		    xwl-mailing-list-group-alist))
+        ;; 	  (signature "William"))
 
 	("hotmail"
 	 (address "william.xwl@hotmail.com"))
 
         (,(concat ".*"
-                   (regexp-opt
-                    '("webking.online.jn.sd.cn"
-                      "news.newsfan.net"
-                      "cn."))
-                   ".*")
-          (name "火柴")
-          (signature xwl-fortune-signature-cn))
+                  (regexp-opt
+                   '("webking.online.jn.sd.cn"
+                     "news.newsfan.net"
+                     "cn."))
+                  ".*")
+         (name "火柴")
+         (signature xwl-fortune-signature-cn))
 
         ("cn.comp.os.linux"
          (name user-full-name)
-         (signature xwl-fortune-signature))))
+         (signature (format
+                     "William
+
+\((\"email\" . \"william.xwl@gmail.com\")
+ (\"www\"   . \"http://williamxu.net9.org\"))
+
+%s"
+                     (ansi-color-filter-apply
+                      (shell-command-to-string "fortune")))))))
 
 ;;;; Mailing-lists & Mail Groups
 ;; -----------------------------
@@ -3826,8 +3844,8 @@ arguments?"
 	     conkeror@mozdev.org
 
 	     gnu-emacs-sources@gnu.org
+	     emms-help@gnu.org
 	     emms-patches@gnu.org
-             ;;	     darcs-users@darcs.net
 
 	     zhcon-users@lists.sourceforge.net
 	     ;; TODO, fix this
@@ -3842,6 +3860,7 @@ arguments?"
 
 	     ctrenzaibj@googlegroups.com
 	     emacs-cn@googlegroups.com
+             firefoxchina@googlegroups.com
 
              pdesc@ddtp.debian.net
 	     ))
@@ -3950,7 +3969,7 @@ arguments?"
 
 	  (to "william.xwl@hotmail.com" "hotmail")
 
-	  (to "matchsticker@newsmth.*" "newsmth")
+	  (to ".*@newsmth.*" "newsmth")
 	  (to ,(regexp-opt xwl-mailbox-lists) "general")
 
           (from ".*@localhost" "local")
@@ -4026,7 +4045,8 @@ arguments?"
 ;; 	'(unknown-8bit x-unknown iso-8859-1 ISO-8859-15 GB18030)))
 
 (setq gnus-group-name-charset-group-alist
-      '((".*" . gb2312)))
+      '(("nnrss.*" . utf-8)             ; `G R'
+        (".*" . gb2312)))
 
 (setq gnus-summary-show-article-charset-alist
       '((1 . utf-8)
@@ -4035,6 +4055,8 @@ arguments?"
 
 (setq gnus-group-name-charset-method-alist
       '(((nntp "news.newsfan.net") . gb2312)))
+
+(add-to-list 'gnus-group-charset-alist '("nnrss.*" utf-8))
 
 ;;;; Group
 ;; -------
@@ -4149,7 +4171,7 @@ arguments?"
        (car
         (split-string
          (shell-command-to-string
-          (concat "ip.scm " (match-string-no-properties 1)))
+          (concat "~/bin/ip.scm " (match-string-no-properties 1)))
          "\n")))
       (insert-and-inherit ")"))))
 
@@ -4194,6 +4216,75 @@ arguments?"
 (setq mm-default-directory "~/download")
 
 ;; See `~/.mailcap' about actions based on MIME.
+
+;;;; RSS
+;; -----
+
+(defun xwl-gnus-group-make-rss-group-noninteractively (url)
+  "Given a URL, discover if there is an RSS feed.
+If there is, use Gnus to create an nnrss group"
+  (require 'nnrss)
+  (if (not url)
+      (setq url (read-from-minibuffer "URL to Search for RSS: ")))
+  (let ((feedinfo (nnrss-discover-feed url)))
+    (if feedinfo
+	(let ((title (gnus-newsgroup-savable-name
+                      (gnus-newsgroup-savable-name
+                       (or (cdr (assoc 'title feedinfo)) ""))))
+	      (desc (cdr (assoc 'description feedinfo)))
+	      (href (cdr (assoc 'href feedinfo)))
+	      (encodable (mm-coding-system-p 'utf-8)))
+	  (when encodable
+	    ;; Unify non-ASCII text.
+	    (setq title (mm-decode-coding-string
+			 (mm-encode-coding-string title 'utf-8) 'utf-8)))
+	  (gnus-group-make-group (if encodable
+				     (mm-encode-coding-string title 'utf-8)
+				   title)
+				 '(nnrss ""))
+	  (push (list title href desc) nnrss-group-alist)
+	  (nnrss-save-server-data nil))
+      (error "No feeds found for %s" url))))
+
+(setq xwl-gnus-rss-list
+      '( ;; personal
+        "http://www.newsmth.net/pc/rss.php?userid=xiaowei"
+        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1190363061"
+        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1198922365"
+        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1173538795"
+        "http://www.newsmth.net/pc/rss.php?userid=xiaowei"
+        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1415686044"
+        "http://shredderyin.spaces.msn.com/feed.rss"
+        "http://blog.kanru.info/feed/"
+        "http://kirbyzhou.spaces.msn.com/feed.rss"
+        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1215626582"
+        "http://supermmx.org/blog/supermmx/feed"
+        "http://blueapril.bokee.com/rss2.xml"
+        ;; tech
+        "http://rssnewsapps.ziffdavis.com/tech.xml"
+        "http://www.LinuxDevices.com/backend/headlines10.rdf"
+        "http://www.linuxjournal.com/node/feed"
+        "http://rss.slashdot.org/Slashdot/slashdot"
+        "http://www.debian.org/security/dsa"
+        "http://googlechinablog.com/atom.xml"
+        "http://blog.csdn.net/dancefire/rss.aspx"
+        "http://feeds.feedburner.com/solidot"
+        "http://2blogs.net/blog/feed.asp"
+        "http://www.infolets.com/infolets.rss"
+        "http://news.com.com/2547-1_3-0-20.xml"))
+
+(defun xwl-gnus-group-update-rss-group ()
+  "Add rss groups in `xwl-gnus-rss-list'."
+  (interactive)
+  (with-current-buffer "*Group*"
+    (mapc
+     (lambda (url)
+       (condition-case nil
+           (xwl-gnus-group-make-rss-group-noninteractively url)
+         (error nil)))
+     xwl-gnus-rss-list)
+    (message "done")))
+
 
 ;;;; Misc
 ;; ------
