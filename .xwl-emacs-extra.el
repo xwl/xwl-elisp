@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2006/09/16 00:09:25
+;; Last updated: 2006/09/18 02:46:02
 
 ;; Non-Standard Extensions
 ;; -----------------------
@@ -70,11 +70,6 @@
 
 (add-hook 'write-file-hooks 'xwl-write-file-hook)
 
-(defun xwl-after-save-hook ()
-  (xwl-chmod-file-executable))
-
-(add-hook 'after-save-hook 'xwl-after-save-hook)
-
 (defun xwl-kill-emacs-hook ()
   (when (fboundp 'gnus-group-exit)
     (gnus-group-exit)))
@@ -106,20 +101,61 @@
       view-calendar-holidays-initially t)
 
 (setq other-holidays
-      '((holiday-chinese 5 11 "我的生日！")
-        (holiday-chinese 10 10 "海豚公主的生日！& 民国双十节")
+      '((holiday-chinese 10 10 "海豚公主的生日！& 民国双十节")))
 
-        (holiday-fixed 6 3 "jojo 的生日！")
-        (holiday-fixed 7 23 "xs 的生日！")
-        (holiday-fixed 12 19 "rolian 的生日！")))
+(setq xwl-holidays
+      '((holiday-chinese 5 11 "我的生日！")
+
+        (holiday-fixed 6  3  "Jojo 的生日！")
+        (holiday-fixed 7  23 "Xiaosai 的生日！")
+        (holiday-fixed 12 19 "Rolian 的生日！")))
 
 (setq calendar-holidays
-      (append calendar-holidays other-holidays))
+      (append calendar-holidays other-holidays xwl-holidays))
 
 (define-key calendar-mode-map (kbd "j") 'calendar-forward-week)
 (define-key calendar-mode-map (kbd "k") 'calendar-backward-week)
 (define-key calendar-mode-map (kbd "l") 'calendar-forward-day)
 (define-key calendar-mode-map (kbd "h") 'calendar-backward-day)
+
+;; mark my important days!
+(defface xwl-holiday-face
+  '((((class color) (background dark))
+     :background "blue4")
+    (((type tty) (class mono))
+     :inverse-video t))
+  "Mark `xwl-holidays' in calendar buffer."
+  :group 'basic-faces)
+
+;; (defadvice mark-calendar-holidays (around mark-xwl-holidays)
+;;   "Mark extra `xwl-holidays'."
+;;   (let ((holiday 'xwl-holiday-face)
+;;         (calendar-holidays xwl-holidays)) ; overwrite `calendar-holidays'
+;;     ad-do-it)
+;;   ad-do-it)
+
+;; (ad-deactivate 'mark-calendar-holidays)
+
+;; FIXME: the above advice doesn't work, weird!
+(defun mark-calendar-holidays ()
+  "Mark notable days in the calendar window."
+  (interactive)
+  (setq mark-holidays-in-calendar t)
+  (message "Marking holidays...")
+  ;; overwrite holidays & should set this first!
+  (let ((calendar-holidays xwl-holidays))
+    (let ((holiday-list (calendar-holiday-list)))
+      (while holiday-list
+        (mark-visible-calendar-date
+         (car (car holiday-list)) 'xwl-holiday-face)
+        (setq holiday-list (cdr holiday-list)))))
+  ;; other holidays
+  (let ((holiday-list (calendar-holiday-list)))
+    (while holiday-list
+      (mark-visible-calendar-date
+       (car (car holiday-list)) calendar-holiday-marker)
+      (setq holiday-list (cdr holiday-list))))
+  (message "Marking holidays...done"))
 
 (require 'page-break)
 (turn-on-page-break-mode)
@@ -787,10 +823,12 @@ prompts for name field."
 (when window-system
   (color-theme-xwl))
 
-
-;;; FUN
-
 (require 'highlight-tail)
 (highlight-tail-reload)
+
+(require 'out-xtra)
+
+(unless xwl-at-home-p
+  (set-default-font "10x20"))
 
 ;;; .xwl-emacs-extra.el ends here
