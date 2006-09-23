@@ -1,9 +1,9 @@
-;;; dired-isearch.el --- isearch in dired buffers
+;;; dired-isearch.el --- isearch in Dired
 
 ;; Copyright (C) 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.1
+;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@
 ;; Put this file into your load-path and the following into your
 ;; ~/.emacs:
 ;;           (require 'dired-isearch)
+
+;; Recommended keybindings:
 
 ;; (define-key dired-mode-map (kbd "C-s") 'dired-isearch-forward)
 ;; (define-key dired-mode-map (kbd "C-r") 'dired-isearch-backward)
@@ -79,7 +81,7 @@
   (let ((point (search-forward string bound noerror count)))
     (catch 'return
       (while point
-        (when (get-text-property (1- point) 'dired-filename)
+        (when (get-text-property (1- point) 'help-echo)
           (throw 'return point))
         (setq point (search-forward string bound noerror count))))))
 
@@ -88,7 +90,7 @@
   (let ((point (search-backward string bound noerror count)))
     (catch 'return
       (while point
-        (when (get-text-property point 'dired-filename)
+        (when (get-text-property point 'help-echo)
           (throw 'return point))
         (setq point (search-backward string bound noerror count))))))
 
@@ -97,7 +99,7 @@
   (let ((point (re-search-forward regexp bound noerror count)))
     (catch 'return
       (while point
-        (when (get-text-property (1- point) 'dired-filename)
+        (when (get-text-property (1- point) 'help-echo)
           (throw 'return point))
         (setq point (re-search-forward regexp bound noerror count))))))
 
@@ -106,7 +108,7 @@
   (let ((point (re-search-backward regexp bound noerror count)))
     (catch 'return
       (while point
-        (when (get-text-property point 'dired-filename)
+        (when (get-text-property point 'help-echo)
           (throw 'return point))
         (setq point (re-search-backward regexp bound noerror count))))))
 
@@ -115,7 +117,7 @@
   (let ((point (word-search-forward string bound noerror count)))
     (catch 'return
       (while point
-        (when (get-text-property (1- point) 'dired-filename)
+        (when (get-text-property (1- point) 'help-echo)
           (throw 'return point))
         (setq point (word-search-forward string bound noerror count))))))
 
@@ -124,7 +126,7 @@
   (let ((point (word-search-backward string bound noerror count)))
     (catch 'return
       (while point
-        (when (get-text-property point 'dired-filename)
+        (when (get-text-property point 'help-echo)
           (throw 'return point))
         (setq point (word-search-backward string bound noerror count))))))
 
