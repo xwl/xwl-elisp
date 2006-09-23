@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: v 0.52
-;; Last updated: 2006/09/16 01:40:12
+;; Last updated: 2006/09/23 14:37:10
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -375,7 +375,6 @@ buffer."
 (define-wajig-command local-upgrade)
 (define-wajig-command non-free)
 (define-wajig-command orphans)
-(define-wajig-command policy)
 (define-wajig-command reset)
 (define-wajig-command search-apt)
 (define-wajig-command setup)
@@ -418,6 +417,7 @@ buffer."
 (define-wajig-command move (pkg))
 (define-wajig-command news (pkg))
 (define-wajig-command package (pkg))
+(define-wajig-command policy (pkg))
 (define-wajig-command purge (pkg))
 (define-wajig-command purge-depend (pkg))
 (define-wajig-command purge-orphans (pkg))
@@ -618,6 +618,7 @@ OPTION could be:
     (define-key map (kbd "Q l") 'wajig-list-log)
     (define-key map (kbd "Q N") 'wajig-non-free)
     (define-key map (kbd "Q n") 'wajig-news)
+    (define-key map (kbd "Q p") 'wajig-policy)
     (define-key map (kbd "Q r") 'wajig-readme)
     (define-key map (kbd "Q S") 'wajig-list-scripts)
     (define-key map (kbd "Q s") 'wajig-status)
