@@ -2,8 +2,7 @@
 
 (defun xwl-auto-save-hook ()
 ;;  (xwl-auto-save-desktop)
-  (emms-score-save-hash)
-)
+  (emms-score-save-hash))
 
 (defun xwl-check-holidays ()
   (when (check-calendar-holidays (calendar-current-date))
@@ -54,50 +53,11 @@
 
   (run-with-timer 0 86400 'xwl-running-daily) ; dialy stuffs
 
-  ;; send mail by google
-  ;; (xwl-sendmail-by-google)
-
   (xwl-erc-select)
 
   ;; end
   (find-file "~/.scratch")
   (message (substring (emacs-version) 0 16)))
-
-(defun xwl-sendmail-by-google ()
-  "Enable sendmail by google."
-  (interactive)
-  (require 'starttls)
-  (setq smtpmail-smtp-server "smtp.gmail.com"
-	smtpmail-smtp-service 587
-	smtpmail-auth-credentials
-	`(("smtp.gmail.com" 587 "william.xwl@gmail.com" ,pwgmail))
-	smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil)))
-  (message "sendmail by google enabled.")
-
-  ;; gcc to self
-  (setq gnus-parameters
-        `( ;; Seems it's only needed when fetching mail by Emacs herself.
-          (".*" (gcc-self . t))		; always Gcc to oneself
-          ,@(mapcar*
-             (lambda (args)
-               (let ((list (car args))
-                     (group (cadr args)))
-                 `(,group (to-address  . ,list)
-                          (auto-expire . t)
-                          (to-list     . ,list)
-                          ;; (gcc-self    . t)
-                          )))
-             xwl-mailing-list-group-alist)
-          (,(regexp-opt
-             '("important"
-               "savings"
-               "nnfolder+archive:outgoing.important"
-               "nnfolder+archive:outgoing.news"
-               "nnfolder+archive:outgoing.work"
-               "general"
-               "hotmail"))
-           (gcc-self . t)))))
-
 
 ;; main
 ;; ----
