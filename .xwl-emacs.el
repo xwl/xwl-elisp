@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.12
-;; Last updated: 2006/09/15 23:53:49
+;; Last updated: 2006/09/25 17:50:14
 ;;; History
 
 ;; 2004/10/23 21:58:09
@@ -69,6 +69,7 @@
 	"~/studio/darcs/quail"
 	"~/studio/darcs/elisp"
 	;; "~/studio/arch/muse"
+        "~/studio/cvs/guile-debugging/ossau"
         ))
 
 (setq xwl-recursive-load-path		; add paths recursively.
@@ -101,11 +102,12 @@
 		  "/home/william/studio/cvs/emacs-w3m")))
   (cd "/home/william/studio/cvs/emacs-w3m")
   (normal-top-level-add-subdirs-to-load-path))
+
 
 ;;; STANDARD & CRUCIAL FEATURES
 
 (load ".xwl-emacs-standard.el")
-(load ".xwl-emacs-crucial.el")
+(load ".xwl-emacs-extra.el")
 
 
 ;;; CONVENIENCE
@@ -146,6 +148,10 @@
 	      (message (concat "Wrote and made executable " Filename))))
 	(message (concat "Wrote " Filename))))))
 
+(defun xwl-after-save-hook ()
+  (xwl-chmod-file-executable))
+
+(add-hook 'after-save-hook 'xwl-after-save-hook)
 
 (defun his-scheme-eval-last-sexp (&optional insert)
   (interactive "P")
@@ -439,7 +445,7 @@ be with length 3 extentions !"
 (defun xwl-browse-url-firefox-tab-only (url &optional new-window)
   "NEW-WINDOW is always nil."
   (xwl-start-process-shell-command
-   (concat "firefox -new-tab " url)))
+   (concat "firefox -new-tab \"" url "\"")))
 
 (setq browse-url-browser-function
       (if window-system
@@ -520,7 +526,6 @@ This is run asynchronously, compared to `shell-command'."
       `((,(regexp-opt
 	   '(".mp3" ".ogg" ".wav" ".avi" ".mpg" ".dat" ".wma" ".asf"
 	     ".rmvb" ".rm" ".mkv"))
-
 	 (progn (emms-add-file (dired-get-filename))
 		(keyboard-quit)))
 
@@ -533,7 +538,9 @@ This is run asynchronously, compared to `shell-command'."
 	(".rar" "unrar x")
 	(".pdf" "xpdf")
 	(".doc" (xwl-dired-wvHtml))
-	(".ppt" "openoffice")
+        (,(regexp-opt
+           '(".ppt" ".xls" ".doc"))
+         "openoffice")
 	(".chm" "xchm")))
 
 ;; last dir
@@ -637,19 +644,35 @@ This is run asynchronously, compared to `shell-command'."
 (global-set-key (kbd "C-,") 'wubi-toggle-quanjiao-banjiao)
 
 ;; fonts
-;; (when window-system
-;;   (unless (fboundp 'xwl-setup-font)
-;;     (create-fontset-from-fontset-spec
-;;      "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
-;; chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
-;; chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-;; chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-;; chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-;; chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
+(when window-system
+  (unless (fboundp 'xwl-setup-font)
+    (create-fontset-from-fontset-spec
+     "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
+chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
+chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
 
-;;     (unless xwl-emacs-unicode-branch-p
-;;      (set-default-font "fontset-bvsmono110"))
-;;     (defun xwl-setup-font() 'font-setup-done)))
+    (set-default-font "fontset-bvsmono110")
+    (defun xwl-setup-font() 'font-setup-done)))
+
+(setq xwl-default-directories
+      '("/ssh:william@ananas:~/"
+        "/sudo::/"
+        "/ftp:williamxu@ftp.net9.org:/"))
+
+(defun xwl-ido-find-file (&optional set-dir-p)
+  "Run `ido-find-file' by setting `default-directory' optionally."
+  (interactive "P")
+  (if set-dir-p
+      (let ((default-directory
+              (ido-completing-read "Set default directory to: "
+                                   xwl-default-directories)))
+        (ido-find-file))
+    (ido-find-file)))
+
+(global-set-key (kbd "C-x C-f") 'xwl-ido-find-file)
 
 
 ;;; PROGRAMMING
@@ -806,6 +829,7 @@ This is run asynchronously, compared to `shell-command'."
 ;;;; dictionary
 ;; ------------
 
+;; dictionary.el
 (autoload 'dictionary-search "dictionary"
   "Ask for a word and search it in all dictionaries" t)
 (autoload 'dictionary-match-words "dictionary"
@@ -862,6 +886,125 @@ This is run asynchronously, compared to `shell-command'."
 
 ;; wordnet
 (require 'xwl-wordnet)
+
+;; edict
+(require 'edict)
+(defun edict-display (key-list match-list)
+  "Edict-display displayes the strings in a separate window that is
+not selected."
+  (let* ((text-window (get-buffer-window (current-buffer)))
+	 (edict-window (get-buffer-window edict-match-buffer))
+	 ;; We have available some of this window's height plus any we've already
+	 ;; already gotten.
+	 (avail-height (+ (window-height text-window)
+			  (if edict-window
+			      (window-height edict-window)
+			    0)))
+	 ;; We limit the height to half of what's available, but no more than we need,
+	 ;; and no less than window-min-height.  We must remember to include 1 line for
+	 ;; the mode-line in our minimum figure.
+	 (height (min (max window-min-height (+ (length match-list) 1))
+		      (/ avail-height 2)))
+         (transpose-window-p (not edict-window)))
+    (if (not edict-window)
+	(progn
+	  ;; We don't have a window, so remember our existing configuration,
+	  ;; and either find an acceptable window to split, or use the current
+	  ;; window.
+	  (edict-note-windows)
+	  (let ((use-window (edict-find-acceptable-window text-window)))
+	    (if use-window
+		(setq edict-window use-window
+		      text-window (split-window)) ; text-window height))
+	      (setq edict-window text-window))))
+      ;; We have a window already.  Just adjust its size appropriately.
+      ;; (unless (equal height (window-height edict-window))
+	(let ((selected (selected-window)))
+	  (select-window edict-window)
+	  ;; (enlarge-window (- height (window-height edict-window)))
+	  (select-window selected)))
+        ;; )
+    (set-buffer edict-match-buffer)
+    (let ((min (point-min))
+          (inhibit-read-only t))
+      ;; Replace everything.
+      (erase-buffer)
+      (mapcar (function (lambda (string-item)
+			  (insert string-item)
+			  (newline)))
+	      match-list)
+      (when (eq *edict-window-location* 'bottom)
+	(let ((w text-window))
+	  (setq text-window edict-window
+		edict-window w)))
+      ;; OK, now let's move the exact matches to the top.
+      (goto-char min)
+      ;; Be careful to preserve the order.
+      ;; An exact match is any of "^key ", "[key]", "/key/", or "/to key/".
+      (dolist (key (reverse key-list))
+	(let* ((pattern (concat "^" key " \\|\\[" key "\\]\\|\\/" key
+				"\\/\\|\\/to " key "\\/" ))
+	       (top-lines nil))
+	  ;; First pull them out of the buffer into a list (top-lines).
+	  ;; Then re-insert them at the top.
+	  (while (re-search-forward pattern nil t)
+	    (forward-line 0)
+	    (let ((p (point)))
+	      (forward-line 1)
+	      (push (buffer-substring p (point)) top-lines)
+	      (delete-region p (point))))
+	  (goto-char min)
+	  (mapcar 'insert top-lines)))
+      ;; OK, display it all.
+      (set-window-buffer edict-window edict-match-buffer)
+      (set-window-start edict-window min)
+      (select-window edict-window)
+      (when transpose-window-p
+        (his-transpose-windows 1))))
+  t)
+
+(defun xwl-edict-search-kanji (word)
+  "Search the word at point when given.
+It presents the word at point as default input and allows editing
+it."
+  (interactive
+   (list (read-string "Search kanji: " (current-word))))
+  (unless word
+    (setq word (read-string "Search kanji: ")))
+  (edict-init)
+  (edict-search-and-display (edict-clean-up-kanji word)
+                            '日本語))
+
+;; (global-set-key (kbd "M-S") 'edict-search-kanji)
+
+;; search japanese on goo.ne.jp
+(defun xwl-urllib-quote-plus (str from to)
+  "Run python's urllib.quote_plus function.
+FROM and TO are coding system symbols.
+i.e.,
+    urllib.quote_plus(STR.decode(FROM).encode(TO))"
+  (let ((ret (shell-command-to-string
+              (format "python -c \"import urllib;print urllib.quote_plus('%s'.decode('%s').encode('%s'))\"\n"
+                      str
+                      (symbol-name from)
+                      (symbol-name to)))))
+    (substring ret 0 (1- (length ret)))))
+
+(defun xwl-search-jp (word)
+  "Search WORD(utf8 coding) on goo.ne.jp in firefox."
+  (interactive
+   (list (read-string "goo.ne.jp: " (current-word))))
+  (unless word
+    (setq word (read-string "goo.ne.jp: ")))
+  (xwl-start-process-shell-command
+   (concat
+    "firefox -new-tab \""
+    "http://dictionary.goo.ne.jp/search.php?MT="
+    (xwl-urllib-quote-plus word 'utf-8 'euc-jp)
+    "&search_history=%CA%D8%CD%F8&kind=all&kwassist=0&all.x=31&all.y=8&all=%BC%AD%BD%F1%A4%B9%A4%D9%A4%C6&mode=0"
+    "\"")))
+
+(global-set-key (kbd "M-S") 'xwl-search-jp)
 
 ;;;; EMMS
 ;; ------
@@ -964,25 +1107,31 @@ This is run asynchronously, compared to `shell-command'."
              ))))
     (w3m-browse-url url)))
 
-;; finish current, then stop.
-(setq emms-no-next-p nil)
+;; Repeat track N times, then stop.
+(setq emms-no-next-p -1)
 
-(defun emms-no-next ()
-  "Finish current song, then stop."
-  (interactive)
-  (setq emms-no-next-p t)
-  (message "Will finish current song, then stop."))
+(defun emms-no-next (&optional n)
+  "Repeat track N times, then stop."
+  (interactive "P")
+  (unless n (setq n 0))
+  (setq emms-no-next-p n)
+  (message "Will repeat track %d times, then stop" n))
 
 (defun xwl-emms-next-noerror ()
   "Wrap `emms-score-next-noerror' with `emms-no-next-p' check."
   (interactive)
-  (cond (emms-no-next-p
-	 (emms-stop)
-	 (setq emms-no-next-p nil))
+  (cond ((> emms-no-next-p 0)
+         (setq emms-no-next-p (1- emms-no-next-p))
+         (emms-start))
+        ((= emms-no-next-p 0)
+         (setq emms-no-next-p -1)
+         (emms-stop))
 	(t
          (emms-score-next-noerror))))
 
 (setq emms-player-next-function 'xwl-emms-next-noerror)
+
+(add-hook 'emms-player-stopped-hook '(lambda () (setq emms-no-next-p -1)))
 
 ;; %a is artist.
 ;; %t is title.
@@ -1054,9 +1203,11 @@ This is run asynchronously, compared to `shell-command'."
 (defun emms-playlist-mode-jump ()
   "Jump to the directory of track at point in `emms-playlist-buffer'."
   (interactive)
-  (dired
-   (file-name-directory
-    (emms-track-get (emms-playlist-track-at) 'name))))
+  (let ((name
+         (emms-track-get (emms-playlist-track-at) 'name)))
+    (dired (file-name-directory name))
+    (goto-char (point-min))
+    (dired-search-forward (file-name-nondirectory name) nil t)))
 
 ;; dired support
 (defface emms-playlist-mark-face
@@ -1348,6 +1499,25 @@ This is run asynchronously, compared to `shell-command'."
 
 (setq mm-text-html-renderer 'w3m)
 
+(defun xwl-erc-select ()
+  (interactive)
+  (erc-select :server "irc.freenode.net"
+	      :port 7000
+	      :nick "xwl"
+	      :password pwerc)
+
+  (erc-select :server "irc.debian.org"
+              :port 7000
+              :nick "xwl"
+              :password pwerc)
+
+  (erc-select :server "im.rootdir.de"
+	      :port 6668
+	      :nick "xwl"
+	      :password pwerc))
+
+(global-set-key (kbd "C-c n E") 'xwl-erc-select)
+
 
 ;;; HYPERMEDIA
 
@@ -1510,7 +1680,9 @@ Will result in,
 (require 'planner-trunk)
 (setq planner-trunk-rule-list
       '(("\\`[0-9][0-9][0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]\\'" nil
-         ("重要" "每天" "长期" "读书" "杂项" "工作" "TaskPool" "购物"))))
+         ("重要" "每天" "长期" "读书" "电影" "工作" "生活" "TaskPool"
+          "购物" "杂项" "Wishlists"))))
+
 (add-hook 'planner-mode-hook 'planner-trunk-tasks)
 
 (defadvice plan (around writable-and-fill)
@@ -1670,6 +1842,15 @@ sendmail directly from localhost without a valid domain name."
 ;;;; Posting Styles
 ;; ----------------
 
+(setq xwl-ce-groups
+      '("daily-cn"
+        "staff-cn"
+        "staff"
+        "vce-dev"
+        "svn-cn"
+
+        "ce.important"))
+
 (setq user-full-name "William Xu"
       user-mail-address "william.xwl@gmail.com"	; don't use `<mail>'!
       mail-host-address "williamxwl.com"
@@ -1695,6 +1876,21 @@ FIMXE: does `gnus-posting-styles' accept functions with
 arguments?"
   (xwl-fortune-signature t))
 
+;; set outgoing coding
+
+(setq xwl-prefer-utf8-p t)
+
+(setq mm-coding-system-priorities '(utf-8))
+(utf-translate-cjk-load-tables)       ; mule-gbk stuff, for utf8 <-> gb*
+
+;; (defadvice message-send (around set-outgoing-encoding)
+;;   (if xwl-prefer-utf8-p
+;;       ad-do-it
+;;     (let ((mm-coding-system-priorities '(gb2312 gbk utf-8)))
+;;       ad-do-it)))
+
+;; (ad-activate 'message-send)
+
 ;; The entire alist will be iterated over!
 (setq gnus-posting-styles
       `((".*"
@@ -1713,15 +1909,6 @@ arguments?"
 	("hotmail"
 	 (address "william.xwl@hotmail.com"))
 
-        (,(concat ".*"
-                  (regexp-opt
-                   '("webking.online.jn.sd.cn"
-                     "news.newsfan.net"
-                     "cn."))
-                  ".*")
-         (name "火柴")
-         (signature xwl-fortune-signature-cn))
-
         ("cn.comp.os.linux"
          (name user-full-name)
          (signature (format
@@ -1729,6 +1916,34 @@ arguments?"
 
 \((\"email\" . \"william.xwl@gmail.com\")
  (\"www\"   . \"http://williamxu.net9.org\"))
+
+%s"
+                     (ansi-color-filter-apply
+                      (shell-command-to-string "fortune")))))
+        (,(regexp-opt xwl-ce-groups)    ; ce
+         (address "william@ce-lab.net")
+         (signature (format
+                     "William
+
+\((\"mail\" . \"william@ce-lab.net\")
+ (\"msn\"  . \"william.xwl@hotmail.com\"))
+
+%s"
+                     (ansi-color-filter-apply
+                      (shell-command-to-string "fortune")))))
+        ;; prefer gb* coding
+        (,(concat ".*"
+                  (regexp-opt
+                   '("webking.online.jn.sd.cn"
+                     "news.newsfan.net"))
+                  ".*")
+         (signature xwl-fortune-signature-cn))
+        ("gmane.linux.debian.user.chinese.gb"
+         (signature (format
+                     "William
+
+1. Bottom post!
+2. Trim your post!
 
 %s"
                      (ansi-color-filter-apply
@@ -1744,20 +1959,12 @@ arguments?"
 	     (let* ((list-str (symbol-name list))
 		    (@-pos (string-match "@" list-str)))
 	       `(,list-str ,(substring list-str 0 @-pos))))
-	   '(
-	     gtk-list@gnome.org
+	   '(gtk-list@gnome.org
 	     sawfish-list@gnome.org
-	     conkeror@mozdev.org
 
 	     gnu-emacs-sources@gnu.org
 	     emms-help@gnu.org
 	     emms-patches@gnu.org
-
-	     zhcon-users@lists.sourceforge.net
-	     ;; TODO, fix this
-	     zhcon-devel@lists.sourceforge.net
-	     zhcon-devel@lists.sf.net
-	     zhcon-announce@lists.sourceforge.net
 
 	     guile-user@gnu.org
 	     guile-devel@gnu.org
@@ -1769,7 +1976,12 @@ arguments?"
              firefoxchina@googlegroups.com
 
              pdesc@ddtp.debian.net
-	     ))
+
+             ;; ce
+             daily-cn@ce-lab.net
+             staff-cn@ce-lab.net
+             staff@ce-lab.net
+             vce-dev@ce-lab.net))
 
 	;; local mails
 	(".*Cron Daemon.*\\|.*root\\|Mailer-Daemon@williamxwl" "local")))
@@ -1804,7 +2016,7 @@ arguments?"
 (setq gnus-permanently-visible-groups
       (concat
        (regexp-opt
-	'("savings"
+	`("savings"
 	  "nnfolder+archive:outgoing.important"
 	  ;; "sun"
 	  ;; "nnfolder+archive:outgoing.work"
@@ -1815,7 +2027,9 @@ arguments?"
 	  ;; "hotmail"
 	  ;; "rss"
           "important"
-	  ))
+          "life"
+
+          ,@xwl-ce-groups))
 
        "\\|^general$"))
 
@@ -1828,10 +2042,17 @@ arguments?"
     "zenity --info --text \"You've Got Mail \!\" --title \"Gnus\"")
   "important")
 
+(defun xwl-notify-important-ce ()
+  "Notify me when important ce mails incoming."
+  (xwl-start-process-shell-command
+    "zenity --info --text \"CE mail \!\" --title \"Gnus\"")
+  "ce.important")
+
 (setq nnmail-split-fancy-match-partial-words t)
 
 (setq nnmail-split-fancy
-      `(| ,@(mapcar
+      `(| ("subject" ".*staff-cn.*-svn.*" "svn-cn")
+          ,@(mapcar
 	     (lambda (arg)
 	       `(any ,(car arg) ,(cadr arg)))
 	     xwl-mailing-list-group-alist)
@@ -1864,6 +2085,10 @@ arguments?"
 
 
 	  (to "william@localhost" "rss")
+
+          (to "william@ce-lab.net" (: xwl-notify-important-ce))
+
+          (from "ccsvc@message.cmbchina.com" "life")
 
 	  (to ,(regexp-opt
                 '("william.xwl@gmail.com"
@@ -1922,15 +2147,16 @@ arguments?"
 	(cond
 	 ((string= "trash" group) 7)
 ;; 	 ((string-match "sun.*" group) 60)
-	 ((string-match
-	   (regexp-opt
-	    (mapcar (lambda (list-group)
-		      (cadr list-group))
-		    xwl-mailing-list-group-alist))
-	   group)
+         ((string-match (regexp-opt xwl-ce-groups)
+                        group)
+          'never)
+	 ((string-match (regexp-opt
+                         (mapcar (lambda (list-group)
+                                   (cadr list-group))
+                                 xwl-mailing-list-group-alist))
+                        group)
 	  30)
-	 ((string-match "rss" group)
-	  30)
+	 ((string-match "rss" group) 30)
 	 (t 'never))))
 
 ;;;; Chinese Stuffs
@@ -1940,11 +2166,6 @@ arguments?"
 (define-coding-system-alias 'gb18030 'gb2312)
 (define-coding-system-alias 'x-gbk 'gb2312)
 (define-coding-system-alias 'gbk 'gb2312)
-
-;; This controls outgoing mails' charset.
-(setq mm-coding-system-priorities '(utf-8 gb2312))
-
-;; (sort-coding-systems '(utf-8 gbk chinese-iso-8bit gb2312))
 
 ;;    (setq gnus-default-charset 'cn-gb
 ;; 	gnus-newsgroup-ignored-charsets
@@ -2241,17 +2462,16 @@ If there is, use Gnus to create an nnrss group"
 
 ;;; POST
 
-(set-default-font "10x20")
+;; (set-default-font "10x20")
 
 ;; (defalias 'w3m-safe-view-this-url 'browse-url-at-point)
 ;; (defalias 'w3m-view-this-url 'browse-url-at-point)
 
-(open-dribble-file "~/.emacs-key-log")
+; (toggle-debug-on-error)
 
-;; (toggle-debug-on-error)
-
-;; (require 'gds)
-;; (global-set-key (kbd "<f1> g") 'gds-help-symbol)
+(require 'gds)
+(gds-run-debug-server)                  ; force it to run
+(global-set-key (kbd "<f1> g") 'gds-help-symbol)
 
 ;; See `.xwl-emacs-main.el' and `.xwl-emacs-gnus.el' for next loadup
 ;; step.
