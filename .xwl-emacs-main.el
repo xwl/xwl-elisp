@@ -28,13 +28,14 @@
 (defun xwl-emacs-main ()
   (interactive)
 
+  (shell-command "sudo ~/bin/.xwl-after-start-hook")
+
   (setq display-time-mail-file 'no-check)
 
   (server-start)
 
   (add-hook 'auto-save-hook 'xwl-auto-save-hook) ; auto save
 
-  (run-with-timer 0 86400 'xwl-running-daily) ; dialy stuffs
 
   (run-with-idle-timer 300 t 'xwl-run-when-idle-hook) ; when idle
 
@@ -51,11 +52,16 @@
   ;; (emms-playlist-sort-by-score)
   ;; (emms-playlist-mode-open-buffer xwl-emms-playlist-file)
 
-  (find-file "~/.scratch")
-  (message (substring (emacs-version) 0 16))
+  (run-with-timer 0 86400 'xwl-running-daily) ; dialy stuffs
 
   ;; send mail by google
-  (xwl-sendmail-by-google))
+  ;; (xwl-sendmail-by-google)
+
+  (xwl-erc-select)
+
+  ;; end
+  (find-file "~/.scratch")
+  (message (substring (emacs-version) 0 16)))
 
 (defun xwl-sendmail-by-google ()
   "Enable sendmail by google."
