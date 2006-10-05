@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.12
-;; Last updated: 2006/09/25 17:50:14
+;; Last updated: 2006/10/03 16:18:40
 ;;; History
 
 ;; 2004/10/23 21:58:09
@@ -290,8 +290,7 @@ first Monday."
 ;; 	("^ftp" "" "ftp")
 ;; 	("\\`localhost\\'" "\\`root\\'" "sudo")))
 
-;; (setq tramp-default-method "sudo"
-;;       password-cache-expiry 300)
+;; (setq password-cache-expiry 300)
 
 (setq tramp-auto-save-directory "~/.tramp-auto-save-directory")
 
@@ -303,10 +302,6 @@ first Monday."
 ;; (add-hook 'makefile-mode-hook 'flyspell-prog-mode 1)
 ;; (add-hook 'python-mode-hook   'flyspell-prog-mode 1)
 ;; (add-hook 'sh-mode-hook       'flyspell-prog-mode 1)
-
-(setq ange-ftp-ftp-program-name "ftp"
-      ange-ftp-gateway-ftp-program-name "ftp"
-      ftp-program "ftp")
 
 ;; dired
 (defun xwl-dired-w3m-find-file ()
@@ -990,17 +985,14 @@ i.e.,
                       (symbol-name to)))))
     (substring ret 0 (1- (length ret)))))
 
-(defun xwl-search-jp (word)
+(defun xwl-search-jp (beg end)
   "Search WORD(utf8 coding) on goo.ne.jp in firefox."
-  (interactive
-   (list (read-string "goo.ne.jp: " (current-word))))
-  (unless word
-    (setq word (read-string "goo.ne.jp: ")))
+  (interactive "r")
   (xwl-start-process-shell-command
    (concat
     "firefox -new-tab \""
     "http://dictionary.goo.ne.jp/search.php?MT="
-    (xwl-urllib-quote-plus word 'utf-8 'euc-jp)
+    (xwl-urllib-quote-plus (buffer-substring beg end) 'utf-8 'euc-jp)
     "&search_history=%CA%D8%CD%F8&kind=all&kwassist=0&all.x=31&all.y=8&all=%BC%AD%BD%F1%A4%B9%A4%D9%A4%C6&mode=0"
     "\"")))
 
@@ -1109,6 +1101,7 @@ i.e.,
 
 ;; Repeat track N times, then stop.
 (setq emms-no-next-p -1)
+(setq xwl-sleep-p nil)                  ; make ibook into sleep mode
 
 (defun emms-no-next (&optional n)
   "Repeat track N times, then stop."
@@ -1116,6 +1109,16 @@ i.e.,
   (unless n (setq n 0))
   (setq emms-no-next-p n)
   (message "Will repeat track %d times, then stop" n))
+
+(defun emms-no-next-and-sleep ()
+  "Run `emms-no-next' first, then make ibook go to sleep."
+  (interactive)
+  (call-interactively 'emms-no-next)
+  (if (y-or-n-p "Let ibook go sleep when EMMS finishes? ")
+    (progn
+      (setq xwl-sleep-p t)
+      (message "Will repeat track desired times, then LET IBOOK GO TO SLEEP!"))
+    (message "Will repeat track desired times, then stop")))
 
 (defun xwl-emms-next-noerror ()
   "Wrap `emms-score-next-noerror' with `emms-no-next-p' check."
@@ -1125,13 +1128,19 @@ i.e.,
          (emms-start))
         ((= emms-no-next-p 0)
          (setq emms-no-next-p -1)
-         (emms-stop))
+         (emms-stop)
+         (when xwl-sleep-p
+           (setq xwl-sleep-p nil)
+           (shell-command "sudo /sbin/snooze")))
 	(t
          (emms-score-next-noerror))))
 
 (setq emms-player-next-function 'xwl-emms-next-noerror)
 
-(add-hook 'emms-player-stopped-hook '(lambda () (setq emms-no-next-p -1)))
+(add-hook 'emms-player-stopped-hook
+          '(lambda ()
+             (setq emms-no-next-p -1
+                   xwl-sleep-p nil)))
 
 ;; %a is artist.
 ;; %t is title.
@@ -1397,6 +1406,7 @@ i.e.,
 ;; (global-set-key (kbd "C-c e e") 'emms-play-file)
 (global-set-key (kbd "C-c e SPC") 'emms-pause)
 (global-set-key (kbd "C-c e f") 'emms-no-next)
+(global-set-key (kbd "C-c e F") 'emms-no-next-and-sleep)
 (global-set-key (kbd "C-c e a") 'emms-add-directory-tree)
 
 (global-set-key (kbd "C-c e d") 'emms-playlist-mode-delete-selected-track)
@@ -1909,7 +1919,9 @@ arguments?"
 	("hotmail"
 	 (address "william.xwl@hotmail.com"))
 
-        ("cn.comp.os.linux"
+        (,(regexp-opt
+           '("cn.comp.os.linux"
+             "news.cn99.com"))
          (name user-full-name)
          (signature (format
                      "William
@@ -1976,6 +1988,8 @@ arguments?"
              firefoxchina@googlegroups.com
 
              pdesc@ddtp.debian.net
+
+             conkeror@mozdev.org
 
              ;; ce
              daily-cn@ce-lab.net
@@ -2101,7 +2115,9 @@ arguments?"
 	  (to "william.xwl@hotmail.com" "hotmail")
 
 	  (to ".*@newsmth.*" "newsmth")
+
 	  (to ,(regexp-opt xwl-mailbox-lists) "general")
+          (from "support@tsinghua.org.cn" "general")
 
           (from ".*@localhost" "local")
 
@@ -2164,26 +2180,22 @@ arguments?"
 
 ;; A workaround for unsupported charsets
 (define-coding-system-alias 'gb18030 'gb2312)
-(define-coding-system-alias 'x-gbk 'gb2312)
-(define-coding-system-alias 'gbk 'gb2312)
-
-;;    (setq gnus-default-charset 'cn-gb
-;; 	gnus-newsgroup-ignored-charsets
-;; 	'(unknown-8bit x-unknown iso-8859-1 ISO-8859-15 GB18030)))
+(define-coding-system-alias 'x-gbk   'gb2312)
+(define-coding-system-alias 'gbk     'gb2312)
 
 (setq gnus-group-name-charset-group-alist
       '(("nnrss.*" . utf-8)             ; `G R'
         (".*" . gb2312)))
 
-(setq gnus-summary-show-article-charset-alist
-      '((1 . utf-8)
-        (2 . cn-gb2312)
-	(3 . big5)))
-
 (setq gnus-group-name-charset-method-alist
       '(((nntp "news.newsfan.net") . gb2312)))
 
 (add-to-list 'gnus-group-charset-alist '("nnrss.*" utf-8))
+
+(setq gnus-summary-show-article-charset-alist
+      '((1 . utf-8)
+        (2 . gb2312)
+	(3 . big5)))
 
 ;;;; Group
 ;; -------
@@ -2224,8 +2236,9 @@ arguments?"
         gnus-sum-thread-tree-leaf-with-other "| "
         gnus-sum-thread-tree-vertical        ""))
 
-(rs-gnus-summary-tree-arrows-wide)
+;; (rs-gnus-summary-tree-arrows-wide)      ; works only with font 10x20?
 
+(xwl-gnus-summary-tree-plain)
 
 ;; vi
 (defun xwl-vi-like-hook ()
