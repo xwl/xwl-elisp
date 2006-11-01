@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: v 0.52
-;; Last updated: 2006/09/23 14:37:10
+;; Last updated: 2006/11/01 11:22:05
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -660,7 +660,7 @@ OPTION could be:
 	  "Architecture" "Version" "Depends" "Suggests" "Filename"
 	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
 	  "Conffiles" "Source" "Provides" "Pre-Depends" "Recommends"
-          "SHA1" "SHA256" "Enhances"))
+          "SHA1" "SHA256" "Enhances" "Config-Version" "Task"))
        "\\):")
      (0 font-lock-keyword-face t t)))
   "Keywords to highlight in wajig mode.")
@@ -671,6 +671,7 @@ OPTION could be:
   (wajig-mode-help)
   (set-syntax-table wajig-mode-syntax-table)
   (setq font-lock-defaults '(wajig-font-lock-keywords))
+  (wajig-update-cache)
   (run-hooks 'wajig-mode-hook))
 
 ;;;###autoload
