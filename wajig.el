@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: v 0.52
-;; Last updated: 2006/11/01 11:22:05
+;; Last updated: 2006/11/06 06:22:23
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -158,6 +158,7 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
 (defun wajig-update-cache ()
   "Update wajig cache saved in `wajig-cache-filename'."
   (interactive)
+  (message "Updating wajig cache...")
   (setq wajig-commands-string
         (shell-command-to-string "sudo wajig list-commands"))
   (wajig-update-installed-pkgs)
@@ -175,7 +176,8 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
                     wajig-command-path-alist
                     wajig-daemons
                     wajig-commands-string))
-    (write-region (point-min) (point-max) wajig-cache-filename)))
+    (write-region (point-min) (point-max) wajig-cache-filename))
+  (message "Updating wajig cache...done"))
 
 (defun wajig-update-installed-pkgs ()
   "Update `wajig-installed-pkgs'."
@@ -248,20 +250,22 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
   (with-current-buffer (process-buffer process)
     (let ((moving (= (point) (process-mark process)))
 	  (inhibit-read-only t)
-	  (percentage-match "[0-9]\\{1,2\\}%"))
+	  (percentage-match "[0-9]\\{1,3\\}%"))
       (save-excursion
 	(goto-char (process-mark process))
 	(setq output (replace-regexp-in-string "" "\n" output))
-	;; make percentage output nicer.
-;; 	(when (zerop (forward-line -1))
-;; 	  (if (string-match (concat "^" percentage-match "%") output)
+	;; make percentage output nicer
+	;;(when (zerop (forward-line -1))
+;; 	  (if (string-match percentage-match output)
+;;               (insert "--->"))
+;;           ;)
 ;; 	      (progn
 ;; 		(kill-line)
 ;; 		(kill-line))
-;; 	    (forward-line 1)))
+;;	    (forward-line 1)))
  	(insert output)
 	(set-marker (process-mark process) (point)))
-      (if moving (goto-char (process-mark process))))))
+      (and moving (goto-char (process-mark process))))))
 
 (defun wajig-kill ()
   "Kill wajig process."
@@ -638,7 +642,8 @@ OPTION could be:
     (define-key map (kbd "N p") 'wajig-network-ping)
     (define-key map (kbd "N t") 'wajig-network-traceroute)
     (define-key map (kbd "N m") 'wajig-network-nmap)
-    map))
+    map)
+    "Keymap for `wajig-mode'.")
 
 (defvar wajig-mode-syntax-table
   (let ((st (make-syntax-table)))
