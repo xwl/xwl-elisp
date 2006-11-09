@@ -3,8 +3,8 @@
 ;; Copyright (C) 2003, 2004, 2005, 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 2.12
-;; Last updated: 2006/10/03 16:18:40
+;; Version: 2.13
+;; Last updated: 2006/11/09 21:13:37
 ;;; History
 
 ;; 2004/10/23 21:58:09
@@ -137,9 +137,7 @@
     ;; shell-command returns 0 if succeeds, or positive digit if fails.
     (save-excursion
       (goto-char (point-min))
-      (if (and (looking-at exec-signal)
-	       ;; remote test -x takes long time.
-	       (null (eq major-mode 'emacs-wiki-mode)))
+      (if (looking-at exec-signal)
 	  ;; is executable already ?
 	  (if (zerop (shell-command (concat "test -x " Filename)))
 	      (message (concat "Wrote " Filename))
@@ -520,7 +518,7 @@ This is run asynchronously, compared to `shell-command'."
 (setq dired-guess-shell-alist-user
       `((,(regexp-opt
 	   '(".mp3" ".ogg" ".wav" ".avi" ".mpg" ".dat" ".wma" ".asf"
-	     ".rmvb" ".rm" ".mkv"))
+	     ".rmvb" ".rm" ".mkv" ".VOB"))
 	 (progn (emms-add-file (dired-get-filename))
 		(keyboard-quit)))
 
@@ -1393,8 +1391,7 @@ i.e.,
   (define-key emms-playlist-mode-map (kbd "s U") 'emms-score-up-file-on-line)
   (define-key emms-playlist-mode-map (kbd "s D") 'emms-score-down-file-on-line))
 
-;; TODO, weird?
-(add-hook 'emms-playlist-mode-hooks 'xwl-emms-playlist-mode-hook)
+(add-hook 'emms-playlist-mode-hook 'xwl-emms-playlist-mode-hook)
 
 ;; (global-set-key (kbd "C-c e t") 'emms-play-directory-tree)
 (global-set-key (kbd "C-c e x") 'emms-start)
@@ -1456,7 +1453,7 @@ i.e.,
 
 (add-hook 'emms-player-finished-hook 'my-emms-player-finished-hook)
 
-(setq emms-info-asynchronously nil)
+(setq emms-info-asynchronously t)
 
 ;;;; w3m
 
@@ -1486,6 +1483,7 @@ i.e.,
   (define-key w3m-mode-map (kbd "O") 'w3m-goto-url-new-session))
 
 (add-hook 'w3m-mode-hook 'xwl-w3m-mode-hook)
+(add-hook 'w3m-mode-hook 'less-minor-mode-on)
 
 (setq w3m-content-type-alist
       '(("text/plain" "\\.\\(txt\\|tex\\|el\\)\\'" nil nil)
@@ -1506,8 +1504,6 @@ i.e.,
 	("application/postscript" "\\.e?ps\\'" ("gv" file) nil)
 	("application/pdf" "\\.pdf\\'" ("xpdf" file) nil)
 	("application/xhtml+xml" nil nil "text/html")))
-
-(setq mm-text-html-renderer 'w3m)
 
 (defun xwl-erc-select ()
   (interactive)
@@ -1549,7 +1545,7 @@ i.e.,
 (setq muse-project-alist
       '(("default"
 	 ("~/studio/muse/default" :default "index")
-;;	 (:base "html" :path "/home/web")
+;;	 (:base "html" :path "/home/web/muse")
 	 (:base "html" :path "/williamxu@ftp.net9.org:/")
 ;; 	 (:base "texi" :path "~/info")
 ;; 	 (:base "info" :path "~/info"))
@@ -1780,10 +1776,10 @@ Will result in,
 (setq gnus-secondary-select-methods
       '((nntp "128.230.129.221")
         (nntp "news.gmane.org")
-        (nntp "news.mozilla.org")
+        ;; (nntp "news.mozilla.org")
         (nntp "news.cn99.com")
-        (nntp "news.yaako.com")
-        (nntp "webking.online.jn.sd.cn")
+        ;; (nntp "news.yaako.com")
+        ;; (nntp "webking.online.jn.sd.cn")
         ;; (nntp "news.newsfan.net") ; due to gb2312 issue
         ;; (nnslashdot "")
         ))
@@ -1819,17 +1815,29 @@ speed is usually fast at this time."
   (setq message-send-mail-function 'message-send-mail-with-sendmail))
 
 ;; starttls.el, pop3.el, starttls, gnutls-bin
+(require 'starttls)
+
 (defun xwl-sendmail-by-google ()
   "Enable sendmail by google."
   (interactive)
   (setq message-send-mail-function 'smtpmail-send-it)
-  (require 'starttls)
   (setq smtpmail-smtp-server "smtp.gmail.com"
 	smtpmail-smtp-service 587
 	smtpmail-auth-credentials
 	`(("smtp.gmail.com" 587 "william.xwl@gmail.com" ,pwgmail))
 	smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil)))
   (message "sendmail by google enabled."))
+
+(defun xwl-sendmail-by-ce ()
+  "Enable sendmail by CE."
+  (interactive)
+  (setq message-send-mail-function 'smtpmail-send-it)
+  (setq smtpmail-smtp-server "cn.ce-lab.net"
+	smtpmail-smtp-service 25
+	smtpmail-auth-credentials
+	`(("cn.ce-lab.net" 25 "william@ce-lab.net" ,pwce))
+	smtpmail-starttls-credentials '(("cn.ce-lab.net" 25 nil nil)))
+  (message "sendmail by CE enabled."))
 
 (defun xwl-sendmail-select ()
   "Select sendmail methods. You know, some ML doesn't allow
@@ -1840,10 +1848,14 @@ sendmail directly from localhost without a valid domain name."
                 (or (message-fetch-field "to")
                     ""))))
       (cond ((string-match "lists.sourceforge.net" to)
-             (message "Will sendmail by google.")
+             (message "Will sendmail by google")
              (xwl-sendmail-by-google))
+            ((string-match ".*ce-lab.net.*" to)
+             (message "Will sendmail by CE")
+             (xwl-sendmail-by-ce))
             (t
-             (xwl-sendmail-by-localhost))))))
+             ;;(xwl-sendmail-by-localhost)
+             (xwl-sendmail-by-google))))))
 
 (add-hook 'message-setup-hook 'xwl-sendmail-select)
 
@@ -1858,6 +1870,7 @@ sendmail directly from localhost without a valid domain name."
         "staff"
         "vce-dev"
         "svn-cn"
+        "vce-trac"
 
         "ce.important"))
 
@@ -1891,7 +1904,11 @@ arguments?"
 (setq xwl-prefer-utf8-p t)
 
 (setq mm-coding-system-priorities '(utf-8))
-(utf-translate-cjk-load-tables)       ; mule-gbk stuff, for utf8 <-> gb*
+
+; mule-gbk stuff, for utf8 <-> gb*
+
+(coding-system-put 'chinese-gbk :mime-charset 'gb2312)
+;; (utf-translate-cjk-load-tables)
 
 ;; (defadvice message-send (around set-outgoing-encoding)
 ;;   (if xwl-prefer-utf8-p
@@ -1986,6 +2003,7 @@ arguments?"
 	     ctrenzaibj@googlegroups.com
 	     emacs-cn@googlegroups.com
              firefoxchina@googlegroups.com
+             huihoo@googlegroups.com
 
              pdesc@ddtp.debian.net
 
@@ -2009,7 +2027,7 @@ arguments?"
 	     (let ((list (car args))
 		   (group (cadr args)))
 	       `(,group (to-address  . ,list)
-			(auto-expire . t)
+			(total-expire . t)
 			(to-list     . ,list)
 			;; (gcc-self    . t)
 			)))
@@ -2034,7 +2052,7 @@ arguments?"
 	  "nnfolder+archive:outgoing.important"
 	  ;; "sun"
 	  ;; "nnfolder+archive:outgoing.work"
-	  ;; "nnfolder+archive:outgoing.news"
+	  "nnfolder+archive:outgoing.news.ce"
 	  "emms-help"
 	  "emms-patches"
 	  "newsmth"
@@ -2065,7 +2083,8 @@ arguments?"
 (setq nnmail-split-fancy-match-partial-words t)
 
 (setq nnmail-split-fancy
-      `(| ("subject" ".*staff-cn.*-svn.*" "svn-cn")
+      `(| ("subject" ".*staff-cn.*-svn.*"  "svn-cn")
+          (from      ".*ohta@ce-lab.net.*" "vce-trac")
           ,@(mapcar
 	     (lambda (arg)
 	       `(any ,(car arg) ,(cadr arg)))
@@ -2093,7 +2112,8 @@ arguments?"
                        "newsletter@mysql.com"
                        "mailman-owner@python.org"
                        "Gmane Autoauthorizer"
-                       "pandonny@linuxsir.org.cn"))
+                       "pandonny@linuxsir.org.cn"
+                       "service@ycul.com"))
                     ".*")
            "general")
 
@@ -2102,7 +2122,7 @@ arguments?"
 
           (to "william@ce-lab.net" (: xwl-notify-important-ce))
 
-          (from "ccsvc@message.cmbchina.com" "life")
+          (from ".*@message.cmbchina.com" "life")
 
 	  (to ,(regexp-opt
                 '("william.xwl@gmail.com"
@@ -2137,18 +2157,8 @@ arguments?"
 
 (setq gnus-message-archive-group   ; nnfolder+archive:outgoing.important
       `(("^important$" "outgoing.important")
-;;         (,(regexp-opt
-;; 	   (mapcar (lambda (list-group)
-;; 		     (cadr list-group))
-;; 		   xwl-mailing-list-group-alist))
-;; 	 "outgoing.news")
-;;         (,(concat ".*"
-;;                   (regexp-opt
-;;                    '("webking.online.jn.sd.cn"
-;;                      "news.cn99.com"
-;;                      "news.newsfan.net"))
-;;                   ".*")
-;;          "outgoing.news")
+        (,(concat "^\\(" (regexp-opt xwl-ce-groups) "\\)$")
+         "outgoing.ce")
 	(".*" "outgoing.news")))
 
 ;; set some default email and news headers
@@ -2162,9 +2172,7 @@ arguments?"
       (lambda (group)
 	(cond
 	 ((string= "trash" group) 7)
-;; 	 ((string-match "sun.*" group) 60)
-         ((string-match (regexp-opt xwl-ce-groups)
-                        group)
+         ((string-match (regexp-opt xwl-ce-groups) group)
           'never)
 	 ((string-match (regexp-opt
                          (mapcar (lambda (list-group)
@@ -2287,7 +2295,7 @@ arguments?"
 		 "User-Agent" "X-Mailer" "X-Newsreader"
 		 "NNTP-Posting-Host"
 		 "Organization"
-		 "Content-Type"
+		 "Content-Type" "Content-Transfer-Encoding"
                  "Newsgroups"))
 	      "\\):"))
 
