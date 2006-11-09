@@ -5,10 +5,11 @@
   (emms-score-save-hash))
 
 (defun xwl-check-holidays ()
-  (when (check-calendar-holidays (calendar-current-date))
-    (calendar)
-    (with-current-buffer "*Calendar*"
-      (calendar-cursor-holidays))))
+  (calendar)
+  (with-current-buffer "*Calendar*"
+    (or (diary-view-entries)
+        (when (check-calendar-holidays (calendar-current-date))
+          (calendar-cursor-holidays)))))
 
 (defun xwl-runneing-daily ()
   "Staffs to run daily."
@@ -35,29 +36,35 @@
 
   (add-hook 'auto-save-hook 'xwl-auto-save-hook) ; auto save
 
-
   (run-with-idle-timer 300 t 'xwl-run-when-idle-hook) ; when idle
 
   ;; EMMS
   (emms-add-directory-tree emms-source-file-default-directory)
-  (let ((mounted? (zerop (shell-command "mount | grep fun"))))
-    (if mounted?
-	(emms-add-directory-tree "/mnt/fun/music")
-      (setq connected?
-	    (zerop (shell-command "sudo mount /dev/sda5 /mnt/fun -o umask=0")))
-      (when connected?
-	(emms-add-directory-tree "/mnt/fun/music"))))
+  (let ((mounted? (zerop (shell-command "mount | grep sda5"))))
+    (when mounted?
+      (emms-add-directory-tree
+       (catch 'return
+         (mapc
+          (lambda (path)
+            (when (file-exists-p path)
+              (throw 'return path)))
+          '("/media/usb0/music"
+            "/media/usb1/music"
+            "/mnt/fun/music"))))))
   (emms-add-directory-tree "/home/william/download/music")
   ;; (emms-playlist-sort-by-score)
   ;; (emms-playlist-mode-open-buffer xwl-emms-playlist-file)
 
-  (run-with-timer 0 86400 'xwl-running-daily) ; dialy stuffs
-
-  (xwl-erc-select)
+  ;; (xwl-erc-select)
 
   ;; end
-  (find-file "~/.scratch")
-  (message (substring (emacs-version) 0 16)))
+  (unless (xwl-check-holidays)
+    (find-file "~/.scratch")
+    (delete-other-windows)
+    (message (substring (emacs-version) 0 16)))
+
+  ;; (run-with-timer 0 86400 'xwl-running-daily) ; dialy stuffs
+)
 
 ;; main
 ;; ----
