@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2006/09/18 02:46:02
+;; Last updated: 2006/11/09 21:19:57
 
 ;; Non-Standard Extensions
 ;; -----------------------
@@ -45,7 +45,7 @@
 
   (smart-insert-operator-hook)
   (local-unset-key (kbd "."))
-  (local-set-key (kbd "M-S") 'wordnet-search)
+  ;; (local-set-key (kbd "M-S") 'wordnet-search)
   (local-set-key (kbd "M-s") 'dictionary-search))
 ;; (local-set-key (kbd "TAB") 'ispell-complete-word))
 
@@ -101,7 +101,8 @@
       view-calendar-holidays-initially t)
 
 (setq other-holidays
-      '((holiday-chinese 10 10 "海豚公主的生日！& 民国双十节")))
+      '((holiday-fixed 10 10 "民国双十节")
+        (holiday-fixed 10 11 "靚穎生日快樂！")))
 
 (setq xwl-holidays
       '((holiday-chinese 5 11 "我的生日！")
@@ -136,6 +137,7 @@
 
 ;; (ad-deactivate 'mark-calendar-holidays)
 
+(require 'holidays)
 ;; FIXME: the above advice doesn't work, weird!
 (defun mark-calendar-holidays ()
   "Mark notable days in the calendar window."
@@ -172,7 +174,7 @@
    dictionary-mode-hook
    custom-mode-hook
    ;; apropos-mode-hook ; ??
-   emms-playlist-mode-hooks
+   emms-playlist-mode-hook
    woman-post-format-hook
    Man-mode-hook
    bbdb-mode-hook))
@@ -354,11 +356,14 @@ prompts for name field."
 
 ;; php
 (defun xwl-php-mode-hook ()
-  (interactive)
+  (local-unset-key (kbd "/"))
+  (local-unset-key (kbd "="))
   (local-unset-key (kbd ">"))
   (local-unset-key (kbd "<")))
 
 (add-hook 'php-mode-user-hook 'xwl-php-mode-hook)
+
+(add-hook 'html-mode-hook 'xwl-php-mode-hook)
 
 ;; perl
 (require 'perl-mode)
@@ -500,7 +505,13 @@ prompts for name field."
 (setq wajig-frequent-commands
       '("ps -ef" "ps -u william u"))
 
-(add-hook 'w3m-mode-hook 'less-minor-mode-on)
+(add-hook 'wagjig-mode-hook
+          (lambda ()
+            (define-key wajig-mode-map (kbd "RET")
+              (lambda () (interactive)
+                (if (ffap-file-at-point)
+                    (ffap (ffap-file-at-point))
+                  (wajig-show-at-point))))))
 
 ;;;; color-theme
 
