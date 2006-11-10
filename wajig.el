@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: v 0.52
-;; Last updated: 2006/11/06 06:22:23
+;; Last updated: 2006/11/10 14:03:36
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -676,7 +676,7 @@ OPTION could be:
   (wajig-mode-help)
   (set-syntax-table wajig-mode-syntax-table)
   (setq font-lock-defaults '(wajig-font-lock-keywords))
-  (wajig-update-cache)
+  ;; (wajig-update-cache)
   (run-hooks 'wajig-mode-hook))
 
 ;;;###autoload
