@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2006/11/10 19:32:53
+;; Last updated: 2006/11/12 01:25:46
 ;;; GENERAL
 
 ;; xwl-word-count-analysis (how many times a word has appeared).
@@ -361,7 +361,6 @@ This should not affect `buffer-undo-list'."
       scroll-conservatively 10000
       hscroll-step 1
       hscroll-margin 3)
-(resize-minibuffer-mode 1)
 (global-auto-revert-mode 1)
 
 ;; display time
@@ -567,6 +566,12 @@ And also reserve changes made by non-root user before."
 (run-with-timer 0 battery-update-interval 'battery-update-handler)
 
 (setq history-delete-duplicates t)
+
+;; minibuffer
+;; ----------
+
+(resize-minibuffer-mode 1)
+(add-hook 'minibuffer-setup-hook 'turn-off-auto-fill)
 
 
 ;;; DIRED
