@@ -4,11 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2006/09/15 23:06:48
-
-;; This file includes configs that depend only on Emacs' standard
-;; features, thus could be used universally on different platforms.
-
+;; Last updated: 2006/11/10 19:32:53
 ;;; GENERAL
 
 ;; xwl-word-count-analysis (how many times a word has appeared).
@@ -203,9 +199,9 @@ type stands for different kinds of resolve.
 	    "-%-")
       mode-line-format default-mode-line-format)
 
-(unless window-system
-  (set-face-background 'highlight "red")
-  (set-face-background 'show-paren-match-face "yellow"))
+
+
+
 
 (setq visible-bell t)
 ;; (setq sentence-end "\\([]\\|\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*"
@@ -227,6 +223,9 @@ type stands for different kinds of resolve.
 (add-hook 'comint-mode-hook 'xwl-comint-mode-hook)
 
 (add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m)
+
+(require 'shell)
+(define-key shell-mode-map (kbd "C-c m R") 'rename-buffer)
 
 ;; cursor/page movements
 ;; ---------------------
@@ -306,7 +305,9 @@ This should not affect `buffer-undo-list'."
 	("\\.\\(tex\\|ltx\\|dtx\\|drv\\)\\'" . latexenc-find-file-coding-system)
 ;;	("" undecided)
 	("^/home/william/studio/darcs/mt/src/" chinese-gbk . chinese-gbk)
-	("" utf-8 . utf-8)))
+        (".*vce2.h.*" shift_jis . shift_jis)
+        (".*新世纪日语/本文.*" gbk . gbk)
+	("" utf-8 . utf-8)))            ; shift_jis problem?
 
 (defun xwl-revert-buffer-with-coding-system ()
   "Revert buffer with 'gbk coding."
@@ -346,6 +347,11 @@ This should not affect `buffer-undo-list'."
       adaptive-fill-first-line-regexp "\\`[	]*\\'"
       fill-column 72)
 (show-paren-mode t)
+
+(unless window-system
+  (set-face-background 'highlight "red")
+  (set-face-background 'show-paren-match-face "yellow"))
+
 (menu-bar-mode -1)
 (setq column-number-mode t
       line-number-mode t)
@@ -405,10 +411,10 @@ This should not affect `buffer-undo-list'."
 (setq kill-ring-max 100
       ring-bell-function 'ignore
       uniquify-buffer-name-style 'forward
-      auto-image-file-mode nil
       inhibit-startup-message t
       max-lisp-eval-depth 20000
       c-echo-syntactic-information-p nil)
+
 (fset 'yes-or-no-p 'y-or-n-p)
 
 (put 'set-goal-column 'disabled nil)
@@ -467,6 +473,8 @@ Chinese and digits, which is useful when editing TeX files."
 (ad-activate 'describe-variable)
 (ad-activate 'describe-key)
 
+(define-key help-mode-map (kbd "l") 'help-go-back)
+
 ;; transpose(interchange) two windows
 (defun his-transpose-windows (arg)
   "Transpose the buffers shown in two windows."
@@ -492,13 +500,20 @@ Chinese and digits, which is useful when editing TeX files."
 
 ;; (redefined)Use file's full path as buffer name when opening files
 ;; with same names.
-(defun create-file-buffer (filename)
-  (let ((lastname (file-name-nondirectory filename)))
-    (if (string= lastname "")
-    (setq lastname filename))
-    (if (get-buffer lastname)
-        (generate-new-buffer filename)
-      (generate-new-buffer lastname))))
+
+;; (defun create-file-buffer (filename)
+;;   (let ((lastname (file-name-nondirectory filename)))
+;;     (if (string= lastname "")
+;;     (setq lastname filename))
+;;     (if (get-buffer lastname)
+;;         (generate-new-buffer filename)
+;;       (generate-new-buffer lastname))))
+
+;; Alternatively, add the following to custom-set-variables, so it'll
+;; show a/c or b/c to make c under a, b distinguishable, without
+;; displaying the whole path name.
+;;
+;;     '(uniquify-buffer-name-style (quote forward) nil (uniquify))
 
 (defun xwl-revert-buffer-with-sudo ()
   "Revert buffer using tramp sudo.
@@ -741,7 +756,6 @@ And also reserve changes made by non-root user before."
 	("text"
 	 ((or (mode . text-mode)
 	      (mode . outline-mode)
-	      (mode . emacs-wiki-mode)
 	      (mode . muse-mode)
 	      (mode . tex-mode)
 	      (mode . latex-mode)
@@ -841,6 +855,7 @@ And also reserve changes made by non-root user before."
 
 ;; C-c c *    invoke external programs, e.g., scheme, mysql.
 ;; C-c e *    emms
+;; C-c b *    boxquote
 ;; C-c m *    misc bindings
 
 ;; scroll up and down
@@ -931,9 +946,8 @@ And also reserve changes made by non-root user before."
 ;; (global-set-key (kbd "C-h") 'backward-delete-char-untabify)
 
 (when window-system
-  (keyboard-translate ?\C-m ?\C-@))
-
-(keyboard-translate ?\C-i ?\M-%)
+  (keyboard-translate ?\C-m ?\C-@)
+  (keyboard-translate ?\C-i ?\M-%))
 
 (global-set-key (kbd "<f1>") 'help-command)
 (global-set-key (kbd "<f2>") 'woman)
@@ -986,7 +1000,6 @@ And also reserve changes made by non-root user before."
 (global-set-key (kbd "C-x ~ e") 'emacs-lisp-mode)
 (global-set-key (kbd "C-x ~ O") 'outline-mode)
 (global-set-key (kbd "C-x ~ t") 'text-mode)
-(global-set-key (kbd "C-x ~ w") 'emacs-wiki-mode)
 (global-set-key (kbd "C-x ~ S") 'scheme-mode)
 (global-set-key (kbd "C-x ~ m") 'asm-mode)
 (global-set-key (kbd "C-x ~ b") 'blank-mode)
@@ -1028,7 +1041,6 @@ And also reserve changes made by non-root user before."
 (global-set-key (kbd "C-c p b") 'planner-browser-directory)
 
 (global-set-key (kbd "C-c m r") 'revert-buffer)
-(global-set-key (kbd "C-c m R") 'rename-buffer)
 ;; (global-set-key (kbd "C-c m n") 'nuke-trailing-whitespace)
 (global-set-key (kbd "C-c m a") 'his-align-cols)
 (global-set-key (kbd "C-c m m") 'apply-macro-to-region-lines)
@@ -1069,6 +1081,14 @@ And also reserve changes made by non-root user before."
 ;; html
 ;; (define-key html-mode-map (kbd "<") 'skeleton-pair-insert-maybe)
 
+;; boxquote
+(global-set-key (kbd "C-c b r") 'boxquote-region)
+(global-set-key (kbd "C-c b t") 'boxquote-title)
+(global-set-key (kbd "C-c b f") 'boxquote-describe-function)
+(global-set-key (kbd "C-c b v") 'boxquote-describe-variable)
+(global-set-key (kbd "C-c b k") 'boxquote-describe-key)
+(global-set-key (kbd "C-c b !") 'boxquote-shell-command)
+
 
 ;;; WINDOW
 
@@ -1088,6 +1108,14 @@ And also reserve changes made by non-root user before."
 ;; C-x r j
 
 
+;;; MIME
+
+(setq mm-text-html-renderer 'w3m)
+
+(setq mm-inline-text-html-with-images t
+      mm-w3m-safe-url-regexp nil)
+
+
 ;;; PROGRAMMING
 
 ;; skeletons
@@ -1098,14 +1126,14 @@ And also reserve changes made by non-root user before."
   "generate main(int argc, char *argv[])"
   > "int\nmain(int argc, char *argv[])\n{\n"
   > _ " "
-  > "\n\nexit(0);"
+  > "\n\nreturn 0;"
   > "\n}")
 
 (define-skeleton skeleton-c-mode-main-fun1
   "generate main()"
   > "int\nmain()\n{\n"
   > _ " "
-  > "\n\nexit(0);"
+  > "\n\nreturn 0;"
   > "\n}")
 
 (define-skeleton skeleton-c-mode-include
@@ -1155,31 +1183,6 @@ And also reserve changes made by non-root user before."
   > _ ""
   > ");")
 
-;; emacs-wiki
-(define-skeleton skeleton-emacs-wiki-mode-example
-  "Generate: <example></example>."
-  > "<example>\n"
-  > _ " "
-  > "\n</example>")
-
-(define-skeleton skeleton-emacs-wiki-mode-div-text
-  "Generate: <div class = \"my_text\"> </example></div>."
-  > "<div class = \"my_text\"><example>\n"
-  > _ " "
-  > "\n</example></div>")
-
-(define-skeleton skeleton-emacs-wiki-mode-div-code
-  "Generate: <div class = \"my_code\"> </example></div>."
-  > "<div class = \"my_code\"><example>\n"
-  > _ " "
-  > "\n</example></div>")
-
-(define-skeleton skeleton-emacs-wiki-mode-div-emph
-  "Generate: <div class = \"my_emph\"> </example></div>."
-  > "<div class = \"my_emph\"><example>\n"
-  > _ " "
-  > "\n</example></div>")
-
 ;; code browsing
 
 ;; imenu, cscope, etags
@@ -1212,7 +1215,7 @@ And also reserve changes made by non-root user before."
 	  (font-lock-add-keywords
 	   mode
 	   '(("\\<\\(FIXME\\)" 1 'font-lock-fixme-face t)
-	     ("\\<\\(TODO\\)" 1 'font-lock-todo-face t))))
+	     ("\\<\\(TODO\\)"  1 'font-lock-todo-face  t))))
 	xwl-keyword-highlight-modes))
 
 (xwl-highlight-special-keywords)
@@ -1316,6 +1319,8 @@ yacc source files."
 
 (global-set-key (kbd "C-c c s") 'run-scheme)
 
+(global-set-key (kbd "C-c c p") 'run-python)
+
 
 ;;; INTEFACES
 
@@ -1362,7 +1367,7 @@ yacc source files."
 (require 'erc-match)
 (erc-match-mode 1)
 (setq erc-current-nick-highlight-type 'nick-or-keyword)
-(setq erc-keywords '("xwl" "emms"))
+(setq erc-keywords '("xwl" "emms" "xgl"))
 (setq erc-pals nil)
 
 ;; (global-set-key (kbd "C-c C-2") 'erc-track-switch-buffer)
@@ -1439,25 +1444,6 @@ so as to keep an eye on work when necessarily."
 (erc-readonly-mode 1)
 (erc-smiley-mode 1)
 
-(defun xwl-erc-select ()
-  (interactive)
-  (erc-select :server "irc.freenode.net"
-	      :port 7000
-	      :nick "xwl"
-	      :password pwerc)
-
-  (erc-select :server "irc.debian.org"
-              :port 7000
-              :nick "xwl"
-              :password pwerc)
-
-  (erc-select :server "im.rootdir.de"
-	      :port 6668
-	      :nick "xwl"
-	      :password pwerc))
-
-(global-set-key (kbd "C-c n E") 'xwl-erc-select)
-
 (defun xwl-erc-cmd-WHOIS (nick)
   "Run /whois easily by key sequences."
   (interactive
@@ -1520,7 +1506,6 @@ so as to keep an eye on work when necessarily."
 
 ;; outline extra
 (require 'foldout)
-(require 'out-xtra)
 
 ;; keys
 (defun xwl-hide-body ()
@@ -1607,6 +1592,5 @@ so as to keep an eye on work when necessarily."
   (setq frame-title-format "the Church of Emacs"))
 
 ;;; Misc
-
 
 ;;; .xwl-emacs-standard.el ends here
