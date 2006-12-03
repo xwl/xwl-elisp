@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: v 0.52
-;; Last updated: 2006/11/30 17:28:40
+;; Last updated: 2006/12/03 13:23:29
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -608,7 +608,7 @@ OPTION could be:
     (define-key map "i" 'wajig-install)
     (define-key map "I" 'wajig-install-at-point)
     (define-key map "K" 'wajig-kill)
-    (define-key map "L" 'wajig-list-files)
+    (define-key map "l" 'wajig-list-files)
     (define-key map "m" 'wajig-manually)
     (define-key map "o" 'wajig-show)
     (define-key map "R" 'wajig-remove)
