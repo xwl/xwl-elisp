@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.13
-;; Last updated: 2006/11/09 21:13:37
+;; Last updated: 2006/12/21 14:41:07
 ;;; History
 
 ;; 2004/10/23 21:58:09
@@ -44,12 +44,9 @@
 
 ;;; Code
 
-;; a special version of emacs. (default is cvs version)
+;; a special version of emacs. (default is cvs version, i.e., 22)
 (setq xwl-emacs-special-p
       (string= (substring emacs-version 0 2) "21"))
-
-(setq xwl-emacs-unicode-branch-p
-      (string= (substring emacs-version 0 2) "23"))
 
 
 ;;; Pre
@@ -88,21 +85,6 @@
   (cd l)
   (normal-top-level-add-subdirs-to-load-path))
 
-;; emacs unicode branch
-(when xwl-emacs-unicode-branch-p
-  (setq load-path
-	(append load-path
-		'("/usr/share/emacs/site-lisp/erc"
-		  "/usr/share/emacs-snapshot/site-lisp/emacs-goodies-el"
-		  "/usr/share/emacs-snapshot/site-lisp/muse-el"
-		  "/usr/share/emacs-snapshot/site-lisp/dictionary-el"
-                  "~/share/emacs/site-lisp"
-                  "~/share/emacs/site-lisp/auctex"
-                  "/usr/share/emacs/site-lisp/planner-el"
-		  "/home/william/studio/cvs/emacs-w3m")))
-  (cd "/home/william/studio/cvs/emacs-w3m")
-  (normal-top-level-add-subdirs-to-load-path))
-
 
 ;;; STANDARD & CRUCIAL FEATURES
 
@@ -123,7 +105,7 @@
 
 (defun xwl-chmod-file-executable ()
   "Make scripts executable if necessary."
-  (let ((Filename (buffer-file-name))
+  (let ((filename (buffer-file-name))
 	(cmd (shell-command-to-string
 	      "which -a sh bash expect perl octave guile scsh python"))
 	(exec-signal nil))
@@ -138,13 +120,14 @@
     (save-excursion
       (goto-char (point-min))
       (if (looking-at exec-signal)
-	  ;; is executable already ?
-	  (if (zerop (shell-command (concat "test -x " Filename)))
-	      (message (concat "Wrote " Filename))
+	  ;; executable already or tramp file ?
+	  (if (or (zerop (shell-command (concat "test -x " filename)))
+                  (string-match "^/sudo::/" filename))
+	      (message (concat "Wrote " filename))
 	    (progn
-	      (shell-command (concat "chmod u+x " Filename))
-	      (message (concat "Wrote and made executable " Filename))))
-	(message (concat "Wrote " Filename))))))
+	      (shell-command (concat "chmod u+x " filename))
+	      (message (concat "Wrote and made executable " filename))))
+	(message (concat "Wrote " filename))))))
 
 (defun xwl-after-save-hook ()
   (xwl-chmod-file-executable))
@@ -182,14 +165,50 @@ If SCHEME?, `run-scheme'."
       todo-file-done "~/.todo/done"
       todo-file-top  "~/.todo/top")
 
+(defun xwl-todo-find-do ()
+  "Visit `todo-file-do' by turning off `less-minor-mode'."
+  (interactive)
+  (let ((do-buffer "do"))
+    (if (get-buffer do-buffer)
+        (switch-to-buffer do-buffer)
+      (find-file todo-file-do)
+      (less-minor-mode -1))))
+
+(defun xwl-todo-forward-category ()
+  "Move forward category in current todo buffer."
+  (interactive)
+  (end-of-line)
+  (search-forward-regexp (regexp-opt '("*/* --- ")) nil t)
+  (beginning-of-line))
+
+(defun xwl-todo-backward-category ()
+  "Move backward category in current todo buffer."
+  (interactive)
+  (beginning-of-line)
+  (search-backward-regexp (regexp-opt '("*/* --- ")) nil t)
+  (beginning-of-line))
+
 (defun xwl-todo-mode-hook ()
+  (highlight-regexp (concat "^" (regexp-opt '("*/* --- ")) ".*")
+                    'font-lock-constant-face)
   (local-set-key (kbd "a") 'todo-add-category)
   (local-set-key (kbd "i") 'todo-insert-item-here)
   (local-set-key (kbd "I") 'todo-insert-item)
   (local-set-key (kbd "e") 'todo-edit-item)
-  (local-set-key (kbd "D") 'todo-delete-item))
+  (local-set-key (kbd "D") 'todo-delete-item)
+  (local-set-key (kbd "=") 'todo-forward-category)
+  (local-set-key (kbd "q") 'next-buffer)
+  (local-set-key (kbd "^")
+                 (lambda () (interactive)
+                   (todo-quit)
+                   (xwl-todo-find-do)
+                   (goto-char (point-min))))
+  (local-set-key (kbd "N") 'xwl-todo-forward-category)
+  (local-set-key (kbd "P") 'xwl-todo-backward-category))
 
 (add-hook 'todo-mode-hook 'xwl-todo-mode-hook)
+
+;;todo-categories
 
 ;; abbreviations
 (setq save-abbrevs t)
@@ -291,6 +310,10 @@ first Monday."
 ;; (setq password-cache-expiry 300)
 
 (setq tramp-auto-save-directory "~/.tramp-auto-save-directory")
+
+(require 'ange-ftp)
+(setq ange-ftp-ftp-program-args
+      (cons "-p" ange-ftp-ftp-program-args))
 
 ;; /sudo:root@localhost:/etc/X11/
 
@@ -670,6 +693,58 @@ chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
 
 ;;; PROGRAMMING
 
+(require 'vc)
+;; redefined from vc.el, use `change-log-mode' instead of
+;; `log-view-mode'.
+(defun vc-print-log (&optional focus-rev)
+  "List the change log of the current buffer in a window.
+If FOCUS-REV is non-nil, leave the point at that revision."
+  (interactive)
+  (vc-ensure-vc-buffer)
+  (let ((file buffer-file-name))
+    (or focus-rev (setq focus-rev (vc-workfile-version file)))
+    ;; Don't switch to the output buffer before running the command,
+    ;; so that any buffer-local settings in the vc-controlled
+    ;; buffer can be accessed by the command.
+    (condition-case err
+        (progn
+          (vc-call print-log file "*vc-change-log*")
+          (set-buffer "*vc-change-log*"))
+      (wrong-number-of-arguments
+       ;; If this error came from the above call to print-log, try again
+       ;; without the optional buffer argument (for backward compatibility).
+       ;; Otherwise, resignal.
+       (if (or (not (eq (cadr err)
+                        (indirect-function
+                         (vc-find-backend-function (vc-backend file)
+                                                   'print-log))))
+               (not (eq (caddr err) 2)))
+           (signal (car err) (cdr err))
+         ;; for backward compatibility
+         (vc-call print-log file)
+         (set-buffer "*vc*"))))
+    (pop-to-buffer (current-buffer))
+    (log-view-mode)
+    (vc-exec-after
+     `(let ((inhibit-read-only t))
+	(goto-char (point-max)) (forward-line -1)
+	(while (looking-at "=*\n")
+	  (delete-char (- (match-end 0) (match-beginning 0)))
+	  (forward-line -1))
+	(goto-char (point-min))
+	(if (looking-at "[\b\t\n\v\f\r ]+")
+	    (delete-char (- (match-end 0) (match-beginning 0))))
+	(shrink-window-if-larger-than-buffer)
+	;; move point to the log entry for the current version
+	(vc-call-backend ',(vc-backend file)
+			 'show-log-entry
+			 ',focus-rev)
+        (set-buffer-modified-p nil)
+        ;; xwl: change to `change-log-mode'
+        (change-log-mode)
+        (less-minor-mode-on)
+        (goto-char (point-min))))))
+
 ;; darcs
 (setq darcs-command-prefix (kbd "C-c d"))
 (require 'darcs)
@@ -686,6 +761,7 @@ chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
 
 (require 'vc-darcs)
 (add-to-list 'vc-handled-backends 'DARCS)
+(setq vc-darcs-mail-address "William Xu <william.xwl@gmail.com>")
 
 ;; shell-script/conf mode
 (defun xwl-sh-mode-hook()
@@ -746,6 +822,11 @@ chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
 ;; gdb
 (setq gdb-many-windows t)
 (global-set-key (kbd "<C-end>") 'gdb-restore-windows)
+
+;; changlog entry
+
+(setq add-log-full-name nil
+      add-log-mailing-address nil)
 
 ;;;; c, c++, java
 
@@ -871,6 +952,9 @@ chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
   (beginning-of-line))
 
 (defun xwl-dictionary-mode-hook ()
+  ;; faces
+  (set-face-foreground 'dictionary-word-entry-face "magenta")
+
   (define-key dictionary-mode-map (kbd "<backtab>") 'dictionary-prev-link)
   (define-key dictionary-mode-map (kbd "n") 'xwl-dictionary-next-dictionary)
   (define-key dictionary-mode-map (kbd "p") 'xwl-dictionary-prev-dictionary))
@@ -1025,6 +1109,8 @@ i.e.,
 (setq emms-source-file-default-directory "~/music/songs"
       emms-lyrics-dir "~/music/lyrics")
 
+(setq emms-playing-time-style 'bar)
+
 ;; mode line format
 (setq emms-mode-line-format "[ %s ]"
       emms-lyrics-display-format "%s"
@@ -1054,7 +1140,7 @@ i.e.,
 	erc-modified-channels-object
 	emms-mode-line-string " "
 	emms-playing-time-string " "
-	emms-lyrics-mode-line-string " "))
+	emms-lyrics-string " "))
 
 ;; faces
 (unless xwl-emacs-special-p
@@ -1071,7 +1157,12 @@ i.e.,
 
 (define-key emms-playlist-mode-map (kbd "S s") 'emms-playlist-sort-by-score)
 
-(global-set-key (kbd "<f3>") 'emms-playlist-mode-go-popup)
+(global-set-key (kbd "<f3>")
+                (lambda ()
+                  (interactive)
+                  (if emms-playlist-buffer
+                      (emms-playlist-mode-go-popup)
+                    (message "EMMS not started"))))
 
 (defun xwl-emms-google-track ()
   (interactive)
@@ -1156,37 +1247,46 @@ i.e.,
 (defun my-emms-track-description-function (track)
   "Return a description of the current track."
   (let* ((name (emms-track-name track))
-        (type (emms-track-type track))
-        (score (emms-score-get-score name)))
-  (condition-case nil
-      (let* ((artist (emms-track-get track 'info-artist))
-             (title (emms-track-get track 'info-title))
-             (year (emms-track-get track 'info-year))
-             (playing-time (emms-track-get track 'info-playing-time))
-             (min (/ playing-time 60))
-             (sec (% playing-time 60))
-             (album (emms-track-get track 'info-album)))
-;;         (format "%-4d%-6s%02d:%02d    %-20s《%s》 - %s"
-;;                 score
-;;                 (or year "")
-;;                 (or min "")
-;;                 (or sec "")
-;;                 (or artist (error "Bad artist"))
-;;                 (or album "")
-;;                 (or title (error "Bad title")))
-
-        (format "%-3d%s - %s"
-                score
-                (or artist (error "Bad artist"))
-                (or title (error "Bad title")))
-        )
-    (error
-     (let ((basic
-            (if (eq 'file type)
-                (file-name-sans-extension
-                 (file-name-nondirectory name))
-              (concat (symbol-name type) ":" name))))
-       (format "%-3d%s" score basic))))))
+         (type (emms-track-type track))
+         (score (emms-score-get-score name)))
+    (case (emms-track-type track)
+      ((file)
+       (condition-case nil
+           (let* ((artist (emms-track-get track 'info-artist))
+                  (title (emms-track-get track 'info-title))
+                  (year (emms-track-get track 'info-year))
+                  (playing-time (emms-track-get track 'info-playing-time))
+                  (min (/ playing-time 60))
+                  (sec (% playing-time 60))
+                  (album (emms-track-get track 'info-album)))
+             ;;         (format "%-4d%-6s%02d:%02d    %-20s《%s》 - %s"
+             ;;                 score
+             ;;                 (or year "")
+             ;;                 (or min "")
+             ;;                 (or sec "")
+             ;;                 (or artist (error "Bad artist"))
+             ;;                 (or album "")
+             ;;                 (or title (error "Bad title")))
+             (format "%-3d%s - %s"
+                     score
+                     (or artist (error "Bad artist"))
+                     (or title (error "Bad title")))
+             )
+         (error
+          (format "%-3d%s"
+                  score
+                  (file-name-sans-extension
+                   (file-name-nondirectory name))))))
+      ((url)
+       (concat (symbol-name type)
+               ":"
+               (decode-coding-string
+                (encode-coding-string name 'utf-8)
+                'gbk)))
+      (t
+       (format "%-3d%s"
+               score
+               (concat (symbol-name type) ":" name))))))
 
 (setq emms-track-description-function
       'my-emms-track-description-function)
@@ -1389,7 +1489,9 @@ i.e.,
   (define-key emms-playlist-mode-map (kbd "s d") 'emms-score-down-playing)
   (define-key emms-playlist-mode-map (kbd "s O") 'emms-score-show-file-on-line)
   (define-key emms-playlist-mode-map (kbd "s U") 'emms-score-up-file-on-line)
-  (define-key emms-playlist-mode-map (kbd "s D") 'emms-score-down-file-on-line))
+  (define-key emms-playlist-mode-map (kbd "s D") 'emms-score-down-file-on-line)
+
+  (define-key emms-playlist-mode-map (kbd "E") 'emms-tag-editor-edit))
 
 (add-hook 'emms-playlist-mode-hook 'xwl-emms-playlist-mode-hook)
 
@@ -1422,6 +1524,28 @@ i.e.,
 (global-set-key (kbd "C-c e s u") 'emms-score-up-playing)
 (global-set-key (kbd "C-c e s d") 'emms-score-down-playing)
 (global-set-key (kbd "C-c e s o") 'emms-score-show-playing)
+
+(global-set-key (kbd "C-c e l") 'emms-lyrics-find-current-lyric)
+
+;; ;; restore overlay `* !'
+
+;; (defun emms-playlist-mode-unmark-all ()
+;;   "Unmark all marked tracks."
+;;   (interactive)
+;;   (emms-playlist-ensure-playlist-buffer)
+;;   (widen)
+;;   (emms-with-inhibit-read-only-t
+;;    (save-excursion
+;;      (goto-char (point-min))
+;;      (while (not (eobp))
+;;        (emms-playlist-mode-unmark)
+;;        (forward-line 1)))))
+
+;; ;; when sort, or change position, how to restore overlays?
+
+;; lastfm
+(setq emms-lastfm-username "xwl"
+      emms-lastfm-password pwlastfm)
 
 ;; amixer
 (require 'amixer)
@@ -1545,8 +1669,8 @@ i.e.,
 (setq muse-project-alist
       '(("default"
 	 ("~/studio/muse/default" :default "index")
-;;	 (:base "html" :path "/home/web/muse")
-	 (:base "html" :path "/williamxu@ftp.net9.org:/")
+	 (:base "html" :path "/home/web/net9")
+;;	 (:base "html" :path "/williamxu@ftp.net9.org:/")
 ;; 	 (:base "texi" :path "~/info")
 ;; 	 (:base "info" :path "~/info"))
 	 )
@@ -1556,12 +1680,13 @@ i.e.,
 ;; 	 (:base "texi" :path "~/info")
 ;; 	 (:base "info" :path "~/info"))))
 	 )
-        ("planner"
-         ("~/studio/muse/planner"
-          :default "TaskPool"
-          :major-mode planner-mode
-          :visit-link planner-visit-link)
-         (:base "planner-xhtml" :path "/home/web/planner"))))
+;;         ("planner"
+;;          ("~/studio/muse/planner"
+;;           :default "TaskPool"
+;;           :major-mode planner-mode
+;;           :visit-link planner-visit-link)
+;;          (:base "planner-xhtml" :path "/home/web/planner"))
+))
 
 (global-set-key (kbd "C-c m 9")
                 (lambda () (interactive)
@@ -1666,57 +1791,57 @@ Will result in,
 ;; planner
 ;; -------
 
-(require 'planner)
-(setq planner-project "planner")
-;; (planner-insinuate-calendar)
-;; (planner-install-extra-task-keybindings)
+;; (require 'planner)
+;; (setq planner-project "planner")
+;; ;; (planner-insinuate-calendar)
+;; ;; (planner-install-extra-task-keybindings)
 
-(setq planner-add-task-at-end-flag t)
-(setq planner-reverse-chronological-notes nil)
+;; (setq planner-add-task-at-end-flag t)
+;; (setq planner-reverse-chronological-notes nil)
 
-(global-set-key (kbd "C-c p t") 'planner-create-task)
-(global-set-key (kbd "C-c p T") 'planner-create-task-from-buffer)
-(global-set-key (kbd "C-c p n") 'planner-create-note)
-(global-set-key (kbd "C-c p N") 'planner-create-note-from-context)
+;; (global-set-key (kbd "C-c p t") 'planner-create-task)
+;; (global-set-key (kbd "C-c p T") 'planner-create-task-from-buffer)
+;; (global-set-key (kbd "C-c p n") 'planner-create-note)
+;; (global-set-key (kbd "C-c p N") 'planner-create-note-from-context)
 
-(global-set-key (kbd "<f7>") 'plan)
+;; (global-set-key (kbd "<f7>") 'plan)
 
-(require 'planner-deadline)
+;; (require 'planner-deadline)
 
-(require 'planner-trunk)
-(setq planner-trunk-rule-list
-      '(("\\`[0-9][0-9][0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]\\'" nil
-         ("重要" "每天" "长期" "读书" "电影" "工作" "生活" "TaskPool"
-          "购物" "杂项" "Wishlists"))))
+;; (require 'planner-trunk)
+;; (setq planner-trunk-rule-list
+;;       '(("\\`[0-9][0-9][0-9][0-9]\\.[0-9][0-9]\\.[0-9][0-9]\\'" nil
+;;          ("重要" "每天" "长期" "读书" "电影" "工作" "生活" "TaskPool"
+;;           "购物" "杂项" "Wishlists"))))
 
-(add-hook 'planner-mode-hook 'planner-trunk-tasks)
+;; (add-hook 'planner-mode-hook 'planner-trunk-tasks)
 
-(defadvice plan (around writable-and-fill)
-  "Make buffer writable and fill its frame."
-  (let ((inhibit-read-only t))
-    ad-do-it
-    (planner-trunk-tasks)
-    (delete-other-windows)))
+;; (defadvice plan (around writable-and-fill)
+;;   "Make buffer writable and fill its frame."
+;;   (let ((inhibit-read-only t))
+;;     ad-do-it
+;;     (planner-trunk-tasks)
+;;     (delete-other-windows)))
 
-(defadvice planner-create-task (around planner-writable)
-  "Turn off buffer read-only."
-  (let ((inhibit-read-only t))
-    ad-do-it))
+;; (defadvice planner-create-task (around planner-writable)
+;;   "Turn off buffer read-only."
+;;   (let ((inhibit-read-only t))
+;;     ad-do-it))
 
-(defadvice planner-create-note (around planner-writable)
-  "Turn off buffer read-only."
-  (let ((inhibit-read-only t))
-    ad-do-it))
+;; (defadvice planner-create-note (around planner-writable)
+;;   "Turn off buffer read-only."
+;;   (let ((inhibit-read-only t))
+;;     ad-do-it))
 
-(defadvice planner-task-done (around planner-writable)
-  "Turn off buffer read-only."
-  (let ((inhibit-read-only t))
-    ad-do-it))
+;; (defadvice planner-task-done (around planner-writable)
+;;   "Turn off buffer read-only."
+;;   (let ((inhibit-read-only t))
+;;     ad-do-it))
 
-(ad-activate 'plan)
-(ad-activate 'planner-create-task)
-(ad-activate 'planner-create-note)
-(ad-activate 'planner-task-done)
+;; (ad-activate 'plan)
+;; (ad-activate 'planner-create-task)
+;; (ad-activate 'planner-create-note)
+;; (ad-activate 'planner-task-done)
 
 ;; remind & diary
 ;; (require 'remind)
@@ -1774,7 +1899,7 @@ Will result in,
 
 (setq gnus-select-method '(nnfolder ""))
 (setq gnus-secondary-select-methods
-      '((nntp "128.230.129.221")
+      '(;; (nntp "128.230.129.221")
         (nntp "news.gmane.org")
         ;; (nntp "news.mozilla.org")
         (nntp "news.cn99.com")
@@ -1839,6 +1964,17 @@ speed is usually fast at this time."
 	smtpmail-starttls-credentials '(("cn.ce-lab.net" 25 nil nil)))
   (message "sendmail by CE enabled."))
 
+;; TODO
+;; (defun xwl-sendmail-by-tsinghua ()
+;;   "Enable sendmail by tsinghua."
+;;   (interactive)
+;;   (setq message-send-mail-function 'smtpmail-send-it)
+;;   (setq smtpmail-smtp-server "cn.ce-lab.net"
+;; 	smtpmail-smtp-service 25
+;; 	smtpmail-auth-credentials
+;; 	`(("cn.ce-lab.net" 25 "william@ce-lab.net" ,pwce)))
+;;   (message "sendmail by CE enabled."))
+
 (defun xwl-sendmail-select ()
   "Select sendmail methods. You know, some ML doesn't allow
 sendmail directly from localhost without a valid domain name."
@@ -1869,10 +2005,14 @@ sendmail directly from localhost without a valid domain name."
         "staff-cn"
         "staff"
         "vce-dev"
+        "i18n-cn"
+
         "svn-cn"
         "vce-trac"
+        "vce-build"
+        "vce-cn"
 
-        "ce.important"))
+        "important.ce"))
 
 (setq user-full-name "William Xu"
       user-mail-address "william.xwl@gmail.com"	; don't use `<mail>'!
@@ -1933,8 +2073,8 @@ arguments?"
         ;; 		    xwl-mailing-list-group-alist))
         ;; 	  (signature "William"))
 
-	("hotmail"
-	 (address "william.xwl@hotmail.com"))
+;; 	("hotmail"
+;; 	 (address "william.xwl@hotmail.com"))
 
         (,(regexp-opt
            '("cn.comp.os.linux"
@@ -1948,7 +2088,7 @@ arguments?"
 
 %s"
                      (ansi-color-filter-apply
-                      (shell-command-to-string "fortune")))))
+                      (shell-command-to-string "fortune-zh")))))
         (,(regexp-opt xwl-ce-groups)    ; ce
          (address "william@ce-lab.net")
          (signature (format
@@ -1959,7 +2099,7 @@ arguments?"
 
 %s"
                      (ansi-color-filter-apply
-                      (shell-command-to-string "fortune")))))
+                      (shell-command-to-string "fortune-zh")))))
         ;; prefer gb* coding
         (,(concat ".*"
                   (regexp-opt
@@ -1971,12 +2111,9 @@ arguments?"
          (signature (format
                      "William
 
-1. Bottom post!
-2. Trim your post!
-
 %s"
                      (ansi-color-filter-apply
-                      (shell-command-to-string "fortune")))))))
+                      (shell-command-to-string "fortune-zh")))))))
 
 ;;;; Mailing-lists & Mail Groups
 ;; -----------------------------
@@ -2013,34 +2150,24 @@ arguments?"
              daily-cn@ce-lab.net
              staff-cn@ce-lab.net
              staff@ce-lab.net
-             vce-dev@ce-lab.net))
+             vce-dev@ce-lab.net
+             i18n-cn@ce-lab.net))
 
 	;; local mails
 	(".*Cron Daemon.*\\|.*root\\|Mailer-Daemon@williamxwl" "local")))
 
 ;; gnus parameters
 (setq gnus-parameters
-      `( ;; Seems it's only needed when fetching mail by Emacs herself.
-	;; (".*" (gcc-self . t))		; always Gcc to oneself
+      `(;; set this when sendmail by google
+        (".*" (gcc-self . t))		; always Gcc to oneself
 	,@(mapcar*
 	   (lambda (args)
 	     (let ((list (car args))
 		   (group (cadr args)))
 	       `(,group (to-address  . ,list)
 			(total-expire . t)
-			(to-list     . ,list)
-			;; (gcc-self    . t)
-			)))
-	   xwl-mailing-list-group-alist)
-	(,(regexp-opt
-	   '("important"
-	     "savings"
-	     "nnfolder+archive:outgoing.important"
-	     "nnfolder+archive:outgoing.news"
-	     "nnfolder+archive:outgoing.work"
-	     "general"
-	     "hotmail"))
-	 (gcc-self . t))))
+			(to-list     . ,list))))
+	   xwl-mailing-list-group-alist)))
 
 (setq gnus-gcc-mark-as-read t)		; mark Gcc mail as read
 
@@ -2049,20 +2176,14 @@ arguments?"
       (concat
        (regexp-opt
 	`("savings"
-	  "nnfolder+archive:outgoing.important"
-	  ;; "sun"
-	  ;; "nnfolder+archive:outgoing.work"
-	  "nnfolder+archive:outgoing.news.ce"
+	  "outgoing"
 	  "emms-help"
 	  "emms-patches"
-	  "newsmth"
 	  ;; "hotmail"
-	  ;; "rss"
           "important"
           "life"
-
+          "nnrss"
           ,@xwl-ce-groups))
-
        "\\|^general$"))
 
 ;;;; Split Incoming Mails
@@ -2072,76 +2193,87 @@ arguments?"
   "Notify me when important mails incoming."
   (xwl-start-process-shell-command
     "zenity --info --text \"You've Got Mail \!\" --title \"Gnus\"")
-  "important")
+  "important.now")
 
 (defun xwl-notify-important-ce ()
   "Notify me when important ce mails incoming."
   (xwl-start-process-shell-command
     "zenity --info --text \"CE mail \!\" --title \"Gnus\"")
-  "ce.important")
+  "important.ce")
 
 (setq nnmail-split-fancy-match-partial-words t)
 
 (setq nnmail-split-fancy
-      `(| ("subject" ".*staff-cn.*-svn.*"  "svn-cn")
-          (from      ".*ohta@ce-lab.net.*" "vce-trac")
-          ,@(mapcar
-	     (lambda (arg)
-	       `(any ,(car arg) ,(cadr arg)))
-	     xwl-mailing-list-group-alist)
+      `(|
+        ;; ignore my own mail, (since i gcc all)
+        (from ,(regexp-opt
+               '("william.xwl@gmail.com"
+                 "william@ce-lab.net"
+                 "william.xwl@hotmail.com"))
+              "outgoing.tolist")
+        ;; ce
+        ("subject" ".*staff-cn.*-svn.*"  "svn-cn")
+        ("subject" ".*vce2.*build.*"  "vce-build")
+        ("subject" ".*vce2qa.*" "vce-cn")
+        (from      ".*ohta@ce-lab.net.*" "vce-trac")
 
-	  ("subject"
-           ,(concat ".*"
-                    (regexp-opt
-                     '("orkut"
-                       "confirm"
-                       "unsubscribed"))
-                    ".*")
-           "general")
+        ,@(mapcar
+           (lambda (arg)
+             `(any ,(car arg) ,(cadr arg)))
+           xwl-mailing-list-group-alist)
 
-	  (from
-           ,(concat ".*"
-                    (regexp-opt
-                     '("douban.com"
-                       "webmaster@linuxfans.org"
-                       "mailman-owner@mozdev.org"
-                       "xiaonei@exun.com"
-                       "noreply@googlegroups.com"
-                       "eweekly@ew.joyo.com"
-                       "sender@maillist.csdn.net"
-                       "newsletter@mysql.com"
-                       "mailman-owner@python.org"
-                       "Gmane Autoauthorizer"
-                       "pandonny@linuxsir.org.cn"
-                       "service@ycul.com"))
-                    ".*")
-           "general")
+        ("subject"
+         ,(concat ".*"
+                  (regexp-opt
+                   '("orkut"
+                     "confirm"
+                     "unsubscribed"))
+                  ".*")
+         "general")
+
+        (from
+         ,(concat ".*"
+                  (regexp-opt
+                   '("douban.com"
+                     "webmaster@linuxfans.org"
+                     "mailman-owner@mozdev.org"
+                     "xiaonei@exun.com"
+                     "noreply@googlegroups.com"
+                     "eweekly@ew.joyo.com"
+                     "sender@maillist.csdn.net"
+                     "newsletter@mysql.com"
+                     "mailman-owner@python.org"
+                     "Gmane Autoauthorizer"
+                     "pandonny@linuxsir.org.cn"
+                     "service@ycul.com"))
+                  ".*")
+         "general")
 
 
-	  (to "william@localhost" "rss")
+        (to "william@localhost" "rss")
 
-          (to "william@ce-lab.net" (: xwl-notify-important-ce))
+        (to "william@ce-lab.net" (: xwl-notify-important-ce))
 
-          (from ".*@message.cmbchina.com" "life")
+        (from ".*@message.cmbchina.com" "life")
 
-	  (to ,(regexp-opt
-                '("william.xwl@gmail.com"
-                  "xwl02@mails.tsinghua.edu.cn"
-                  "xuweilin@mail.tsinghua.org.cn"))
-              (: xwl-notify-important))
+        (to ,(regexp-opt
+              '("william.xwl@gmail.com"
+                ;; "xwl02@mails.tsinghua.edu.cn"
+                "xuweilin@mail.tsinghua.org.cn"))
+            (: xwl-notify-important))
 
-	  (from ".*@mails.thu.edu.cn" (: xwl-notify-important))
+        (from ".*@mails.thu.edu.cn" (: xwl-notify-important))
 
-	  (to "william.xwl@hotmail.com" "hotmail")
+        (to "william.xwl@hotmail.com" "hotmail")
 
-	  (to ".*@newsmth.*" "newsmth")
+        (to ".*@newsmth.*" "newsmth")
 
-	  (to ,(regexp-opt xwl-mailbox-lists) "general")
-          (from "support@tsinghua.org.cn" "general")
+        (to ,(regexp-opt xwl-mailbox-lists) "general")
+        (from "support@tsinghua.org.cn" "general")
 
-          (from ".*@localhost" "local")
+        (from ".*@localhost" "local")
 
-	  "trash"))
+        "trash"))
 
 (setq nnmail-split-methods 'nnmail-split-fancy)
 
@@ -2156,7 +2288,7 @@ arguments?"
 		 (nnfolder-inhibit-expiry t)))
 
 (setq gnus-message-archive-group   ; nnfolder+archive:outgoing.important
-      `(("^important$" "outgoing.important")
+      `(("important" "outgoing.important")
         (,(concat "^\\(" (regexp-opt xwl-ce-groups) "\\)$")
          "outgoing.ce")
 	(".*" "outgoing.news")))
@@ -2368,6 +2500,8 @@ arguments?"
 ;;;; RSS
 ;; -----
 
+;; "G R"
+
 (defun xwl-gnus-group-make-rss-group-noninteractively (url)
   "Given a URL, discover if there is an RSS feed.
 If there is, use Gnus to create an nnrss group"
@@ -2395,31 +2529,47 @@ If there is, use Gnus to create an nnrss group"
       (error "No feeds found for %s" url))))
 
 (setq xwl-gnus-rss-list
-      '( ;; personal
-        "http://www.newsmth.net/pc/rss.php?userid=xiaowei"
-        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1190363061"
-        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1198922365"
-        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1173538795"
-        "http://www.newsmth.net/pc/rss.php?userid=xiaowei"
-        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1415686044"
-        "http://shredderyin.spaces.msn.com/feed.rss"
-        "http://blog.kanru.info/feed/"
-        "http://kirbyzhou.spaces.msn.com/feed.rss"
-        "http://blog.sina.com.cn/myblog/index_rss.php?uid=1215626582"
-        "http://supermmx.org/blog/supermmx/feed"
-        "http://blueapril.bokee.com/rss2.xml"
-        ;; tech
-        "http://rssnewsapps.ziffdavis.com/tech.xml"
-        "http://www.LinuxDevices.com/backend/headlines10.rdf"
-        "http://www.linuxjournal.com/node/feed"
-        "http://rss.slashdot.org/Slashdot/slashdot"
-        "http://www.debian.org/security/dsa"
-        "http://googlechinablog.com/atom.xml"
-        "http://blog.csdn.net/dancefire/rss.aspx"
-        "http://feeds.feedburner.com/solidot"
-        "http://2blogs.net/blog/feed.asp"
-        "http://www.infolets.com/infolets.rss"
-        "http://news.com.com/2547-1_3-0-20.xml"))
+      '(
+;;         ;; personal
+;;         "http://www.newsmth.net/pc/rss.php?userid=xiaowei"
+;;         "http://blog.sina.com.cn/myblog/index_rss.php?uid=1190363061"
+;;         "http://blog.sina.com.cn/myblog/index_rss.php?uid=1198922365"
+;;         "http://blog.sina.com.cn/myblog/index_rss.php?uid=1173538795"
+;;         "http://www.newsmth.net/pc/rss.php?userid=xiaowei"
+;;         "http://blog.sina.com.cn/myblog/index_rss.php?uid=1415686044"
+;;         "http://shredderyin.spaces.msn.com/feed.rss"
+;;         "http://blog.kanru.info/feed/"
+;;         "http://kirbyzhou.spaces.msn.com/feed.rss"
+;;         "http://blog.sina.com.cn/myblog/index_rss.php?uid=1215626582"
+;;         "http://supermmx.org/blog/supermmx/feed"
+;;         "http://blueapril.bokee.com/rss2.xml"
+;;         ;; tech
+;;         "http://rssnewsapps.ziffdavis.com/tech.xml"
+;;         "http://www.LinuxDevices.com/backend/headlines10.rdf"
+;;         "http://www.linuxjournal.com/node/feed"
+;;         "http://rss.slashdot.org/Slashdot/slashdot"
+;;         "http://www.debian.org/security/dsa"
+;;         "http://googlechinablog.com/atom.xml"
+;;         "http://blog.csdn.net/dancefire/rss.aspx"
+;;         "http://feeds.feedburner.com/solidot"
+;;         "http://2blogs.net/blog/feed.asp"
+;;         "http://www.infolets.com/infolets.rss"
+;;         "http://news.com.com/2547-1_3-0-20.xml"
+        ;; CE
+        ;; --
+        ;; william's tickets
+;;         "https://virtual.community-engine.co.jp/trac/vce/report/7?format=rss&USER=william"
+;;         ;; VCE2: SVN Revisions
+;;         "https://virtual.community-engine.co.jp/trac/vce/log/?limit=100&mode=stop_on_copy&format=rss"
+;;         ;; CEcn people
+;;         "https://virtual.community-engine.co.jp/trac/vce/query?status=new&status=assigned&status=reopened&format=rss&owner=crax&owner=toshi&owner=william&owner=xinyi&order=priority"
+;;         ;; VCE2: Wiki/Milestone Changes
+;;         "https://virtual.community-engine.co.jp/trac/vce/timeline?wiki=on&milestone=on&max=50&daysback=90&format=rss"
+;;         ;; VCE2: Ticket Changes
+;;         "https://virtual.community-engine.co.jp/trac/vce/timeline?ticket=on&max=50&daysback=90&format=rss"
+;;         ;; VCE2: Tickets
+;;         "https://virtual.community-engine.co.jp/trac/vce/query?status=new&status=assigned&status=reopened&format=rss&component=%21VCE1%2Fadmin&component=%21VCE1%2Fbuild&component=%21VCE1%2Fdoc&component=%21VCE1%2Flib&component=%21VCE1%2Fliquidsync&component=%21VCE1%2Fmmsuite&component=%21VCE1%2Fweb&order=priority"
+))
 
 (defun xwl-gnus-group-update-rss-group ()
   "Add rss groups in `xwl-gnus-rss-list'."
@@ -2481,6 +2631,12 @@ If there is, use Gnus to create an nnrss group"
 ;; (remove-hook 'xwl-run-when-idle-hook 'xwl-fetchmail-all-at-night)
 
 
+;;; Fun
+
+(load "undo-browse.el")
+(global-set-key (kbd "C-c u") 'undo-browse)
+
+
 ;;; POST
 
 ;; (set-default-font "10x20")
@@ -2493,6 +2649,8 @@ If there is, use Gnus to create an nnrss group"
 (require 'gds)
 (gds-run-debug-server)                  ; force it to run
 (global-set-key (kbd "<f1> g") 'gds-help-symbol)
+
+(global-unset-key (kbd "C-x C-b"))
 
 ;; See `.xwl-emacs-main.el' and `.xwl-emacs-gnus.el' for next loadup
 ;; step.
