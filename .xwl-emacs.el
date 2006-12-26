@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.13
-;; Last updated: 2006/12/21 14:41:07
+;; Last updated: 2006/12/27 00:18:03
 ;;; History
 
 ;; 2004/10/23 21:58:09
@@ -660,15 +660,34 @@ This is run asynchronously, compared to `shell-command'."
 (global-set-key (kbd "C-,") 'wubi-toggle-quanjiao-banjiao)
 
 ;; fonts
+;; -----
+
+;; 1. simsun
+
+;; (when window-system
+;;   (unless (fboundp 'xwl-setup-font)
+;;     (create-fontset-from-fontset-spec
+;;      "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
+;; chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
+;; chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
+
+;;     (set-default-font "fontset-bvsmono110")
+;;     (defun xwl-setup-font() 'font-setup-done)))
+
+;; 2. xfonts-wqy
+
 (when window-system
   (unless (fboundp 'xwl-setup-font)
     (create-fontset-from-fontset-spec
      "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
-chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
-chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
+chinese-gb2312:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+chinese-gbk:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+chinese-cns11643-5:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+chinese-cns11643-6:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+chinese-cns11643-7:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0")
 
     (set-default-font "fontset-bvsmono110")
     (defun xwl-setup-font() 'font-setup-done)))
@@ -745,20 +764,46 @@ If FOCUS-REV is non-nil, leave the point at that revision."
         (less-minor-mode-on)
         (goto-char (point-min))))))
 
+(defun vc-start-entry (file rev comment initial-contents msg action &optional after-hook)
+  "Accept a comment for an operation on FILE revision REV.
+If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
+action on close to ACTION.  If COMMENT is a string and
+INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
+contents of the log entry buffer.  If COMMENT is a string and
+INITIAL-CONTENTS is nil, do action immediately as if the user had
+entered COMMENT.  If COMMENT is t, also do action immediately with an
+empty comment.  Remember the file's buffer in `vc-parent-buffer'
+\(current one if no file).  AFTER-HOOK specifies the local value
+for vc-log-operation-hook."
+  (let ((parent (or (and file (get-file-buffer file)) (current-buffer))))
+    (if vc-before-checkin-hook
+        (if file
+            (with-current-buffer parent
+              (run-hooks 'vc-before-checkin-hook))
+          (run-hooks 'vc-before-checkin-hook)))
+    (if (and comment (not initial-contents))
+	(set-buffer (get-buffer-create "*VC-log*"))
+      (pop-to-buffer (get-buffer-create "*VC-log*")))
+    (set (make-local-variable 'vc-parent-buffer) parent)
+    (set (make-local-variable 'vc-parent-buffer-name)
+	 (concat " from " (buffer-name vc-parent-buffer)))
+    (if file (vc-mode-line file))
+    (vc-log-edit file)
+    (make-local-variable 'vc-log-after-operation-hook)
+    (if after-hook
+	(setq vc-log-after-operation-hook after-hook))
+    (setq vc-log-operation action)
+    (setq vc-log-version rev)
+    (when comment
+      (erase-buffer)
+      (when (stringp comment) (insert comment)))
+    (if (or (not comment) initial-contents)
+	(message "%s  Type C-c C-c when done" msg)
+      (vc-finish-logentry (eq comment t)))
+    ;; insert file name (xwl)
+    (insert (concat (buffer-name parent) ": "))))
+
 ;; darcs
-(setq darcs-command-prefix (kbd "C-c d"))
-(require 'darcs)
-
-(defadvice darcs-changes (after enter-changlog-mode)
-  "$ darcs changes, then enter `changelog-mode' and enable
-`less-minor-mode'."
-  (change-log-mode)
-  (less-minor-mode-on))
-
-(ad-activate 'darcs-changes)
-
-; (require 'darcsum)
-
 (require 'vc-darcs)
 (add-to-list 'vc-handled-backends 'DARCS)
 (setq vc-darcs-mail-address "William Xu <william.xwl@gmail.com>")
@@ -2319,23 +2364,23 @@ arguments?"
 ;; ----------------
 
 ;; A workaround for unsupported charsets
-(define-coding-system-alias 'gb18030 'gb2312)
-(define-coding-system-alias 'x-gbk   'gb2312)
-(define-coding-system-alias 'gbk     'gb2312)
+;; (define-coding-system-alias 'gb18030 'gb2312)
+;; (define-coding-system-alias 'x-gbk   'gb2312)
+;; (define-coding-system-alias 'gbk     'gb2312)
 
-(setq gnus-group-name-charset-group-alist
-      '(("nnrss.*" . utf-8)             ; `G R'
-        (".*" . gb2312)))
+;; (setq gnus-group-name-charset-group-alist
+;;       '(("nnrss.*" . utf-8)             ; `G R'
+;;         (".*" . gb2312)))
 
-(setq gnus-group-name-charset-method-alist
-      '(((nntp "news.newsfan.net") . gb2312)))
+;; (setq gnus-group-name-charset-method-alist
+;;       '(((nntp "news.newsfan.net") . gb2312)))
 
-(add-to-list 'gnus-group-charset-alist '("nnrss.*" utf-8))
+;; (add-to-list 'gnus-group-charset-alist '("nnrss.*" utf-8))
 
-(setq gnus-summary-show-article-charset-alist
-      '((1 . utf-8)
-        (2 . gb2312)
-	(3 . big5)))
+;; (setq gnus-summary-show-article-charset-alist
+;;       '((1 . utf-8)
+;;         (2 . gb2312)
+;; 	(3 . big5)))
 
 ;;;; Group
 ;; -------
