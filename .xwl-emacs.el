@@ -4,7 +4,8 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.13
-;; Last updated: 2006/12/27 00:18:03
+;; Last updated: 2007/01/06 10:30:42
+
 ;;; History
 
 ;; 2004/10/23 21:58:09
@@ -523,7 +524,7 @@ the empty string."
 
 (defun xwl-start-process-shell-command (cmd)
   "Don't create a separate output buffer.
-This is run asynchronously, compared to `shell-command'."
+This is to run asynchronously, compared to `shell-command'."
   (start-process-shell-command cmd nil cmd))
 
 ;; redefine this function to disable output buffer.
@@ -664,33 +665,33 @@ This is run asynchronously, compared to `shell-command'."
 
 ;; 1. simsun
 
-;; (when window-system
-;;   (unless (fboundp 'xwl-setup-font)
-;;     (create-fontset-from-fontset-spec
-;;      "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
-;; chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
-;; chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-;; chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-;; chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
-;; chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
-
-;;     (set-default-font "fontset-bvsmono110")
-;;     (defun xwl-setup-font() 'font-setup-done)))
-
-;; 2. xfonts-wqy
-
 (when window-system
   (unless (fboundp 'xwl-setup-font)
     (create-fontset-from-fontset-spec
      "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
-chinese-gb2312:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
-chinese-gbk:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
-chinese-cns11643-5:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
-chinese-cns11643-6:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
-chinese-cns11643-7:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0")
+chinese-gb2312:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gb2312.1980-0,
+chinese-gbk:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+chinese-cns11643-5:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+chinese-cns11643-6:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0,
+chinese-cns11643-7:-*-SimSun-medium-r-normal-*-16-*-*-*-*-*-gbk-0")
 
     (set-default-font "fontset-bvsmono110")
     (defun xwl-setup-font() 'font-setup-done)))
+
+;; 2. xfonts-wqy
+
+;; (when window-system
+;;   (unless (fboundp 'xwl-setup-font)
+;;     (create-fontset-from-fontset-spec
+;;      "-*-bitstream vera sans mono-medium-r-normal--0-110-*-*-*-*-fontset-bvsmono110,
+;; chinese-gb2312:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+;; chinese-gbk:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-5:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-6:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0,
+;; chinese-cns11643-7:-wenquanyi-wenquanyi bitmap song-medium-r-normal--16-*-*-*-*-*-gbk-0")
+
+;;     (set-default-font "fontset-bvsmono110")
+;;     (defun xwl-setup-font() 'font-setup-done)))
 
 (setq xwl-default-directories
       '("/ssh:william@ananas:~/"
@@ -1624,6 +1625,103 @@ i.e.,
 
 (setq emms-info-asynchronously t)
 
+;; lyrics crawler
+;; --------------
+
+(setq emms-lyrics-find-lyric-function 'xwl-emms-lyrics-find-lyric)
+
+(setq lyrics-crawler-running-p t)
+(setq lyrics-crawler-dir "~/music/lyrics/bycrawler/")
+(setq lyrics-crawler-process nil)
+(setq lyrics-crawler-buffer "*Lyrics Crawler*")
+
+(defun lyrics-crawler-toggle ()
+  (interactive)
+  (setq lyrics-crawler-running-p (not lyrics-crawler-running-p))
+  (if lyrics-crawler-running-p
+      (message "lyrics crawler enabled")
+    (message "lyrics crawler disabled")))
+
+(global-set-key (kbd "C-c e L") 'lyrics-crawler-toggle)
+
+(defun xwl-emms-lyrics-find-lyric (file)
+  "Download lrc FILE from baidu when `emms-lyrics-find-lyric' returns nil."
+  ;; Note: FILE is ignored at the moment
+  (let* ((track (emms-playlist-current-selected-track))
+         (name (emms-track-get track 'name))
+         (artist (emms-track-get track 'artist))
+         (new-title (or (emms-track-get track 'info-title)
+                        (replace-regexp-in-string
+                         (concat "\\." (file-name-extension file) "\\'")
+                         ""
+                         file)))
+         (new-artist (if (emms-track-get track 'info-artist)
+                         (concat (emms-track-get track 'info-artist) "_")
+                       "")))
+    (or (emms-lyrics-find-lyric file)   ; name.lrc
+        (emms-lyrics-find-lyric         ; title.lrc
+         (format "%s.lrc" new-title))
+        (emms-lyrics-find-lyric         ; artist_title.lrc
+         (format "%s%s.lrc" new-artist new-title))
+        (and lyrics-crawler-running-p
+             (with-current-buffer (get-buffer-create lyrics-crawler-buffer)
+               (let ((cmd (format "cd %s && ~/bin/lyrics-crawler.scm \"%s\" && cd -"
+                                  lyrics-crawler-dir new-title)))
+                 (goto-char (point-max))
+                 (insert (concat cmd "\n"))
+                 (setq lyrics-crawler-process
+                       (start-process-shell-command "lyrics-crawler" nil cmd))
+                 (set-process-sentinel lyrics-crawler-process
+                                       'lyrics-crawler-process-sentinel)
+                 nil))))))
+
+(defun lyrics-crawler-process-sentinel (process event)
+  (case (process-status process)
+    ((exit)
+     (let* ((track (emms-playlist-current-selected-track))
+            (name (emms-track-get track 'name))
+            (new-title (or (emms-track-get track 'info-title)
+                           (replace-regexp-in-string
+                            (concat "\\." (file-name-extension name) "\\'")
+                            ""
+                            (file-name-nondirectory name))))
+            (new-artist (if (emms-track-get track 'info-artist)
+                            (concat (emms-track-get track 'info-artist) "_")
+                          ""))
+            (lrc-base (format "%s%s"
+                              lyrics-crawler-dir
+                              (if (string-match "/$" lyrics-crawler-dir) "" "/")))
+            (lrc0 (format "%s%s"
+                          lrc-base
+                          (format "%s%s.lrc" new-artist new-title)))
+            (lrc1 (format "%s%s"
+                          lrc-base
+                          (format "%s.lrc" new-title))))
+       (cond ((file-exists-p lrc0)
+              (emms-lyrics-catchup lrc0)
+              (message "lyrics downloaded successfully"))
+             ((file-exists-p lrc1)
+              (emms-lyrics-catchup lrc1)
+              (message "lyrics downloaded successfully"))
+             (t
+              (with-current-buffer
+                  (get-buffer-create lyrics-crawler-buffer)
+                (goto-char (point-max))
+                (insert "downloading lyrics failed\n"))
+              (message "downloading lyrics failed")))))
+    ((signal)
+     (with-current-buffer
+         (get-buffer-create lyrics-crawler-buffer)
+       (goto-char (point-max))
+       (insert "downloading lyrics killed\n"))
+     (message "lyrics crawler killed"))
+    (t
+     (with-current-buffer
+         (get-buffer-create lyrics-crawler-buffer)
+       (goto-char (point-max))
+       (insert "downloading lyrics failed\n"))
+     (message "downloading lyrics failed"))))
+
 ;;;; w3m
 
 ;; w3m
@@ -2027,11 +2125,16 @@ sendmail directly from localhost without a valid domain name."
     (let ((to (save-excursion
                 (message-narrow-to-headers)
                 (or (message-fetch-field "to")
-                    ""))))
+                    "")))
+          (gcc (save-excursion
+                 (message-narrow-to-headers)
+                 (or (message-fetch-field "Gcc")
+                     ""))))
       (cond ((string-match "lists.sourceforge.net" to)
              (message "Will sendmail by google")
              (xwl-sendmail-by-google))
-            ((string-match ".*ce-lab.net.*" to)
+            ((or (string-match ".*ce-lab.net.*" to)
+                 (member gcc xwl-ce-groups))
              (message "Will sendmail by CE")
              (xwl-sendmail-by-ce))
             (t
@@ -2055,7 +2158,6 @@ sendmail directly from localhost without a valid domain name."
         "svn-cn"
         "vce-trac"
         "vce-build"
-        "vce-cn"
 
         "important.ce"))
 
@@ -2259,7 +2361,7 @@ arguments?"
         ;; ce
         ("subject" ".*staff-cn.*-svn.*"  "svn-cn")
         ("subject" ".*vce2.*build.*"  "vce-build")
-        ("subject" ".*vce2qa.*" "vce-cn")
+        ;; ("subject" ".*vce2qa.*" "vce-cn")
         (from      ".*ohta@ce-lab.net.*" "vce-trac")
 
         ,@(mapcar
