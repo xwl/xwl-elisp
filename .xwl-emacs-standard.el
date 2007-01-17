@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2006/11/12 01:25:46
+;; Last updated: 2007/01/17 19:02:01
 ;;; GENERAL
 
 ;; xwl-word-count-analysis (how many times a word has appeared).
@@ -288,6 +288,7 @@ This should not affect `buffer-undo-list'."
 (setq x-select-enable-clipboard t)
 
 (prefer-coding-system 'utf-8)
+;; (prefer-coding-system 'gb2312)
 
 ;; set preferred coding system
 (setq file-coding-system-alist
@@ -306,6 +307,7 @@ This should not affect `buffer-undo-list'."
 ;;	("" undecided)
 	("^/home/william/studio/darcs/mt/src/" chinese-gbk . chinese-gbk)
         (".*vce2.h.*" shift_jis . shift_jis)
+        (".*cn.h.*" utf-8-dos . utf-8-dos)
         (".*新世纪日语/本文.*" gbk . gbk)
 	("" utf-8 . utf-8)))            ; shift_jis problem?
 
@@ -323,7 +325,7 @@ This should not affect `buffer-undo-list'."
 			   (cadr arg)))
 		   '(("makefile" makefile-mode)
 		     (".h"    c++-mode)
-		     (".lrc"  text-mode)
+		     (".lrc"  emms-lyrics-mode)
 		     (".sh"   shell-script-mode)
 		     (".m"    octave-mode)
 		     (".java" java-mode)
@@ -395,10 +397,9 @@ This should not affect `buffer-undo-list'."
       woman-cache-level 3)    ; `C-u woman' sometimes to update manpages.
 
 ;; deal with large buffer
-(setq font-lock-support-mode 'fast-lock-mode)
+;; (setq font-lock-support-mode 'fast-lock-mode)
 ;; (setq font-lock-support-mode 'lazy-lock-mode
 ;;       lazy-lock-defer-on-scrolling t
-;;       font-lock-support-mode 'lazy-lock-mode
 ;;       font-lock-maximum-decoration t)
 (setq font-lock-maximum-size
       '((c-mode . 256000)
@@ -570,7 +571,6 @@ And also reserve changes made by non-root user before."
 ;; minibuffer
 ;; ----------
 
-(resize-minibuffer-mode 1)
 (add-hook 'minibuffer-setup-hook 'turn-off-auto-fill)
 
 
@@ -642,7 +642,7 @@ And also reserve changes made by non-root user before."
 	".toc" ".log" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps"
 	".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".idx" ".lof"
 	".lot" ".glo" ".blg" ".bbl" ".cp" ".cps" ".fn" ".fns" ".ky"
-	".kys" ".pg" ".pgs" ".tp" ".tps" ".vr" ".vrs"))
+	".kys" ".pg" ".pgs" ".tp" ".tps" ".vr" ".vrs" ".flc"))
 
 (defun xwl-dired-mode-hook ()
 ;;   (local-set-key (kbd "f") 'xwl-dired-forward)
@@ -1057,7 +1057,6 @@ And also reserve changes made by non-root user before."
 				   (unless (get-buffer ".scratch")
 				     (find-file "~/.scratch"))
 				   (switch-to-buffer ".scratch")))
-(global-set-key (kbd "C-c m c") 'xwl-count-ce-word)
 (global-set-key (kbd "C-c m e") '(lambda () (interactive)
 				   (call-interactively 'eval-region)
 				   (message "eval-region...done")))
@@ -1093,6 +1092,13 @@ And also reserve changes made by non-root user before."
 (global-set-key (kbd "C-c b v") 'boxquote-describe-variable)
 (global-set-key (kbd "C-c b k") 'boxquote-describe-key)
 (global-set-key (kbd "C-c b !") 'boxquote-shell-command)
+
+
+(global-set-key (kbd "C-c m c")
+                (lambda ()              ; clear buffer contents
+                  (interactive)
+                  (let ((inhibit-read-only t))
+                    (kill-region (point-min) (point-max)))))
 
 
 ;;; WINDOW
@@ -1432,10 +1438,9 @@ so as to keep an eye on work when necessarily."
 ;; (setq erc-play-command "mplayer")
 
 ;; log
+(require 'erc-log)
 (setq erc-log-channels-directory "~/.erc/logs/"
       erc-save-buffer-on-part t
-      ;; erc-hide-timestamps t
-      erc-log-insert-log-on-open nil
       erc-log-file-coding-system 'utf-8)
 
 ;; FIXME
