@@ -1,6 +1,6 @@
 ;;; dired-isearch.el --- isearch in Dired
 
-;; Copyright (C) 2006 William Xu
+;; Copyright (C) 2006, 2007 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.3
@@ -34,6 +34,10 @@
 ;; (define-key dired-mode-map (kbd "C-r") 'dired-isearch-backward)
 ;; (define-key dired-mode-map (kbd "ESC C-s") 'dired-isearch-forward-regexp)
 ;; (define-key dired-mode-map (kbd "ESC C-r") 'dired-isearch-backward-regexp)
+
+;;; Bugs:
+
+;; - search string starting with a "^" causes some infite loop
 
 ;;; Code:
 
@@ -81,6 +85,8 @@
   (let ((point (search-forward string bound noerror count)))
     (catch 'return
       (while point
+        ;; Use 'help-echo instead of 'dired-filename so as to also work
+        ;; in tramp dired buffers.
         (when (get-text-property (1- point) 'help-echo)
           (throw 'return point))
         (setq point (search-forward string bound noerror count))))))
