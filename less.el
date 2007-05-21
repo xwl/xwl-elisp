@@ -1,11 +1,10 @@
 ;;; less.el --- less style view mode
 
-;; Copyright (C) 2005 William Xu
+;; Copyright (C) 2005, 2007 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; $Id: less.el,v 0.1 2005/09/07 00:37:49 xwl Exp $
-
-;; This file is not part of GNU Emacs.
+;; Version: 0.2
+;; Last updated: 2007/05/21 16:38:10
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,10 +34,6 @@
 ;; There's also a `view-less.el' in XEmacs. But it does too much for me,
 ;; i just wanna less keys like j, k, f, b, g, G, not to mess with other
 ;; keys in major mode.
-
-;;; Change Log:
-
-;; v 0.1 [2005/09/07 01:41:01] Initial version.
 
 ;;; Code:
 
