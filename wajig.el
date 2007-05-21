@@ -3,8 +3,8 @@
 ;; Copyright (C) 2005, 2006 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: v 0.52
-;; Last updated: 2006/12/03 13:23:29
+;; Version: v 0.53
+;; Last updated: 2007/05/21 16:43:07
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -71,8 +71,14 @@
 ;; 1. It's currently expected to run all the commands in a
 ;;    non-interactive style. So do have the following settings:
 ;;
-;;        - set APT::GET::Assume-Yes to "true".
-;;        - dpkg-reconfigure debconf, and choose non-interactive.
+;;     - `dpkg-reconfigure debconf', and choose non-interactive
+;;     - add the following into /etc/apt/apt.conf:
+;;
+;;         APT {
+;;              Get {
+;;                   Assume-Yes "true";
+;;              };
+;;         };
 
 ;; 2. I only tested wajig commands that i tend to use often. Far from
 ;;    all of the wajig commands! Hence, possibly some functions won't
@@ -253,17 +259,17 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
 	  (percentage-match "[0-9]\\{1,3\\}%"))
       (save-excursion
 	(goto-char (process-mark process))
-	(setq output (replace-regexp-in-string "" "\n" output))
+	(setq output
+              (replace-regexp-in-string "\r" "\n" output))
 	;; make percentage output nicer
-	;;(when (zerop (forward-line -1))
-;; 	  (if (string-match percentage-match output)
-;;               (insert "--->"))
-;;           ;)
-;; 	      (progn
-;; 		(kill-line)
-;; 		(kill-line))
-;;	    (forward-line 1)))
- 	(insert output)
+;;         (cond ((string-match percentage-match output)
+;;                (message "wajig: %s" output))
+;;               ((string-match "^\\ +$\\|^\n$" output)
+;;                nil)
+;;               (t
+;;                (forward-line 0)
+;; ;;                (insert output)))
+        (insert output)
 	(set-marker (process-mark process) (point)))
       (and moving (goto-char (process-mark process))))))
 
