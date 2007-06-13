@@ -159,7 +159,7 @@ commands for new file types."
   (interactive)
   (let ((up-to-date nil)
         (bin-exist nil))
-    (unless name
+    (unless (buffer-file-name)
       (error "cannot get filename."))
     ;; Dose the executable file exist and up-to-date?
     (catch 'return
