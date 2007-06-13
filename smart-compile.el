@@ -4,7 +4,7 @@
 ;; Copyright (C) 1998-2003  Seiji Zenitani <zenitani@mac.com>
 
 ;; Author: Seiji Zenitani <zenitani@mac.com>
-;; Version: 3.1
+;; Version: 3.0
 ;; Keywords: tools, unix
 ;; Created: 1998-12-27
 ;; Compatibility: Emacs 20, 21
@@ -73,15 +73,15 @@ expression)." )
 (make-variable-buffer-local 'smart-compile-check-makefile)
 
 (defvar smart-run-alist
-  '(("\\.c$"          . "./%n")
-    ("\\.[Cc]+[Pp]*$" . "./%n")
-    ("\\.java$"       . "java %n")
-    ("\\.php$"	      . "php %f")
-    ("\\.m$"	      . "./%f")
-    ("\\.scm"         . "./%f")
-    ("\\.tex$"        . "dvisvga %n.dvi")
+  '(("\\.c$"          "./%n")
+    ("\\.[Cc]+[Pp]*$" "./%n")
+    ("\\.java$"       "java %n")
+    ("\\.php$"	      "php %f")
+    ("\\.m$"	      "./%f")
+    ("\\.scm"         "./%f")
+    ("\\.tex$"        "xdvi %n.dvi" t)
     ;;    ("\\.texi$"       . "info %n.info")))
-    (texinfo-mode     . (info (smart-compile-replace "%n.info")))))
+    (texinfo-mode     (info (smart-compile-replace "%n.info")))))
 
 (defvar smart-executable-alist
   '("%n.class"
@@ -93,7 +93,7 @@ expression)." )
     "%n.info"))
 
 (defun smart-compile-replace (str)
-  "Replace the smart-compile-replace-alist."
+  "Replace `smart-compile-replace-alist'."
   (let ((rlist smart-compile-replace-alist))
     (while rlist
       (while (string-match (caar rlist) str)
@@ -115,12 +115,12 @@ expression)." )
             (file-readable-p "makefile"))
         (if (y-or-n-p "Makefile is found. Try 'make'? ")
             (progn (set (make-local-variable 'compile-command) "make ")
-                   (throw 'return))
+                   (throw 'return t))
           (setq smart-compile-check-makefile nil)))
        ((file-readable-p "build.xml")   ; ant
         (if (y-or-n-p "build.xml is found. Try 'ant'? ")
             (progn (set (make-local-variable 'compile-command) "ant ")
-                   (throw 'return))
+                   (throw 'return t))
           (setq smart-compile-check-makefile nil)))))
     ;; smart-compile-alist
     (mapc '(lambda (el)
@@ -131,77 +131,78 @@ expression)." )
                         (set (make-local-variable 'compile-command)
                              (smart-compile-replace handler))
                         (call-interactively 'compile)
-                        (throw 'return)))
+                        (throw 'return t)))
                      ((and (stringp matcher) (symbolp handler))
                       (when (string-match matcher (buffer-file-name))
                         (eval handler)
-                        (throw 'return)))
+                        (throw 'return t)))
                      ((and (symbolp matcher) (stringp handler))
                       (when (eq matcher major-mode)
                         (set (make-local-variable 'compile-command)
                              (smart-compile-replace handler))
                         (call-interactively 'compile)
-                        (throw 'return)))
+                        (throw 'return t)))
                      ((and (symbolp matcher) (symbolp handler))
                       (when (eq matcher major-mode)
                         (eval handler)
-                        (throw 'return))))))
+                        (throw 'return t))))))
           smart-compile-alist)
     (call-interactively 'compile)))
+
+(defun smart-shell-command-asynchronously (cmd)
+  (start-process-shell-command cmd nil cmd))
 
 (defun smart-run ()
   "Run the executable program according to the file type.
 You can set `smart-run-alist' and `smart-executable-alist' to add new
 commands for new file types."
   (interactive)
-  (let ((name (buffer-file-name))
-	(alist smart-run-alist)
-	(rlist smart-compile-replace-alist)
-	(elist smart-executable-alist)
-	(executable nil)
-	(update t)
-	(case-fold-search nil))
-
-    (if (not name) (error "cannot get filename."))
-
-    ;; dose the executable file exist and update?
-    (let ((exfile (car elist)))
-      (while (and elist (not executable))
-	;; r is a local rlist
-	(let ((r smart-compile-replace-alist))
-	  (while r
-	    (while (string-match (caar r) exfile)
-	      (setq exfile
-		    (replace-match
-		     (eval (cdar r)) t nil exfile)))
-	    (setq r (cdr r))))
-	(let ((file (concat (file-name-directory (buffer-file-name))
-			    exfile)))
-	  (if (file-readable-p file)
-	      (progn
-		(if (file-newer-than-file-p name file)
-		    (setq update nil))
-		(setq executable t))
-	    (setq exfile (cadr elist))))
-	(setq elist (cdr elist))))
-
-    (if (and executable update)
-	(while alist
-	  (let ((run-type (caar alist))
-		(run-cmd (cdar alist)))
-	    (cond ((and (symbolp run-type)
-			(eq run-type major-mode))
-		   (eval run-cmd))
-		  ((and (stringp run-type)
-			(string-match run-type name))
-		   (progn (shell-command (smart-compile-replace run-cmd))
-			  (setq alist nil)))
-		  (t (setq alist (cdr alist))))))
-
-      (if (and (not update) (y-or-n-p "File out of date, recompile? "))
-	  (smart-compile)
-	(if (y-or-n-p "Compile first? ")
-	    (smart-compile))))))
+  (let ((up-to-date nil)
+        (bin-exist nil))
+    (unless name
+      (error "cannot get filename."))
+    ;; Dose the executable file exist and up-to-date?
+    (catch 'return
+      (mapc '(lambda (el)
+               (let ((bin (smart-compile-replace el)))
+                 (when (file-exists-p bin)
+                   (setq bin-exist t)
+                   (unless (file-newer-than-file-p (buffer-file-name) bin)
+                     (setq up-to-date t))
+                   (throw 'return t))))
+            smart-executable-alist))
+    (if (and (not up-to-date)
+             (y-or-n-p "File out of date, recompile? "))
+        (smart-compile)
+      ;; smart-run-alist
+      (catch 'return
+        (mapc (lambda (el)
+                (let ((matcher (car el))
+                      (handler (cadr el))
+                      (async-run (caddr el)))
+                  (cond ((and (stringp matcher) (stringp handler))
+                         (when (string-match matcher (buffer-file-name))
+                           (if async-run
+                               (smart-shell-command-asynchronously
+                                (smart-compile-replace handler))
+                             (shell-command (smart-compile-replace handler)))
+                           (throw 'return t)))
+                        ((and (stringp matcher) (symbolp handler))
+                         (when (string-match matcher (buffer-file-name))
+                           (eval handler)
+                           (throw 'return t)))
+                        ((and (symbolp matcher) (stringp handler))
+                         (when (eq matcher major-mode)
+                           (if async-run
+                               (smart-shell-command-asynchronously
+                                (smart-compile-replace handler))
+                             (shell-command (smart-compile-replace handler)))
+                           (throw 'return t)))
+                        ((and (symbolp matcher) (symbolp handler))
+                         (when (eq matcher major-mode)
+                           (eval handler)
+                           (throw 'return t))))))
+              smart-run-alist)))))
 
 (provide 'smart-compile)
 
