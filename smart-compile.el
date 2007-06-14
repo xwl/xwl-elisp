@@ -22,94 +22,127 @@
 
 ;;; Commentary:
 
-;; This is a mostly rewritten based on Seiji Zenitani
-;; <zenitani@mac.com>'s `smart-compile.el'. Besides the original
-;; `smart-compile' function, i've add a `smart-run' function. This two
-;; functions may be the most useful from this extension.
+;; This is a mostly rewritten based on ideas from Seiji Zenitani
+;; <zenitani@mac.com>'s `smart-compile.el'.
+;;
+;; Besides the original `smart-compile' function, i've add a `smart-run'
+;; function. This two functions may be the most useful from this
+;; extension.
+;;
+;; Let me illustrate it by an example. Suppose you are editing a file
+;; `foo.c'. To compile it, try `M-x smart-compile', which will run a
+;; shell command similar to `gcc -o foo foo.c -O2'. To run the
+;; executable, say `foo', try `M-x smart-run', which will run a shell
+;; command similar to `./foo'.
 ;;
 ;; To use, add the following to your .emacs:
 ;;
 ;;     (autoload 'smart-compile "smart-compile"
 ;;       "Run `compile' by checking project builder(like make, ant, etc) and
-;;     `smart-compile-alist'." t nil)
+;;     `smart-compile-table'." t nil)
 ;;
 ;;     (autoload 'smart-run "smart-compile"
 ;;       "Run the executable program according to the file type.
-;;     You can set `smart-run-alist' and `smart-executable-alist' to add new
+;;     You can set `smart-run-table' and `smart-executable-table' to add new
 ;;     commands for new file types." t nil)
 ;;
 ;; And you may want to customzie these "triggers":
-;; `smart-compile-alist', `smart-run-alist', `smart-executable-alist'.
+;; `smart-compile-table', `smart-run-table', `smart-executable-table'.
 
 ;;; Code:
 
-;;   List of compile commands. In argument of `compile', some keywords
-;; beginning with '%' will be replaced by:
+(defgroup smart-compile nil
+  "smart-compile extension."
+  :prefix "smart-"
+  :group 'smart-compile)
 
-;;   %F  absolute pathname            ( /usr/local/bin/netscape.bin )
-;;   %f  file name without directory  ( netscape.bin )
-;;   %n  file name without extention  ( netscape )
-;;   %e  extention of file name       ( bin )
-(defvar smart-compile-alist
-  '(("\\.c$"          . "gcc -O2 %f -lm -o %n")
-    ("\\.[Cc]+[Pp]*$" . "g++ -O2 %f -lm -o %n")
-    ("\\.java$"       . "javac %f")
-    ("\\.f90$"        . "f90 %f -o %n")
-    ("\\.[Ff]$"       . "f77 %f -o %n")
-    ("\\.pl$"         . "perl -cw %f")
-    ("\\.mp$"	      . "mptopdf %f")
-    ("\\.php$"        . "php %f")
-    ("\\.tex$"        . "latex %f")
-    ("\\.texi$"       . "makeinfo %f")
-    (emacs-lisp-mode  . (emacs-lisp-byte-compile)))
-  "Each element is of the form: (matcher . handler).
-Matcher can be either string(matching `buffer-file-name') or
-symbol(matching `major-mode').
-Hanlder can also be either string(a shell command) or symbol(a lisp
-expression)." )
+(defcustom smart-compile-table
+  '(("\\.c$"          "gcc -O2 %f -lm -o %n")
+    ("\\.[Cc]+[Pp]*$" "g++ -O2 %f -lm -o %n")
+    ("\\.java$"       "javac %f")
+    ("\\.f90$"        "f90 %f -o %n")
+    ("\\.[Ff]$"       "f77 %f -o %n")
+    ("\\.pl$"         "perl -cw %f")
+    ("\\.mp$"	      "mptopdf %f")
+    ("\\.php$"        "php %f")
+    ("\\.tex$"        "latex %f")
+    ("\\.l$"          "lex -o %n.yy.c %f && gcc -O2 %n.yy.c -lm -o %n")
+    ("\\.y$"          "yacc -o %n.tab.c %f && gcc -O2 %n.tab.c -lm -o %n")
+    ("\\.dot$"        "dot -Tjpg %f > %n.jpg")
+    (emacs-lisp-mode  (emacs-lisp-byte-compile)))
+  "`smart-compile' running scheme.
+Each element is of the form: (matcher . handler).  Matcher can be
+either string(matching `buffer-file-name') or symbol(matching
+`major-mode').  Hanlder can also be either string(a shell
+command) or a lisp expression.
 
-(defvar smart-compile-replace-alist
-  '(("%F" . (buffer-file-name))
-    ("%f" . (file-name-nondirectory (buffer-file-name)))
-    ("%n" . (file-name-sans-extension (file-name-nondirectory (buffer-file-name))))
-    ("%e" . (file-name-extension (buffer-file-name)))))
+See also `smart-compile-replace-table'."
+  :type 'symbol
+  :group 'smart-compile)
 
-(defvar smart-compile-check-makefile t)
-(make-variable-buffer-local 'smart-compile-check-makefile)
+(defcustom smart-compile-replace-table
+  '(("%F" (buffer-file-name))
+    ("%f" (file-name-nondirectory (buffer-file-name)))
+    ("%n" (file-name-sans-extension (file-name-nondirectory (buffer-file-name))))
+    ("%e" (file-name-extension (buffer-file-name))))
+  "File name shortcut format.
+Some special strings(like %f, %F) in `smart-compile-table',
+`smart-run-table' and `smart-executable-table' will be replaced
+according the following map(with an example in the end).
 
-(defvar smart-run-alist
+  %F  absolute pathname            ( /usr/local/bin/netscape.bin )
+  %f  file name without directory  ( netscape.bin )
+  %n  file name without extention  ( netscape )
+  %e  extention of file name       ( bin )"
+  :type 'symbol
+  :group 'smart-compile)
+
+(defcustom smart-run-table
   '(("\\.c$"          "./%n")
     ("\\.[Cc]+[Pp]*$" "./%n")
     ("\\.java$"       "java %n")
-    ("\\.php$"	      "php %f")
-    ("\\.m$"	      "./%f")
+    ("\\.php$"        "php  %f")
+    ("\\.m$"          "./%f")
     ("\\.scm"         "./%f")
-    ("\\.tex$"        "xdvi %n.dvi" t)
-    ;;    ("\\.texi$"       . "info %n.info")))
-    (texinfo-mode     (info (smart-compile-replace "%n.info")))))
+    (latex-mode       "xdvi %n.dvi" t)
+    ("\\.pl$"         "./%f"))
+  "`smart-run' running scheme.
+Each element is of the form: (matcher . handler).  Matcher can be
+either string(matching `buffer-file-name') or symbol(matching
+`major-mode').  Hanlder can also be either string(a shell
+command) or a lisp expression.
 
-(defvar smart-executable-alist
+See also `smart-compile-replace-table', `smart-executable-table'."
+  :type 'symbol
+  :group 'smart-compile)
+
+(defcustom smart-executable-table
   '("%n.class"
     "%n"
     "%n.m"
     "%n.php"
     "%n.scm"
     "%n.dvi"
-    "%n.info"))
+    "%n.info")
+  "File formats that `smart-run' knows how to execute.
+
+See also `smart-compile-replace-table'."
+  :type 'symbol
+  :group 'smart-compile)
+
+
+(defvar smart-compile-check-makefile t)
+(make-variable-buffer-local 'smart-compile-check-makefile)
 
 (defun smart-compile-replace (str)
-  "Replace `smart-compile-replace-alist'."
-  (let ((rlist smart-compile-replace-alist))
-    (while rlist
-      (while (string-match (caar rlist) str)
-	(setq str (replace-match (eval (cdar rlist)) t nil str)))
-      (setq rlist (cdr rlist))))
-  str)
+  "Replace in STR by `smart-compile-replace-table'."
+  (dolist (el smart-compile-replace-table str)
+    (setq str (replace-regexp-in-string (car el) (eval (cadr el)) str))))
 
 ;;;###autoload
 (defun smart-compile ()
   "Run `compile' by checking project builder(like make, ant, etc) and
-`smart-compile-alist'."
+`smart-compile-table'."
   (interactive)
   (catch 'return
     (unless (buffer-file-name)
@@ -128,10 +161,10 @@ expression)." )
             (progn (set (make-local-variable 'compile-command) "ant ")
                    (throw 'return t))
           (setq smart-compile-check-makefile nil)))))
-    ;; smart-compile-alist
+    ;; smart-compile-table
     (mapc '(lambda (el)
              (let ((matcher (car el))
-                   (handler (cdr el)))
+                   (handler (cadr el)))
                (when (or (and (stringp matcher)
                               (string-match matcher (buffer-file-name)))
                          (and (not (stringp matcher))
@@ -142,7 +175,7 @@ expression)." )
                             (call-interactively 'compile))
                    (eval handler))
                  (throw 'return t))))
-          smart-compile-alist)
+          smart-compile-table)
     (call-interactively 'compile)))
 
 (defun smart-shell-command-asynchronously (cmd)
@@ -151,7 +184,7 @@ expression)." )
 ;;;###autoload
 (defun smart-run ()
   "Run the executable program according to the file type.
-You can set `smart-run-alist' and `smart-executable-alist' to add new
+You can set `smart-run-table' and `smart-executable-table' to add new
 commands for new file types."
   (interactive)
   (let ((up-to-date nil)
@@ -167,11 +200,11 @@ commands for new file types."
                    (unless (file-newer-than-file-p (buffer-file-name) bin)
                      (setq up-to-date t))
                    (throw 'return t))))
-            smart-executable-alist))
+            smart-executable-table))
     (if (and (not up-to-date)
              (y-or-n-p "File out of date, recompile? "))
         (smart-compile)
-      ;; smart-run-alist
+      ;; smart-run-table
       (catch 'return
         (mapc '(lambda (el)
                  (let ((matcher (car el))
@@ -188,7 +221,7 @@ commands for new file types."
                            (shell-command (smart-compile-replace handler)))
                        (eval handler))
                      (throw 'return t))))
-              smart-run-alist)))))
+              smart-run-table)))))
 
 (provide 'smart-compile)
 
