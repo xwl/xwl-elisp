@@ -1,4 +1,4 @@
-;;; smart-compile.el --- an interface to `compile'
+;;; smart-compile.el --- `compile' bases on major-mode or filename
 
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
 
@@ -57,18 +57,18 @@
   :group 'smart-compile)
 
 (defcustom smart-compile-table
-  '(("\\.c$"          "gcc -O2 %f -lm -o %n")
-    ("\\.[Cc]+[Pp]*$" "g++ -O2 %f -lm -o %n")
-    ("\\.java$"       "javac %f")
-    ("\\.f90$"        "f90 %f -o %n")
-    ("\\.[Ff]$"       "f77 %f -o %n")
-    ("\\.pl$"         "perl -cw %f")
-    ("\\.mp$"	      "mptopdf %f")
-    ("\\.php$"        "php %f")
-    ("\\.tex$"        "latex %f")
-    ("\\.l$"          "lex -o %n.yy.c %f && gcc -O2 %n.yy.c -lm -o %n")
-    ("\\.y$"          "yacc -o %n.tab.c %f && gcc -O2 %n.tab.c -lm -o %n")
-    ("\\.dot$"        "dot -Tjpg %f > %n.jpg")
+  '((c-mode "gcc -O2 %f -lm -o %n")
+    (c++-mode "g++ -O2 %f -lm -o %n")
+    (java-mode "javac %f")
+    ("\\.f90$" "f90 %f -o %n")
+    ("\\.[Ff]$" "f77 %f -o %n")
+    ("\\.pl$" "perl -cw %f")
+    ("\\.mp$" "mptopdf %f")
+    ("\\.php$" "php %f")
+    ("\\.tex$" "latex %f")
+    ("\\.l$" "lex -o %n.yy.c %f && gcc -O2 %n.yy.c -lm -o %n")
+    ("\\.y$" "yacc -o %n.tab.c %f && gcc -O2 %n.tab.c -lm -o %n")
+    ("\\.dot$" "dot -Tjpg %f > %n.jpg")
     (emacs-lisp-mode  (emacs-lisp-byte-compile)))
   "`smart-compile' running scheme.
 Each element is of the form: (matcher . handler).  Matcher can be
