@@ -1,14 +1,9 @@
 ;;; smart-compile.el --- an interface to `compile'
 
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
-;; Copyright (C) 1998-2003  Seiji Zenitani <zenitani@mac.com>
 
-;; Author: Seiji Zenitani <zenitani@mac.com>
-;; Version: 3.0
-;; Keywords: tools, unix
-;; Created: 1998-12-27
-;; Compatibility: Emacs 20, 21
-;; URL: http://home.att.ne.jp/alpha/z123/elisp-e.html
+;; Author: William Xu <william.xwl@gmail.com>
+;; Version: 1.0
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,14 +22,24 @@
 
 ;;; Commentary:
 
-;; This package provides `smart-compile' function.
-;; You can associates a particular file with a paticular compile functions,
-;; by editing `smart-compile-alist'.
+;; This is a mostly rewritten based on Seiji Zenitani
+;; <zenitani@mac.com>'s `smart-compile.el'. Besides the original
+;; `smart-compile' function, i've add a `smart-run' function. This two
+;; functions may be the most useful from this extension.
 ;;
-;; To use this package, add these lines to your .emacs file:
-;;     (require 'smart-compile)
+;; To use, add the following to your .emacs:
 ;;
-;; Note that it requires emacs 20 or later.
+;;     (autoload 'smart-compile "smart-compile"
+;;       "Run `compile' by checking project builder(like make, ant, etc) and
+;;     `smart-compile-alist'." t nil)
+;;
+;;     (autoload 'smart-run "smart-compile"
+;;       "Run the executable program according to the file type.
+;;     You can set `smart-run-alist' and `smart-executable-alist' to add new
+;;     commands for new file types." t nil)
+;;
+;; And you may want to customzie these "triggers":
+;; `smart-compile-alist', `smart-run-alist', `smart-executable-alist'.
 
 ;;; Code:
 
@@ -127,26 +132,16 @@ expression)." )
     (mapc '(lambda (el)
              (let ((matcher (car el))
                    (handler (cdr el)))
-               (cond ((and (stringp matcher) (stringp handler))
-                      (when (string-match matcher (buffer-file-name))
-                        (set (make-local-variable 'compile-command)
-                             (smart-compile-replace handler))
-                        (call-interactively 'compile)
-                        (throw 'return t)))
-                     ((and (stringp matcher) (symbolp handler))
-                      (when (string-match matcher (buffer-file-name))
-                        (eval handler)
-                        (throw 'return t)))
-                     ((and (symbolp matcher) (stringp handler))
-                      (when (eq matcher major-mode)
-                        (set (make-local-variable 'compile-command)
-                             (smart-compile-replace handler))
-                        (call-interactively 'compile)
-                        (throw 'return t)))
-                     ((and (symbolp matcher) (symbolp handler))
-                      (when (eq matcher major-mode)
-                        (eval handler)
-                        (throw 'return t))))))
+               (when (or (and (stringp matcher)
+                              (string-match matcher (buffer-file-name)))
+                         (and (not (stringp matcher))
+                              (eq matcher major-mode)))
+                 (if (stringp handler)
+                     (progn (set (make-local-variable 'compile-command)
+                                 (smart-compile-replace handler))
+                            (call-interactively 'compile))
+                   (eval handler))
+                 (throw 'return t))))
           smart-compile-alist)
     (call-interactively 'compile)))
 
@@ -178,32 +173,21 @@ commands for new file types."
         (smart-compile)
       ;; smart-run-alist
       (catch 'return
-        (mapc (lambda (el)
-                (let ((matcher (car el))
-                      (handler (cadr el))
-                      (async-run (caddr el)))
-                  (cond ((and (stringp matcher) (stringp handler))
-                         (when (string-match matcher (buffer-file-name))
-                           (if async-run
-                               (smart-shell-command-asynchronously
-                                (smart-compile-replace handler))
-                             (shell-command (smart-compile-replace handler)))
-                           (throw 'return t)))
-                        ((and (stringp matcher) (symbolp handler))
-                         (when (string-match matcher (buffer-file-name))
-                           (eval handler)
-                           (throw 'return t)))
-                        ((and (symbolp matcher) (stringp handler))
-                         (when (eq matcher major-mode)
-                           (if async-run
-                               (smart-shell-command-asynchronously
-                                (smart-compile-replace handler))
-                             (shell-command (smart-compile-replace handler)))
-                           (throw 'return t)))
-                        ((and (symbolp matcher) (symbolp handler))
-                         (when (eq matcher major-mode)
-                           (eval handler)
-                           (throw 'return t))))))
+        (mapc '(lambda (el)
+                 (let ((matcher (car el))
+                       (handler (cadr el))
+                       (async-run (caddr el)))
+                   (when (or (and (stringp matcher)
+                                  (string-match matcher (buffer-file-name)))
+                             (and (not (stringp matcher))
+                                  (eq matcher major-mode)))
+                     (if (stringp handler)
+                         (if async-run
+                             (smart-shell-command-asynchronously
+                              (smart-compile-replace handler))
+                           (shell-command (smart-compile-replace handler)))
+                       (eval handler))
+                     (throw 'return t))))
               smart-run-alist)))))
 
 (provide 'smart-compile)
