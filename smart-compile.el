@@ -101,6 +101,7 @@ expression)." )
       (setq rlist (cdr rlist))))
   str)
 
+;;;###autoload
 (defun smart-compile ()
   "Run `compile' by checking project builder(like make, ant, etc) and
 `smart-compile-alist'."
@@ -152,6 +153,7 @@ expression)." )
 (defun smart-shell-command-asynchronously (cmd)
   (start-process-shell-command cmd nil cmd))
 
+;;;###autoload
 (defun smart-run ()
   "Run the executable program according to the file type.
 You can set `smart-run-alist' and `smart-executable-alist' to add new
