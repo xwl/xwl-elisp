@@ -1,4 +1,4 @@
-;;; smart-compile.el --- `compile' bases on major-mode or filename
+;;; smart-compile.el --- `compile' based on major-mode or filename
 
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
 
