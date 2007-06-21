@@ -39,15 +39,22 @@
 ;;
 ;;     (autoload 'smart-compile "smart-compile"
 ;;       "Run `compile' by checking project builder(like make, ant, etc) and
-;;     `smart-compile-table'." t nil)
+;;     `smart-compile-table'." t)
 ;;
 ;;     (autoload 'smart-run "smart-compile"
 ;;       "Run the executable program according to the file type.
 ;;     You can set `smart-run-table' and `smart-executable-table' to add new
-;;     commands for new file types." t nil)
+;;     commands for new file types." t)
+;;
+;;     (autoload 'smart-compile-replace "smart-compile"
+;;       "Replace in STR by `smart-compile-replace-table'." t)
 ;;
 ;; And you may want to customzie these "triggers":
 ;; `smart-compile-table', `smart-run-table', `smart-executable-table'.
+
+;;; TODO
+;;
+;; - combine smart-compile-table, smart-run-table into one single table.
 
 ;;; Code:
 
@@ -134,10 +141,12 @@ See also `smart-compile-replace-table'."
 (defvar smart-compile-check-makefile t)
 (make-variable-buffer-local 'smart-compile-check-makefile)
 
-(defvar smart-compile-checked-p nil
+(defvar smart-compile-checked-p t
   "Just run `smart-compile' for the first time.
 We'll fall back to normal `compile' for future request.")
+(make-variable-buffer-local 'smart-compile-checked-p)
 
+;;;###autoload
 (defun smart-compile-replace (str)
   "Replace in STR by `smart-compile-replace-table'."
   (dolist (el smart-compile-replace-table str)
@@ -149,38 +158,40 @@ We'll fall back to normal `compile' for future request.")
 `smart-compile-table'."
   (interactive)
   (if smart-compile-checked-p
-      (catch 'return
-        (unless (buffer-file-name)
-          (error "cannot get filename."))
-        ;; project builders
-        (when smart-compile-check-makefile
-          (cond
-           ((or (file-readable-p "Makefile") ; make
-                (file-readable-p "makefile"))
-            (if (y-or-n-p "Makefile is found. Try 'make'? ")
-                (progn (setq compile-command "make ")
-                       (throw 'return t))
-              (setq smart-compile-check-makefile nil)))
-           ((file-readable-p "build.xml") ; ant
-            (if (y-or-n-p "build.xml is found. Try 'ant'? ")
-                (progn (setq compile-command "ant ")
-                       (throw 'return t))
-              (setq smart-compile-check-makefile nil)))))
-        ;; smart-compile-table
-        (mapc '(lambda (el)
-                 (let ((matcher (car el))
-                       (handler (cadr el)))
-                   (when (or (and (stringp matcher)
-                                  (string-match matcher (buffer-file-name)))
-                             (and (not (stringp matcher))
-                                  (eq matcher major-mode)))
-                     (if (stringp handler)
-                         (progn (setq compile-command (smart-compile-replace handler))
-                                (call-interactively 'compile))
-                       (eval handler))
-                     (throw 'return t))))
-              smart-compile-table)
-        (call-interactively 'compile))
+      (progn
+        (catch 'return
+          (unless (buffer-file-name)
+            (error "cannot get filename."))
+          ;; project builders
+          (when smart-compile-check-makefile
+            (cond
+             ((or (file-readable-p "Makefile") ; make
+                  (file-readable-p "makefile"))
+              (if (y-or-n-p "Makefile is found. Try 'make'? ")
+                  (progn (setq compile-command "make ")
+                         (throw 'return t))
+                (setq smart-compile-check-makefile nil)))
+             ((file-readable-p "build.xml") ; ant
+              (if (y-or-n-p "build.xml is found. Try 'ant'? ")
+                  (progn (setq compile-command "ant ")
+                         (throw 'return t))
+                (setq smart-compile-check-makefile nil)))))
+          ;; smart-compile-table
+          (mapc '(lambda (el)
+                   (let ((matcher (car el))
+                         (handler (cadr el)))
+                     (when (or (and (stringp matcher)
+                                    (string-match matcher (buffer-file-name)))
+                               (and (not (stringp matcher))
+                                    (eq matcher major-mode)))
+                       (if (stringp handler)
+                           (progn (setq compile-command (smart-compile-replace handler))
+                                  (call-interactively 'compile))
+                         (eval handler))
+                       (throw 'return t))))
+                smart-compile-table)
+          (call-interactively 'compile))
+        (setq smart-compile-checked-p nil))
     (call-interactively 'compile)))
 
 (defun smart-shell-command-asynchronously (cmd)
