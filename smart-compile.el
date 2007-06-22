@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 1.0
+;; Version: 2.0
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
