@@ -143,8 +143,6 @@ We'll fall back to normal `compile' for future request.")
         (message "`%s' is already up-to-date" (or bin "Object"))
       (if smart-compile-checked-p
           (catch 'return
-            (unless (buffer-file-name)
-              (error "cannot get filename."))
             ;; check project builders
             (when smart-compile-check-makefile
               (cond
