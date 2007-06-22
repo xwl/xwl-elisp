@@ -1,4 +1,4 @@
-;;; smart-compile.el --- `compile' based on major-mode or filename
+;;; smart-compile.el --- `compile' and run based on major-mode or filename
 
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
 
@@ -25,9 +25,9 @@
 ;; This is a mostly rewritten based on ideas from Seiji Zenitani
 ;; <zenitani@mac.com>'s `smart-compile.el'.
 ;;
-;; Besides the original `smart-compile' function, i've add a `smart-run'
-;; function. This two functions may be the most useful from this
-;; extension.
+;; Besides the original `smart-compile' function, i've add a
+;; `smart-compile-and-run' function. This two functions may be the most
+;; useful from this extension.
 ;;
 ;; Let me illustrate it by an example. Suppose you are editing a file
 ;; `foo.c'. To compile it, try `M-x smart-compile', which will run a
@@ -41,50 +41,20 @@
 ;;       "Run `compile' by checking project builder(like make, ant, etc) and
 ;;     `smart-compile-table'." t)
 ;;
-;;     (autoload 'smart-run "smart-compile"
+;;     (autoload 'smart-compile-and-run "smart-compile"
 ;;       "Run the executable program according to the file type.
-;;     You can set `smart-run-table' and `smart-executable-table' to add new
-;;     commands for new file types." t)
+;;     See `smart-compile-table'." t)
 ;;
 ;;     (autoload 'smart-compile-replace "smart-compile"
 ;;       "Replace in STR by `smart-compile-replace-table'." t)
 ;;
-;; And you may want to customzie these "triggers":
-;; `smart-compile-table', `smart-run-table', `smart-executable-table'.
-
-;;; TODO
-;;
-;; - combine smart-compile-table, smart-run-table into one single table.
+;; And you may want to customzie the "trigger" - `smart-compile-table'.
 
 ;;; Code:
 
 (defgroup smart-compile nil
   "smart-compile extension."
-  :prefix "smart-"
-  :group 'smart-compile)
-
-(defcustom smart-compile-table
-  '((c-mode "gcc -O2 %f -lm -o %n")
-    (c++-mode "g++ -O2 %f -lm -o %n")
-    (java-mode "javac %f")
-    ("\\.f90$" "f90 %f -o %n")
-    ("\\.[Ff]$" "f77 %f -o %n")
-    ("\\.pl$" "perl -cw %f")
-    ("\\.mp$" "mptopdf %f")
-    ("\\.php$" "php %f")
-    ("\\.tex$" "latex %f")
-    ("\\.l$" "lex -o %n.yy.c %f && gcc -O2 %n.yy.c -lm -o %n")
-    ("\\.y$" "yacc -o %n.tab.c %f && gcc -O2 %n.tab.c -lm -o %n")
-    ("\\.dot$" "dot -Tjpg %f > %n.jpg")
-    (emacs-lisp-mode  (emacs-lisp-byte-compile)))
-  "`smart-compile' running scheme.
-Each element is of the form: (matcher . handler).  Matcher can be
-either string(matching `buffer-file-name') or symbol(matching
-`major-mode').  Hanlder can also be either string(a shell
-command) or a lisp expression.
-
-See also `smart-compile-replace-table'."
-  :type 'symbol
+  :prefix "smart-compile-"
   :group 'smart-compile)
 
 (defcustom smart-compile-replace-table
@@ -93,9 +63,9 @@ See also `smart-compile-replace-table'."
     ("%n" (file-name-sans-extension (file-name-nondirectory (buffer-file-name))))
     ("%e" (file-name-extension (buffer-file-name))))
   "File name shortcut format.
-Some special strings(like %f, %F) in `smart-compile-table',
-`smart-run-table' and `smart-executable-table' will be replaced
-according the following map(with an example in the end).
+Some special strings(like %f, %F) in `smart-compile-table', will
+be replaced according the following map(with an example in the
+end).
 
   %F  absolute pathname            ( /usr/local/bin/netscape.bin )
   %f  file name without directory  ( netscape.bin )
@@ -104,34 +74,28 @@ according the following map(with an example in the end).
   :type 'symbol
   :group 'smart-compile)
 
-(defcustom smart-run-table
-  '(("\\.c$"          "./%n")
-    ("\\.[Cc]+[Pp]*$" "./%n")
-    ("\\.java$"       "java %n")
-    ("\\.php$"        "php  %f")
-    ("\\.m$"          "./%f")
-    ("\\.scm"         "./%f")
-    (latex-mode       "xdvi %n.dvi" t)
-    ("\\.pl$"         "./%f"))
-  "`smart-run' running scheme.
-Each element is of the form: (matcher . handler).  Matcher can be
-either string(matching `buffer-file-name') or symbol(matching
-`major-mode').  Hanlder can also be either string(a shell
-command) or a lisp expression.
+(defcustom smart-compile-table
+  '((c-mode "gcc -O2 %f -lm -o %n" "%n" "./%n")
+    (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
+    ("\\.pl$" nil nil "perl -cw %f")
+    ("\\.php$" nil nil "php %f")
+    ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi" t))
+  "Each element in the table has the form:
 
-See also `smart-compile-replace-table', `smart-executable-table'."
-  :type 'symbol
-  :group 'smart-compile)
+    '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER &optional ASYNC-RUN-P)
 
-(defcustom smart-executable-table
-  '("%n.class"
-    "%n"
-    "%n.m"
-    "%n.php"
-    "%n.scm"
-    "%n.dvi"
-    "%n.info")
-  "File formats that `smart-run' knows how to execute.
+MATCHER, COMPILE-HANDLER, BIN and RUN-HANDLER could be either a
+string or lisp expression.
+
+MATCHER could either match against filename or major mode.
+
+COMPILE-HANDLER is the command for compiling.
+
+BIN is the object file created after compilation.
+
+RUN-HANDLER is the command for running BIN.
+
+Non-nil ASYNC-RUN-P will make RUN-HANDLER run asynchronously.
 
 See also `smart-compile-replace-table'."
   :type 'symbol
@@ -157,87 +121,92 @@ We'll fall back to normal `compile' for future request.")
   "Run `compile' by checking project builder(like make, ant, etc) and
 `smart-compile-table'."
   (interactive)
-  (if smart-compile-checked-p
-      (progn
-        (catch 'return
-          (unless (buffer-file-name)
-            (error "cannot get filename."))
-          ;; project builders
-          (when smart-compile-check-makefile
-            (cond
-             ((or (file-readable-p "Makefile") ; make
-                  (file-readable-p "makefile"))
-              (if (y-or-n-p "Makefile is found. Try 'make'? ")
-                  (progn (setq compile-command "make ")
-                         (throw 'return t))
-                (setq smart-compile-check-makefile nil)))
-             ((file-readable-p "build.xml") ; ant
-              (if (y-or-n-p "build.xml is found. Try 'ant'? ")
-                  (progn (setq compile-command "ant ")
-                         (throw 'return t))
-                (setq smart-compile-check-makefile nil)))))
-          ;; smart-compile-table
-          (mapc '(lambda (el)
-                   (let ((matcher (car el))
-                         (handler (cadr el)))
-                     (when (or (and (stringp matcher)
+  ;; obj up-to-date ?
+  (let ((up-to-date t)
+        (bin nil))
+    (catch 'return
+      (mapc (lambda (el)
+              (let ((matcher (nth 0 el))
+                    (b (nth 2 el)))
+                (when (and b
+                           (or (and (stringp matcher)
                                     (string-match matcher (buffer-file-name)))
                                (and (not (stringp matcher))
-                                    (eq matcher major-mode)))
-                       (if (stringp handler)
-                           (progn (setq compile-command (smart-compile-replace handler))
-                                  (call-interactively 'compile))
-                         (eval handler))
-                       (throw 'return t))))
-                smart-compile-table)
-          (call-interactively 'compile))
-        (setq smart-compile-checked-p nil))
-    (call-interactively 'compile)))
+                                    (eq matcher major-mode))))
+                  (setq bin (smart-compile-replace b))
+                  (when (and (file-exists-p bin)
+                             (file-newer-than-file-p (buffer-file-name) bin))
+                    (setq up-to-date nil)
+                    (throw 'return t)))))
+            smart-compile-table))
+    (if up-to-date
+        (message "`%s' is already up-to-date" (or bin "Object"))
+      (if smart-compile-checked-p
+          (catch 'return
+            (unless (buffer-file-name)
+              (error "cannot get filename."))
+            ;; check project builders
+            (when smart-compile-check-makefile
+              (cond
+               ((or (file-readable-p "Makefile") ; make
+                    (file-readable-p "makefile"))
+                (if (y-or-n-p "Makefile is found. Try 'make'? ")
+                    (progn (setq compile-command "make ")
+                           (throw 'return t))
+                  (setq smart-compile-check-makefile nil)))
+               ((file-readable-p "build.xml") ; ant
+                (if (y-or-n-p "build.xml is found. Try 'ant'? ")
+                    (progn (setq compile-command "ant ")
+                           (throw 'return t))
+                  (setq smart-compile-check-makefile nil)))))
+            ;; smart-compile-table
+            (mapc '(lambda (el)
+                     (let ((matcher (nth 0 el))
+                           (compile-handler (nth 1 el)))
+                       (when (or (and (stringp matcher)
+                                      (string-match matcher (buffer-file-name)))
+                                 (and (not (stringp matcher))
+                                      (eq matcher major-mode)))
+                         (if (stringp compile-handler)
+                             (progn (setq compile-command (smart-compile-replace compile-handler))
+                                    (call-interactively 'compile))
+                           (eval compile-handler))
+                         (throw 'return t))))
+                  smart-compile-table)
+            (setq smart-compile-checked-p nil))
+        (call-interactively 'compile)))))
 
-(defun smart-shell-command-asynchronously (cmd)
+(defun smart-compile-shell-command-asynchronously (cmd)
   (start-process-shell-command cmd nil cmd))
 
 ;;;###autoload
-(defun smart-run ()
+(defun smart-compile-and-run ()
   "Run the executable program according to the file type.
-You can set `smart-run-table' and `smart-executable-table' to add new
-commands for new file types."
+See `smart-compile-table'."
   (interactive)
-  (let ((up-to-date nil)
-        (bin-exist nil))
-    (unless (buffer-file-name)
-      (error "cannot get filename."))
-    ;; Dose the executable file exist and up-to-date?
-    (catch 'return
-      (mapc '(lambda (el)
-               (let ((bin (smart-compile-replace el)))
-                 (when (file-exists-p bin)
-                   (setq bin-exist t)
-                   (unless (file-newer-than-file-p (buffer-file-name) bin)
-                     (setq up-to-date t))
-                   (throw 'return t))))
-            smart-executable-table))
-    (if (and (not up-to-date)
-             (y-or-n-p "File out of date, recompile? "))
-        (smart-compile)
-      ;; smart-run-table
-      (catch 'return
-        (mapc '(lambda (el)
-                 (let ((matcher (car el))
-                       (handler (cadr el))
-                       (async-run (caddr el)))
-                   (when (or (and (stringp matcher)
-                                  (string-match matcher (buffer-file-name)))
-                             (and (not (stringp matcher))
-                                  (eq matcher major-mode)))
-                     (if (stringp handler)
-                         (if async-run
-                             (smart-shell-command-asynchronously
-                              (smart-compile-replace handler))
-                           (shell-command (smart-compile-replace handler)))
-                       (eval handler))
-                     (throw 'return t))))
-              smart-run-table)))))
+  (smart-compile)
+  (catch 'return
+    (mapc
+     '(lambda (el)
+        (let ((matcher (nth 0 el))
+              (run-handler (nth 3 el))
+              (async-run-p (nth 4 el)))
+          (when (or (and (stringp matcher)
+                         (string-match matcher (buffer-file-name)))
+                    (and (not (stringp matcher))
+                         (eq matcher major-mode)))
+            (if (stringp run-handler)
+                (progn
+                  (setq run-handler (smart-compile-replace run-handler))
+                  (if async-run-p
+                      (progn
+                        (message "%s..." run-handler)
+                        (smart-compile-shell-command-asynchronously run-handler))
+                    (message "")        ; clear smart-compile's message
+                    (shell-command run-handler)))
+              (eval run-handler))
+            (throw 'return t))))
+     smart-compile-table)))
 
 (provide 'smart-compile)
 
