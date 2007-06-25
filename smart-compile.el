@@ -189,6 +189,7 @@ See `smart-compile-table'."
                                (string-match matcher (buffer-file-name)))
                           (and (not (stringp matcher))
                                (eq matcher major-mode)))
+                  (setq what-to-do t)
                   (if (stringp run-handler)
                       (progn
                         (setq run-handler (smart-compile-replace run-handler))
@@ -196,9 +197,9 @@ See `smart-compile-table'."
                             (progn
                               (message "%s..." run-handler)
                               (smart-compile-shell-command-asynchronously run-handler))
-                          (shell-command run-handler)))
+                          (unless (zerop (shell-command run-handler))
+                            (setq what-to-do nil))))
                     (eval run-handler))
-                  (setq what-to-do t)
                   (throw 'return t))))
             smart-compile-table))
     (unless what-to-do
