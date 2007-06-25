@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 2.1
+;; Version: 2.2
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -186,7 +186,7 @@ See also `smart-compile-replace-table'."
              (setq smart-compile-compile-handler compile-command))
            (setq smart-compile-first-compile-p nil))
           (t
-           (funcall smart-compile-compile1)))))
+           (funcall 'smart-compile-compile1)))))
 
 ;;;###autoload
 (defun smart-compile-run ()
