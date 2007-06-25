@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 2.0
+;; Version: 2.1
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ end).
 (defcustom smart-compile-table
   '((c-mode "gcc -O2 %f -lm -o %n" "%n" "./%n")
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
-    ("\\.pl$" nil nil "perl -cw %f")
+    ("\\.pl$" "perl -cw %f" nil "perl -s %f")
     ("\\.php$" nil nil "php %f")
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi" t))
   "Each element in the table has the form:
@@ -102,13 +102,11 @@ See also `smart-compile-replace-table'."
   :group 'smart-compile)
 
 
-(defvar smart-compile-check-makefile t)
-(make-variable-buffer-local 'smart-compile-check-makefile)
-
-(defvar smart-compile-checked-p t
-  "Just run `smart-compile' for the first time.
-We'll fall back to normal `compile' for future request.")
-(make-variable-buffer-local 'smart-compile-checked-p)
+;; Just run `smart-compile' for the first time, then fall back to
+;; normal `compile' for future request. The reason is that user may edit
+;; compile command in minibuffer manually.
+(defvar smart-compile-first-time-p t)
+(make-variable-buffer-local 'smart-compile-first-time-p)
 
 ;;;###autoload
 (defun smart-compile-replace (str)
@@ -122,7 +120,7 @@ We'll fall back to normal `compile' for future request.")
 `smart-compile-table'."
   (interactive)
   ;; obj up-to-date ?
-  (let ((up-to-date t)
+  (let ((up-to-date nil)
         (bin nil))
     (catch 'return
       (mapc (lambda (el)
@@ -135,43 +133,42 @@ We'll fall back to normal `compile' for future request.")
                                     (eq matcher major-mode))))
                   (setq bin (smart-compile-replace b))
                   (when (and (file-exists-p bin)
-                             (file-newer-than-file-p (buffer-file-name) bin))
-                    (setq up-to-date nil)
+                             (file-newer-than-file-p bin (buffer-file-name)))
+                    (setq up-to-date t)
                     (throw 'return t)))))
             smart-compile-table))
     (if up-to-date
         (message "`%s' is already up-to-date" (or bin "Object"))
-      (if smart-compile-checked-p
-          (catch 'return
-            ;; check project builders
-            (when smart-compile-check-makefile
-              (cond
-               ((or (file-readable-p "Makefile") ; make
-                    (file-readable-p "makefile"))
-                (if (y-or-n-p "Makefile is found. Try 'make'? ")
-                    (progn (setq compile-command "make ")
-                           (throw 'return t))
-                  (setq smart-compile-check-makefile nil)))
-               ((file-readable-p "build.xml") ; ant
-                (if (y-or-n-p "build.xml is found. Try 'ant'? ")
-                    (progn (setq compile-command "ant ")
-                           (throw 'return t))
-                  (setq smart-compile-check-makefile nil)))))
-            ;; smart-compile-table
-            (mapc '(lambda (el)
-                     (let ((matcher (nth 0 el))
-                           (compile-handler (nth 1 el)))
-                       (when (or (and (stringp matcher)
-                                      (string-match matcher (buffer-file-name)))
-                                 (and (not (stringp matcher))
-                                      (eq matcher major-mode)))
-                         (if (stringp compile-handler)
-                             (progn (setq compile-command (smart-compile-replace compile-handler))
-                                    (call-interactively 'compile))
-                           (eval compile-handler))
-                         (throw 'return t))))
-                  smart-compile-table)
-            (setq smart-compile-checked-p nil))
+      (if smart-compile-first-time-p
+        (let ((compile-handler-string-p t))
+          (cond ((and (or (file-exists-p "Makefile") ; make
+                          (file-exists-p "makefile"))
+                      (y-or-n-p "Found Makefile, try 'make'? "))
+                 (setq compile-command "make "))
+                ((and (file-exists-p "build.xml") ; ant
+                      (y-or-n-p "Found build.xml, try 'ant'? "))
+                 (setq compile-command "ant "))
+                ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
+                   (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
+                 (setq compile-command "qmake "))
+                (t
+                 (catch 'return
+                   (mapc (lambda (el)
+                           (let ((matcher (nth 0 el))
+                                 (compile-handler (nth 1 el)))
+                             (when (or (and (stringp matcher)
+                                            (string-match matcher (buffer-file-name)))
+                                       (and (not (stringp matcher))
+                                            (eq matcher major-mode)))
+                               (if (stringp compile-handler)
+                                   (setq compile-command (smart-compile-replace compile-handler))
+                                 (setq compile-handler-string-p nil))
+                               (throw 'return t))))
+                         smart-compile-table))))
+          (if compile-handler-string-p
+              (call-interactively 'compile)
+            (eval compile-handler))
+          (setq smart-compile-first-time-p nil))
         (call-interactively 'compile)))))
 
 (defun smart-compile-shell-command-asynchronously (cmd)
