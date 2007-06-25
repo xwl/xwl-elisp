@@ -58,10 +58,11 @@
   :group 'smart-compile)
 
 (defcustom smart-compile-replace-table
-  '(("%F" (buffer-file-name))
-    ("%f" (file-name-nondirectory (buffer-file-name)))
-    ("%n" (file-name-sans-extension (file-name-nondirectory (buffer-file-name))))
-    ("%e" (file-name-extension (buffer-file-name))))
+  '(("%F" buffer-file-name)
+    ("%f" (lambda () (file-name-nondirectory (buffer-file-name))))
+    ("%n" (lambda () (file-name-sans-extension
+                      (file-name-nondirectory (buffer-file-name)))))
+    ("%e" (lambda () (file-name-extension (buffer-file-name)))))
   "File name shortcut format.
 Some special strings(like %f, %F) in `smart-compile-table', will
 be replaced according the following map(with an example in the
@@ -79,13 +80,18 @@ end).
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
     ("\\.php$" nil nil "php %f")
-    ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi" t))
+    ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi" t)
+    (texinfo-mode makeinfo-buffer "%n.info"
+                  (lambda ()
+                    (Info-revert-find-node (smart-compile-replace "%n.info")
+                                           (makeinfo-current-node)))))
   "Each element in the table has the form:
 
     '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER &optional ASYNC-RUN-P)
 
 MATCHER, COMPILE-HANDLER, BIN and RUN-HANDLER could be either a
-string or lisp expression.
+string or lisp expression(for COMPILE-HANDLER and RUN-HANDLER, it must
+be a lisp function).
 
 MATCHER could either match against filename or major mode.
 
@@ -108,11 +114,16 @@ See also `smart-compile-replace-table'."
 (defvar smart-compile-first-time-p t)
 (make-variable-buffer-local 'smart-compile-first-time-p)
 
+;; The compile-handler for current buffer. It could be either a string
+;; or lisp function.
+(defvar smart-compile-command 'compile)
+(make-variable-buffer-local 'smart-compile-command)
+
 ;;;###autoload
 (defun smart-compile-replace (str)
   "Replace in STR by `smart-compile-replace-table'."
   (dolist (el smart-compile-replace-table str)
-    (setq str (replace-regexp-in-string (car el) (eval (cadr el)) str))))
+    (setq str (replace-regexp-in-string (car el) (funcall (cadr el)) str))))
 
 ;;;###autoload
 (defun smart-compile ()
@@ -137,39 +148,46 @@ See also `smart-compile-replace-table'."
                     (setq up-to-date t)
                     (throw 'return t)))))
             smart-compile-table))
-    (if up-to-date
-        (message "`%s' is already up-to-date" (or bin "Object"))
-      (if smart-compile-first-time-p
-        (let ((compile-handler-string-p t))
-          (cond ((and (or (file-exists-p "Makefile") ; make
-                          (file-exists-p "makefile"))
-                      (y-or-n-p "Found Makefile, try 'make'? "))
-                 (setq compile-command "make "))
-                ((and (file-exists-p "build.xml") ; ant
-                      (y-or-n-p "Found build.xml, try 'ant'? "))
-                 (setq compile-command "ant "))
-                ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
-                   (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
-                 (setq compile-command "qmake "))
-                (t
-                 (catch 'return
-                   (mapc (lambda (el)
-                           (let ((matcher (nth 0 el))
-                                 (compile-handler (nth 1 el)))
-                             (when (or (and (stringp matcher)
-                                            (string-match matcher (buffer-file-name)))
-                                       (and (not (stringp matcher))
-                                            (eq matcher major-mode)))
-                               (if (stringp compile-handler)
-                                   (setq compile-command (smart-compile-replace compile-handler))
-                                 (setq compile-handler-string-p nil))
-                               (throw 'return t))))
-                         smart-compile-table))))
-          (if compile-handler-string-p
-              (call-interactively 'compile)
-            (eval compile-handler))
-          (setq smart-compile-first-time-p nil))
-        (call-interactively 'compile)))))
+    (cond (up-to-date
+           (message "`%s' is already up-to-date" (or bin "Object")))
+          (smart-compile-first-time-p
+           (cond ((and (or (file-exists-p "Makefile") ; make
+                           (file-exists-p "makefile"))
+                       (y-or-n-p "Found Makefile, try 'make'? "))
+                  (setq compile-command "make "))
+                 ((and (file-exists-p "build.xml") ; ant
+                       (y-or-n-p "Found build.xml, try 'ant'? "))
+                  (setq compile-command "ant "))
+                 ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
+                    (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
+                  (setq compile-command "qmake "))
+                 (t
+                  (catch 'return
+                    (mapc (lambda (el)
+                            (let ((matcher (nth 0 el))
+                                  (compile-handler (nth 1 el)))
+                              (when (or (and (stringp matcher)
+                                             (string-match matcher (buffer-file-name)))
+                                        (and (not (stringp matcher))
+                                             (eq matcher major-mode)))
+                                (if (stringp compile-handler)
+                                    (progn
+                                      (setq compile-command (smart-compile-replace compile-handler))
+                                      (setq smart-compile-command 'compile))
+                                  (setq smart-compile-command compile-handler))
+                                (throw 'return t))))
+                          smart-compile-table))))
+           (if (eq smart-compile-command 'compile)
+               ;; we only call this interactively for the first time
+               (progn
+                 (call-interactively smart-compile-command)
+                 (setq smart-compile-command (lambda ()
+                                               (interactive)
+                                               (compile compile-command))))
+             (funcall smart-compile-command))
+           (setq smart-compile-first-time-p nil))
+          (t
+           (funcall smart-compile-command)))))
 
 (defun smart-compile-shell-command-asynchronously (cmd)
   (start-process-shell-command cmd nil cmd))
@@ -199,7 +217,7 @@ See `smart-compile-table'."
                               (smart-compile-shell-command-asynchronously run-handler))
                           (unless (zerop (shell-command run-handler))
                             (setq what-to-do nil))))
-                    (eval run-handler))
+                    (funcall run-handler))
                   (throw 'return t))))
             smart-compile-table))
     (unless what-to-do
