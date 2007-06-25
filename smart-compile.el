@@ -80,7 +80,7 @@ end).
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
     ("\\.php$" nil nil "php %f")
-    ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi" t)
+    ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &" t)
     (texinfo-mode makeinfo-buffer "%n.info"
                   (lambda ()
                     (Info-revert-find-node (smart-compile-replace "%n.info")
@@ -94,13 +94,9 @@ string or lisp expression(for COMPILE-HANDLER and RUN-HANDLER, it must
 be a lisp function).
 
 MATCHER could either match against filename or major mode.
-
 COMPILE-HANDLER is the command for compiling.
-
 BIN is the object file created after compilation.
-
 RUN-HANDLER is the command for running BIN.
-
 Non-nil ASYNC-RUN-P will make RUN-HANDLER run asynchronously.
 
 See also `smart-compile-replace-table'."
@@ -189,9 +185,6 @@ See also `smart-compile-replace-table'."
           (t
            (funcall smart-compile-command)))))
 
-(defun smart-compile-shell-command-asynchronously (cmd)
-  (start-process-shell-command cmd nil cmd))
-
 ;;;###autoload
 (defun smart-compile-run ()
   "Run the executable program according to the file type.
@@ -201,8 +194,7 @@ See `smart-compile-table'."
     (catch 'return
       (mapc (lambda (el)
               (let ((matcher (nth 0 el))
-                    (run-handler (nth 3 el))
-                    (async-run-p (nth 4 el)))
+                    (run-handler (nth 3 el)))
                 (when (or (and (stringp matcher)
                                (string-match matcher (buffer-file-name)))
                           (and (not (stringp matcher))
@@ -211,10 +203,12 @@ See `smart-compile-table'."
                   (if (stringp run-handler)
                       (progn
                         (setq run-handler (smart-compile-replace run-handler))
-                        (if async-run-p
-                            (progn
-                              (message "%s..." run-handler)
-                              (smart-compile-shell-command-asynchronously run-handler))
+                        (if (string-match "&$" run-handler)
+                            (let ((buf (generate-new-buffer-name
+                                        (concat "*" run-handler "*"))))
+                              (message run-handler)
+                              (shell-command run-handler buf)
+                              (delete-window (get-buffer-window buf)))
                           (unless (zerop (shell-command run-handler))
                             (setq what-to-do nil))))
                     (funcall run-handler))
