@@ -25,15 +25,16 @@
 ;; This is a mostly rewritten based on ideas from Seiji Zenitani
 ;; <zenitani@mac.com>'s `smart-compile.el'.
 ;;
-;; Besides the original `smart-compile' function, i've add a
-;; `smart-compile-run' function. This two functions may be the most
-;; useful from this extension.
+;; Besides the original `smart-compile-compile'(`smart-compile'
+;; actually) function, i've add a new function:
+;; `smart-compile-run'. These two functions may be the most useful from
+;; this extension.
 ;;
 ;; Let me illustrate it by an example. Suppose you are editing a file
-;; `foo.c'. To compile it, try `M-x smart-compile', which will run a
-;; shell command similar to `gcc -o foo foo.c -O2'. To run the
-;; executable, say `foo', try `M-x smart-run', which will run a shell
-;; command similar to `./foo'.
+;; `foo.c'. To compile it, try `M-x smart-compile-compile', which will
+;; run a shell command similar to `gcc -o foo foo.c -O2'. To run the
+;; executable, say `foo', try `M-x smart-compile-run', which will run a
+;; shell command similar to `./foo'.
 ;;
 ;; To use, add the following to your .emacs:
 ;;
