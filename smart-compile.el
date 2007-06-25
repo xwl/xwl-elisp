@@ -37,7 +37,7 @@
 ;;
 ;; To use, add the following to your .emacs:
 ;;
-;;     (autoload 'smart-compile "smart-compile"
+;;     (autoload 'smart-compile-compile "smart-compile"
 ;;       "Run `compile' by checking project builder(like make, ant, etc) and
 ;;     `smart-compile-table'." t)
 ;;
@@ -51,6 +51,8 @@
 ;; And you may want to customzie the "trigger" - `smart-compile-table'.
 
 ;;; Code:
+
+;;; User Customizable
 
 (defgroup smart-compile nil
   "smart-compile extension."
@@ -80,14 +82,14 @@ end).
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
     ("\\.php$" nil nil "php %f")
-    ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &" t)
+    ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
     (texinfo-mode makeinfo-buffer "%n.info"
                   (lambda ()
                     (Info-revert-find-node (smart-compile-replace "%n.info")
                                            (makeinfo-current-node)))))
   "Each element in the table has the form:
 
-    '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER &optional ASYNC-RUN-P)
+    '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER)
 
 MATCHER, COMPILE-HANDLER, BIN and RUN-HANDLER could be either a
 string or lisp expression(for COMPILE-HANDLER and RUN-HANDLER, it must
@@ -97,23 +99,30 @@ MATCHER could either match against filename or major mode.
 COMPILE-HANDLER is the command for compiling.
 BIN is the object file created after compilation.
 RUN-HANDLER is the command for running BIN.
-Non-nil ASYNC-RUN-P will make RUN-HANDLER run asynchronously.
 
 See also `smart-compile-replace-table'."
   :type 'symbol
   :group 'smart-compile)
 
 
+;;; Interface functions
+
 ;; Just run `smart-compile' for the first time, then fall back to
 ;; normal `compile' for future request. The reason is that user may edit
-;; compile command in minibuffer manually.
-(defvar smart-compile-first-time-p t)
-(make-variable-buffer-local 'smart-compile-first-time-p)
+;; compile command in minibuffer manually. Same for run handler.
+(defvar smart-compile-first-compile-p t)
+(make-variable-buffer-local 'smart-compile-first-compile-p)
+
+(defvar smart-compile-first-run-p t)
+(make-variable-buffer-local 'smart-compile-first-run-p)
 
 ;; The compile-handler for current buffer. It could be either a string
 ;; or lisp function.
-(defvar smart-compile-command 'compile)
-(make-variable-buffer-local 'smart-compile-command)
+(defvar smart-compile-compile-handler nil)
+(make-variable-buffer-local 'smart-compile-compile-handler)
+
+(defvar smart-compile-run-handler nil)
+(make-variable-buffer-local 'smart-compile-run-handler)
 
 ;;;###autoload
 (defun smart-compile-replace (str)
@@ -122,7 +131,7 @@ See also `smart-compile-replace-table'."
     (setq str (replace-regexp-in-string (car el) (funcall (cadr el)) str))))
 
 ;;;###autoload
-(defun smart-compile ()
+(defun smart-compile-compile ()
   "Run `compile' by checking project builder(like make, ant, etc) and
 `smart-compile-table'."
   (interactive)
@@ -146,7 +155,7 @@ See also `smart-compile-replace-table'."
             smart-compile-table))
     (cond (up-to-date
            (message "`%s' is already up-to-date" (or bin "Object")))
-          (smart-compile-first-time-p
+          (smart-compile-first-compile-p
            (cond ((and (or (file-exists-p "Makefile") ; make
                            (file-exists-p "makefile"))
                        (y-or-n-p "Found Makefile, try 'make'? "))
@@ -167,55 +176,68 @@ See also `smart-compile-replace-table'."
                                         (and (not (stringp matcher))
                                              (eq matcher major-mode)))
                                 (if (stringp compile-handler)
-                                    (progn
-                                      (setq compile-command (smart-compile-replace compile-handler))
-                                      (setq smart-compile-command 'compile))
-                                  (setq smart-compile-command compile-handler))
+                                    (setq compile-command (smart-compile-replace compile-handler))
+                                  (setq smart-compile-compile-handler compile-handler))
                                 (throw 'return t))))
                           smart-compile-table))))
-           (if (eq smart-compile-command 'compile)
-               ;; we only call this interactively for the first time
-               (progn
-                 (call-interactively smart-compile-command)
-                 (setq smart-compile-command (lambda ()
-                                               (interactive)
-                                               (compile compile-command))))
-             (funcall smart-compile-command))
-           (setq smart-compile-first-time-p nil))
+           (if smart-compile-compile-handler
+               (funcall 'smart-compile-compile1)
+             (call-interactively 'compile)
+             (setq smart-compile-compile-handler compile-command))
+           (setq smart-compile-first-compile-p nil))
           (t
-           (funcall smart-compile-command)))))
+           (funcall smart-compile-compile1)))))
 
 ;;;###autoload
 (defun smart-compile-run ()
   "Run the executable program according to the file type.
 See `smart-compile-table'."
   (interactive)
-  (let ((what-to-do nil))
-    (catch 'return
-      (mapc (lambda (el)
-              (let ((matcher (nth 0 el))
-                    (run-handler (nth 3 el)))
-                (when (or (and (stringp matcher)
-                               (string-match matcher (buffer-file-name)))
-                          (and (not (stringp matcher))
-                               (eq matcher major-mode)))
-                  (setq what-to-do t)
-                  (if (stringp run-handler)
-                      (progn
-                        (setq run-handler (smart-compile-replace run-handler))
-                        (if (string-match "&$" run-handler)
-                            (let ((buf (generate-new-buffer-name
-                                        (concat "*" run-handler "*"))))
-                              (message run-handler)
-                              (shell-command run-handler buf)
-                              (delete-window (get-buffer-window buf)))
-                          (unless (zerop (shell-command run-handler))
-                            (setq what-to-do nil))))
-                    (funcall run-handler))
-                  (throw 'return t))))
-            smart-compile-table))
-    (unless what-to-do
-      (call-interactively 'shell-command))))
+  (cond (smart-compile-first-run-p
+         (catch 'return
+           (mapc (lambda (el)
+                   (let ((matcher (nth 0 el))
+                         (run-handler (nth 3 el)))
+                     (when (or (and (stringp matcher)
+                                    (string-match matcher (buffer-file-name)))
+                               (and (not (stringp matcher))
+                                    (eq matcher major-mode)))
+                       (if (stringp run-handler)
+                           (setq smart-compile-run-handler
+                                 (smart-compile-replace run-handler))
+                         (setq smart-compile-run-handler run-handler))
+                       (throw 'return t))))
+                 smart-compile-table))
+         (if smart-compile-run-handler
+             (funcall 'smart-compile-run1)
+           (call-interactively 'shell-command)
+           (setq smart-compile-run-handler (car shell-command-history)))
+         (setq smart-compile-first-run-p nil))
+        (t
+         (funcall 'smart-compile-run1))))
+
+
+(defun smart-compile-compile1 ()
+  (cond ((stringp smart-compile-compile-handler)
+         (compile smart-compile-compile-handler))
+        (t
+         (funcall smart-compile-compile-handler))))
+
+;; Run shell command either synchronously or asynchronously with a
+;; unique output buffer, whose window will be deleted automatically.
+(defun smart-compile-shell-command (cmd)
+  (if (string-match "&$" cmd)
+      (let ((buf (generate-new-buffer-name (concat "*" cmd "*"))))
+        (message cmd)
+        (shell-command cmd buf)
+        (delete-window (get-buffer-window buf)))
+    (shell-command cmd)))
+
+(defun smart-compile-run1 ()
+  (cond ((stringp smart-compile-run-handler)
+         (smart-compile-shell-command smart-compile-run-handler))
+        (t
+         (funcall smart-compile-run-handler))))
 
 (provide 'smart-compile)
 
