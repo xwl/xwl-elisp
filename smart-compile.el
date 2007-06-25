@@ -26,7 +26,7 @@
 ;; <zenitani@mac.com>'s `smart-compile.el'.
 ;;
 ;; Besides the original `smart-compile' function, i've add a
-;; `smart-compile-and-run' function. This two functions may be the most
+;; `smart-compile-run' function. This two functions may be the most
 ;; useful from this extension.
 ;;
 ;; Let me illustrate it by an example. Suppose you are editing a file
@@ -41,7 +41,7 @@
 ;;       "Run `compile' by checking project builder(like make, ant, etc) and
 ;;     `smart-compile-table'." t)
 ;;
-;;     (autoload 'smart-compile-and-run "smart-compile"
+;;     (autoload 'smart-compile-run "smart-compile"
 ;;       "Run the executable program according to the file type.
 ;;     See `smart-compile-table'." t)
 ;;
