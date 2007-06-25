@@ -67,10 +67,10 @@ Some special strings(like %f, %F) in `smart-compile-table', will
 be replaced according the following map(with an example in the
 end).
 
-  %F  absolute pathname            ( /usr/local/bin/netscape.bin )
-  %f  file name without directory  ( netscape.bin )
-  %n  file name without extention  ( netscape )
-  %e  extention of file name       ( bin )"
+  %F  absolute pathname            (/usr/local/bin/netscape.bin)
+  %f  file name without directory  (netscape.bin)
+  %n  file name without extention  (netscape)
+  %e  extention of file name       (bin)"
   :type 'symbol
   :group 'smart-compile)
 
@@ -175,33 +175,34 @@ See also `smart-compile-replace-table'."
   (start-process-shell-command cmd nil cmd))
 
 ;;;###autoload
-(defun smart-compile-and-run ()
+(defun smart-compile-run ()
   "Run the executable program according to the file type.
 See `smart-compile-table'."
   (interactive)
-  (smart-compile)
-  (catch 'return
-    (mapc
-     '(lambda (el)
-        (let ((matcher (nth 0 el))
-              (run-handler (nth 3 el))
-              (async-run-p (nth 4 el)))
-          (when (or (and (stringp matcher)
-                         (string-match matcher (buffer-file-name)))
-                    (and (not (stringp matcher))
-                         (eq matcher major-mode)))
-            (if (stringp run-handler)
-                (progn
-                  (setq run-handler (smart-compile-replace run-handler))
-                  (if async-run-p
+  (let ((what-to-do nil))
+    (catch 'return
+      (mapc (lambda (el)
+              (let ((matcher (nth 0 el))
+                    (run-handler (nth 3 el))
+                    (async-run-p (nth 4 el)))
+                (when (or (and (stringp matcher)
+                               (string-match matcher (buffer-file-name)))
+                          (and (not (stringp matcher))
+                               (eq matcher major-mode)))
+                  (if (stringp run-handler)
                       (progn
-                        (message "%s..." run-handler)
-                        (smart-compile-shell-command-asynchronously run-handler))
-                    (message "")        ; clear smart-compile's message
-                    (shell-command run-handler)))
-              (eval run-handler))
-            (throw 'return t))))
-     smart-compile-table)))
+                        (setq run-handler (smart-compile-replace run-handler))
+                        (if async-run-p
+                            (progn
+                              (message "%s..." run-handler)
+                              (smart-compile-shell-command-asynchronously run-handler))
+                          (shell-command run-handler)))
+                    (eval run-handler))
+                  (setq what-to-do t)
+                  (throw 'return t))))
+            smart-compile-table))
+    (unless what-to-do
+      (call-interactively 'shell-command))))
 
 (provide 'smart-compile)
 
