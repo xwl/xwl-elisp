@@ -227,16 +227,20 @@ See `smart-compile-table'."
 ;; Run shell command either synchronously or asynchronously with a
 ;; unique output buffer, whose window will be deleted automatically.
 (defun smart-compile-shell-command (cmd)
-  (if (string-match "&$" cmd)
-      (let ((buf (generate-new-buffer-name (concat "*" cmd "*"))))
-        (message cmd)
-        (shell-command cmd buf)
-        (delete-window (get-buffer-window buf)))
-    (shell-command cmd)))
+  (let ((ret nil))
+    (if (string-match "&$" cmd)
+        (let ((buf (generate-new-buffer-name (concat "*" cmd "*"))))
+          (message cmd)
+          (setq ret (shell-command cmd buf))
+          (delete-window (get-buffer-window buf)))
+      (setq ret (shell-command cmd)))
+    ret))
 
 (defun smart-compile-run1 ()
   (cond ((stringp smart-compile-run-handler)
-         (smart-compile-shell-command smart-compile-run-handler))
+         (unless (zerop (smart-compile-shell-command smart-compile-run-handler))
+           (call-interactively 'shell-command)
+           (setq smart-compile-run-handler (car shell-command-history))))
         (t
          (funcall smart-compile-run-handler))))
 
