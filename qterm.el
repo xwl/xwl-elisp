@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.21
+;; Version: 0.22
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 ;;           (require 'qterm)
 
 ;;; Code:
+(require 'ansit)
 
 (defvar qterm-faces '("朗声" "鬼叫" "喃喃" "轻声" "一声大喝" "大叫" 
                       "柔柔" "哭着" "大吼"))
@@ -41,7 +42,9 @@
       (goto-char (point-max))
       (delete-blank-lines)
       (goto-char (point-min))
-      (replace-regexp "^" "> ")
+      (insert "> ")
+      (while (zerop (forward-line 1))
+        (insert "> "))
       ;; author title
       (let ((author "")
             (face (nth (random (length qterm-faces)) qterm-faces)))
