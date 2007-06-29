@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.2
+;; Version: 0.21
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 ;;; Code:
 
 (defvar qterm-faces '("朗声" "鬼叫" "喃喃" "轻声" "一声大喝" "大叫" 
-                      "柔柔地" "哭着" "大吼"))
+                      "柔柔" "哭着" "大吼"))
 
 (defvar qterm-log-file "/tmp/qterm.log")
 
