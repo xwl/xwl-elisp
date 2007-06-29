@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.1
+;; Version: 0.2
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,14 +27,16 @@
 ;;; Code:
 
 (defvar qterm-faces '("朗声" "鬼叫" "喃喃" "轻声" "一声大喝" "大叫" 
-                      "柔柔" "哭着" "大吼"))
+                      "柔柔着" "哭着" "大吼"))
 
 (defvar qterm-log-file "/tmp/qterm.log")
+
+(defvar qterm-signature ""
+  "Could be either a string or a lisp function returning a string.")
 
 (defun qterm-reply-hook ()
   (when (string= (buffer-file-name) qterm-log-file)
     (let ((inhibit-read-only nil))
-      (less-minor-mode-off)
       ;; quote
       (goto-char (point-max))
       (delete-blank-lines)
@@ -54,15 +56,12 @@
         (kill-line 4)
         (insert (format "%s[ %s %s道: ]%s\n\n" 
                         ansit-color-yellow author face ansit-color-close)))
-      ;; qmd (optionally uncomment the following if you have fortune-zh
-      ;; installed, with which you will get random poems qmd. ;-)
+      ;; qmd
       (goto-char (point-max))
-      (insert 
-       (format "\n\n%s--\n%s%s"
-               ansit-color-magenta
-               (ansi-color-filter-apply
-                (shell-command-to-string "fortune-zh"))
-               ansit-color-close))
+      (cond ((stringp qterm-signature)
+             (insert qterm-signature))
+            (t
+             (insert (funcall qterm-signature))))
       (goto-char (point-min)))))
 
 (add-hook 'find-file-hook 'qterm-reply-hook)
