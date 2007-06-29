@@ -4,7 +4,6 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.2
-;; Last updated: 2007/05/21 16:38:10
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -37,6 +36,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (define-minor-mode less-minor-mode
   "Toggle less-minor-mode.
 
@@ -69,16 +69,19 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
   (interactive)
   (less-minor-mode -1))
 
+;;;###autoload
 (defun auto-less-minor-mode ()
   "Auto enter `less-minor-mode' when visiting read-only files. You can
 add this to `find-file-hooks'."
   (unless (file-writable-p buffer-file-name)
     (less-minor-mode 1)))
 
+;;;###autoload
 (defun less-minor-mode-on ()
   "Turn on `less-minor-mode'."
   (less-minor-mode 1))
 
+;;;###autoload
 (defun less-minor-mode-off ()
   "Turn off `less-minor-mode'."
   (less-minor-mode -1))

@@ -23,17 +23,13 @@
 ;;; Commentary:
 
 ;; Do isearch in Dired but match only at file names.
-
-;; Put this file into your load-path and the following into your
-;; ~/.emacs:
-;;           (require 'dired-isearch)
-
+;;
 ;; Recommended keybindings:
-
-;; (define-key dired-mode-map (kbd "C-s") 'dired-isearch-forward)
-;; (define-key dired-mode-map (kbd "C-r") 'dired-isearch-backward)
-;; (define-key dired-mode-map (kbd "ESC C-s") 'dired-isearch-forward-regexp)
-;; (define-key dired-mode-map (kbd "ESC C-r") 'dired-isearch-backward-regexp)
+;;
+;;  (define-key dired-mode-map (kbd "C-s") 'dired-isearch-forward)
+;;  (define-key dired-mode-map (kbd "C-r") 'dired-isearch-backward)
+;;  (define-key dired-mode-map (kbd "ESC C-s") 'dired-isearch-forward-regexp)
+;;  (define-key dired-mode-map (kbd "ESC C-r") 'dired-isearch-backward-regexp)
 
 ;;; Bugs:
 
@@ -41,26 +37,32 @@
 
 ;;; Code:
 
+(require 'dired)
+
 ;;; User Interfaces
 
+;;;###autoload
 (defun dired-isearch-forward (&optional regexp-p no-recursive-edit)
   "In Dired, run `isearch-forward' but match only at file names."
   (interactive)
   (let ((isearch-search-fun-function 'dired-isearch-search-fun-function))
     (isearch-forward regexp-p no-recursive-edit)))
 
+;;;###autoload
 (defun dired-isearch-backward (&optional regexp-p no-recursive-edit)
   "In Dired, run `isearch-backward' but match only at file names."
   (interactive)
   (let ((isearch-search-fun-function 'dired-isearch-search-fun-function))
     (isearch-backward regexp-p no-recursive-edit)))
 
+;;;###autoload
 (defun dired-isearch-forward-regexp (&optional not-regexp no-recursive-edit)
   "In Dired, run `isearch-forward-regexp' but match only at file names."
   (interactive)
   (let ((isearch-search-fun-function 'dired-isearch-search-fun-function))
     (isearch-forward-regexp not-regexp no-recursive-edit)))
 
+;;;###autoload
 (defun dired-isearch-backward-regexp (&optional not-regexp no-recursive-edit)
   "In Dired, run `isearch-backward-regexp' but match only at file names."
   (interactive)
