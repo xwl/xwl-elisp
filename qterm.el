@@ -27,7 +27,7 @@
 ;;; Code:
 
 (defvar qterm-faces '("朗声" "鬼叫" "喃喃" "轻声" "一声大喝" "大叫" 
-                      "柔柔着" "哭着" "大吼"))
+                      "柔柔地" "哭着" "大吼"))
 
 (defvar qterm-log-file "/tmp/qterm.log")
 
@@ -36,7 +36,7 @@
 
 (defun qterm-reply-hook ()
   (when (string= (buffer-file-name) qterm-log-file)
-    (let ((inhibit-read-only nil))
+    (let ((inhibit-read-only t))
       ;; quote
       (goto-char (point-max))
       (delete-blank-lines)
