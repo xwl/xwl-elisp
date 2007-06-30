@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 2.2
+;; Version: 2.3
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -84,10 +84,17 @@ end).
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
     ("\\.php$" nil nil "php %f")
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
-    (texinfo-mode makeinfo-buffer "%n.info"
-                  (lambda ()
-                    (Info-revert-find-node (smart-compile-replace "%n.info")
-                                           (makeinfo-current-node)))))
+    (texinfo-mode
+     makeinfo-buffer 
+     "%n.info"
+     (lambda ()
+       (Info-revert-find-node (smart-compile-replace "%n.info")
+                              (makeinfo-current-node))))
+    (emacs-lisp-mode
+     (lambda ()
+       (byte-compile-file (smart-compile-replace "%f")))
+     "%n.elc"
+     nil))
   "Each element in the table has the form:
 
     '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER)
@@ -218,6 +225,8 @@ See `smart-compile-table'."
          (funcall 'smart-compile-run1))))
 
 
+;;; Low Level Functions
+ 
 (defun smart-compile-compile1 ()
   (cond ((stringp smart-compile-compile-handler)
          (compile smart-compile-compile-handler))
