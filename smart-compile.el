@@ -94,7 +94,7 @@ end).
      (lambda ()
        (byte-compile-file (smart-compile-replace "%f")))
      "%n.elc"
-     nil))
+     eval-buffer))
   "Each element in the table has the form:
 
     '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER)
