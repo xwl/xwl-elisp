@@ -1,10 +1,11 @@
 ;;; wajig.el --- an interface for wajig
 
-;; Copyright (C) 2005, 2006, 2007 William Xu
+;; Copyright (C) 2005, 2006, 2007, 2008  William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.53
-;; Url: http://williamxu.net9.org/ref/wajig.el
+;; Version: 0.6
+;; Url: http://williamxu.net9.org
+;; Last updated: 2008/01/30
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -132,6 +133,19 @@
   :type 'string
   :group 'wajig)
 
+(defcustom wajig-command-prefix nil
+  "A list of prefix before wajig command.
+e.g.,
+
+    '(\"ssh\" \"ananas\")
+
+This will actually do a ssh to remote host `ananas' first. So a
+full wajig command would be executed like, \"$ ssh ananas sudo
+wajig update\". To avoid typing password everytime, you can setup
+RSA private/public key pairs between local and remote machines."
+  :type 'list
+  :group 'wajig)
+
 
 ;;; Wajig Commands
 
@@ -166,7 +180,9 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
   (interactive)
   (message "Updating wajig cache...")
   (setq wajig-commands-string
-        (shell-command-to-string "sudo wajig list-commands"))
+        (shell-command-to-string
+         (format "%s sudo wajig list-commands"
+                 (mapconcat (lambda (i) i) wajig-command-prefix " "))))
   (wajig-update-installed-pkgs)
   (wajig-update-daemons)
   (wajig-update-command-path-alist)
@@ -189,7 +205,9 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
   "Update `wajig-installed-pkgs'."
   (setq wajig-installed-pkgs
 	(split-string
-	 (shell-command-to-string "sudo wajig list-installed"))))
+	 (shell-command-to-string
+          (format "%s sudo wajig list-installed"
+                  (mapconcat (lambda (i) i) wajig-command-prefix " "))))))
 
 (defun wajig-update-daemons ()
   "Update daemons' list."
@@ -197,7 +215,9 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
 	(split-string
 	 (replace-regexp-in-string
 	  "^Found.*\n" ""
-	  (shell-command-to-string "sudo wajig list-daemons")))))
+	  (shell-command-to-string
+           (format "%s sudo wajig list-daemons"
+                   (mapconcat (lambda (i) i) wajig-command-prefix " ")))))))
 
 (defun wajig-update-command-path-alist ()
   "Update `wajig-command-path-alist' immediately."
@@ -294,16 +314,19 @@ pkg is the package name to operate on."
   (let* ((wajig-command (intern (format "wajig-%s" command)))
 	 (docstring
 	  (progn		       ; show help from `wajig commands'
-	    (string-match (format "^ %s.*" command)
-			  wajig-commands-string)
-	    (match-string 0 wajig-commands-string)))
+	    (if (string-match (format "^ %s.*" command)
+                              wajig-commands-string)
+                (match-string 0 wajig-commands-string)
+              "")))
 	 (interactive
 	  (if arglist
 	      (setq interactive
 		    `(interactive
 		      (list
 		       (wajig-completing-read
-			,(format "$ sudo wajig %s " command)
+			,(format "$ %s sudo wajig %s "
+                                 (mapconcat (lambda (i) i) wajig-command-prefix " ")
+                                 command)
 			,(if (memq wajig-command
 				  wajig-daemons-command-list)
 			    'wajig-daemons
@@ -321,9 +344,9 @@ pkg is the package name to operate on."
 	   (setq wajig-process
 		 ,(if arglist
 		      `(start-process "wajig" "*wajig*"
-				      "sudo" "wajig" ,command ,(car arglist))
+                                      ,@wajig-command-prefix "sudo" "wajig" ,command ,(car arglist))
 		    `(start-process "wajig" "*wajig*"
-				    "sudo" "wajig" ,command)))
+				    ,@wajig-command-prefix "sudo" "wajig" ,command)))
 	   (set-process-filter wajig-process 'wajig-process-filter)
 	   (set-process-sentinel wajig-process 'wajig-process-sentinel))))))
 
@@ -337,7 +360,8 @@ buffer."
 	(error "Wajig process already exists")
       (setq wajig-running t)
       (setq wajig-process
-	    (apply 'start-process "wajig" "*wajig*" command-string))
+	    (apply 'start-process "wajig" "*wajig*"
+                   (append wajig-command-prefix command-string)))
       (set-process-filter wajig-process 'wajig-process-filter)
       (set-process-sentinel wajig-process 'wajig-process-sentinel))))
 
@@ -518,7 +542,8 @@ OPTION could be:
   (interactive
    (list
     (wajig-completing-read
-     "$ apt-cache search -n "
+     (format "$ %s apt-cache search -n "
+             (mapconcat (lambda (i) i) wajig-command-prefix " "))
      wajig-installed-pkgs)))
   (wajig-do `("apt-cache" "search" ,pkg "-n")))
 
