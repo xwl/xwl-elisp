@@ -23,9 +23,21 @@
 
 ;;; Commentary:
 
-;; Put this file into your load-path and the following into your
-;; ~/.emacs:
-;;           (autoload 'cwit "cwit")
+;; This is an interface for CE's cwit. The behaviour is somehow modeled
+;; after ERC, my favorate emacs irc client. For converting html into
+;; plain texts correctly, external tool "w3m" is used, and is
+;; recommended to install(without "w3m", you might encounter some html
+;; tags).
+
+;; Put this file into your load-path and something like the following
+;; into your ~/.emacs:
+;;
+;; (autoload 'cwit "cwit")
+;; (eval-after-load "cwit"
+;;   '(progn
+;;      (setq cwit-server "isugamo.local.ce-lab.net"
+;;            cwit-user-name "your name"
+;;            cwit-user-password "your password"))
 ;;
 ;; To run, just `M-x cwit'.
 
@@ -119,6 +131,8 @@ nick names right and text left."
   (insert "====== Welcome to Cwit! ======\n")
   (insert "Cwit> ")
   (setq cwit-input-marker (point-marker))
+  (setq cwit-last-entry-index 0
+        cwit-unread-message-counter 0)
   (cwit-login)
   ;; setup auto refresh timer
   (when cwit-receive-timer
@@ -198,7 +212,6 @@ as `move-beginning-of-line'."
                        cwit-user-name
                        message)
     (setq cwit-last-entry-index (1+ cwit-last-entry-index))
-    (goto-char (marker-position cwit-input-marker))
     (url-retrieve url 'cwit-send-callback)))
 
 (defun cwit-send-callback (status)
@@ -206,6 +219,8 @@ as `move-beginning-of-line'."
   (message "Message sent"))
 
 (defun cwit-receive ()
+  (unless (buffer-live-p cwit-buffer)
+    (cancel-timer cwit-receive-timer))
   (let ((url (format "http://%s/cwit" cwit-server)))
     (url-retrieve url 'cwit-receive-callback)
     (message "Reading cwit news...")))
@@ -264,6 +279,8 @@ as `move-beginning-of-line'."
         (re-search-forward "</span>" nil t 1)
         (re-search-backward "</span>" nil t 1)
         (skip-chars-backward  "[[:space:]]")
+        (when (executable-find "w3m")
+          (call-process-region beg (point) "w3m" t t nil "-dump" "-T" "text/html"))
         (setq message
               (decode-coding-string
                (replace-regexp-in-string "\n" " " (buffer-substring beg (point)))
