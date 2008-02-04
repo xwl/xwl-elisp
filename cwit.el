@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2008/02/01
+;; Last updated: 2008/02/04
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,8 +35,7 @@
 ;; (autoload 'cwit "cwit")
 ;; (eval-after-load "cwit"
 ;;   '(progn
-;;      (setq cwit-server "isugamo.local.ce-lab.net"
-;;            cwit-user-name "your name"
+;;      (setq cwit-user-name "your name"
 ;;            cwit-user-password "your password"))
 ;;
 ;; To run, just `M-x cwit'.
@@ -134,11 +133,6 @@ nick names right and text left."
   (setq cwit-last-entry-index 0
         cwit-unread-message-counter 0)
   (cwit-login)
-  ;; setup auto refresh timer
-  (when cwit-receive-timer
-    (cancel-timer cwit-receive-timer))
-  (setq cwit-receive-timer
-        (run-at-time t cwit-refresh-interval 'cwit-receive))
   (cwit-make-read-only)
   (run-hooks 'cwit-mode-hook))
 
@@ -201,7 +195,13 @@ as `move-beginning-of-line'."
     (url-retrieve url 'cwit-login-callback)))
 
 (defun cwit-login-callback (status)
-  (setq cwit-debug-status status))
+  (setq cwit-debug-status status)
+  (when cwit-receive-timer
+    (cancel-timer cwit-receive-timer))
+  (cwit-receive)
+  (setq cwit-receive-timer
+        (run-at-time t cwit-refresh-interval 'cwit-receive))
+  (kill-buffer (current-buffer)))
 
 (defun cwit-send (message)
   (let ((url (format "http://%s/cwit/create" cwit-server))
@@ -216,10 +216,12 @@ as `move-beginning-of-line'."
 
 (defun cwit-send-callback (status)
   (setq cwit-debug-status status)
+  (kill-buffer (current-buffer))
   (message "Message sent"))
 
 (defun cwit-receive ()
-  (unless (buffer-live-p cwit-buffer)
+  (when (and (not (buffer-live-p (get-buffer cwit-buffer)))
+             cwit-receive-timer)
     (cancel-timer cwit-receive-timer))
   (let ((url (format "http://%s/cwit" cwit-server)))
     (url-retrieve url 'cwit-receive-callback)
@@ -239,7 +241,6 @@ as `move-beginning-of-line'."
                (> cwit-unread-message-counter 0))
       (setq cwit-mode-line-string (format "cwit(%d)" cwit-unread-message-counter))
       (force-mode-line-update))
-    (kill-buffer (current-buffer))
     (with-current-buffer cwit-buffer
       (if entries
           (progn
@@ -249,7 +250,8 @@ as `move-beginning-of-line'."
                     (message (nth 3 entry)))
                 (cwit-insert-entry timestamp author message)))
             (setq cwit-last-entry-index (car last-entry)))
-        (message "No cwit news is good news")))))
+        (message "No cwit news is good news")))
+    (kill-buffer (current-buffer))))
 
 (defun cwit-insert-entry (timestamp author message)
   "Note TIMESTAMP should be in the form as: 20:18."
@@ -257,13 +259,12 @@ as `move-beginning-of-line'."
     (goto-char (marker-position cwit-input-marker))
     (forward-line 0)
     (insert (format "%s <%s> %s\n" timestamp author message))
-    (save-excursion
-      (let ((end (point))
-            (fill-prefix (make-string cwit-fill-static-center 32)))
-        (re-search-backward "[0-9]\\{2\\}:[0-9]\\{2\\}" nil t 1)
-        (fill-region (point) end)
-        (cwit-make-read-only)
-        (goto-char (point-max))))))
+    (let ((end (point))
+          (fill-prefix (make-string cwit-fill-static-center 32)))
+      (re-search-backward "[0-9]\\{2\\}:[0-9]\\{2\\}" nil t 1)
+      (fill-region (point) end)
+      (cwit-make-read-only))
+    (goto-char (marker-position cwit-input-marker))))
 
 (defun cwit-parse-entry ()
   "(index timestamp author message)."
@@ -274,17 +275,18 @@ as `move-beginning-of-line'."
                (re-search-forward "<a href=\"/.*\" class=\"url fn\">\\(.*\\)</a>" nil t 1))
       (setq author (match-string 1)))
     (when (re-search-forward "<span class=\"entry-title entry-content\">" nil t 1)
-      (skip-chars-forward "[[:space:]]")
+      ;; Do NOT call it on undecoded buffers with non-ascii characters!
+      ;; (skip-chars-forward "[[:space:]]")
       (let ((beg (point)))
         (re-search-forward "</span>" nil t 1)
         (re-search-backward "</span>" nil t 1)
-        (skip-chars-backward  "[[:space:]]")
+        (setq message (decode-coding-string (buffer-substring beg (point)) 'utf-8))
         (when (executable-find "w3m")
-          (call-process-region beg (point) "w3m" t t nil "-dump" "-T" "text/html"))
-        (setq message
-              (decode-coding-string
-               (replace-regexp-in-string "\n" " " (buffer-substring beg (point)))
-               'utf-8))))
+          (with-temp-buffer
+            (insert message)
+            (call-process-region (point-min) (point-max) "w3m" t t nil "-dump" "-T" "text/html")
+            (setq message (buffer-string))))
+        (setq message (replace-regexp-in-string "\n" " " message))))
     (when (re-search-forward "<span class=\"published\" title=\"\\(.*\\)\">" nil t 1)
       (setq timestamp (match-string 1)))
     (when (and index timestamp author message)
@@ -299,6 +301,7 @@ as `move-beginning-of-line'."
 (defun cwit-make-read-only ()
   "Make all the text in the current buffer read-only.
 Put this function on `cwit-insert-entry'."
+  ;; FIXME: see Bugs
   (put-text-property (point-min) (1- (point-max)) 'read-only t)
   (put-text-property (point-min) (point-max) 'front-sticky t)
   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
