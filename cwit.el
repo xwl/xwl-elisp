@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2008/02/04
+;; Last updated: 2008/02/05
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
 
 ;;; Commentary:
 
-;; This is an interface for CE's cwit. The behaviour is somehow modeled
-;; after ERC, my favorate emacs irc client. For converting html into
-;; plain texts correctly, external tool "w3m" is used, and is
-;; recommended to install(without "w3m", you might encounter some html
-;; tags).
+;; This is an interface for CE's cwit. Its apperance is somehow modeled
+;; after ERC, my favorate irc client. For converting html into plain
+;; texts correctly, external tool "w3m" is required, and is recommended
+;; to install(without "w3m", you might encounter some html
+;; tags). Someday I might try to write a html parser in elisp.
 
 ;; Put this file into your load-path and something like the following
 ;; into your ~/.emacs:
@@ -40,11 +40,22 @@
 ;;
 ;; To run, just `M-x cwit'.
 
-;; TODO
+;; Features
+;; --------
+;; - Display a notify on mode line when new message incoming.
+;;   (e.g., "cwit(10)")
+;; - Customizable updating(get new messages from cwit server) interval
+;; - Timestamp support
+;; - Text auto-filling
+;; - cowsay startup screen :-) (cowsay is a debian package)
 
-;; - checking new news at next page?
+;;; TODO
 
-;; Bugs
+;; - Also checking new news at next page?
+;; - Add a command for updating right now
+;; - Handle various errors gracefully
+
+;;; Bugs
 
 ;; - Delete the all whitespaces after cwit prompt line would cause
 ;;   trouble!  In this case, try undo it.
@@ -77,8 +88,8 @@
   :type 'string
   :group 'cwit)
 
-(defcustom cwit-refresh-interval 120
-  "Auto-refresh *cwit* intervals, in seconds."
+(defcustom cwit-update-interval 120
+  "Auto-update *cwit* intervals, in seconds."
   :type 'number
   :group 'cwit)
 
@@ -127,7 +138,18 @@ nick names right and text left."
   (setq font-lock-defaults '(cwit-font-lock-keywords))
   (add-to-list 'global-mode-string 'cwit-mode-line-string)
   (add-hook 'window-configuration-change-hook 'cwit-update-mode-line)
-  (insert "====== Welcome to Cwit! ======\n")
+  (insert
+   "           _________________
+          < Welcome to Cwit >
+           -----------------
+                  \\   ^__^
+                   \\  (oo)\\_______
+                      (__)\\       )\/\\
+                          ||----w |
+                          ||     ||
+
+
+")
   (insert "Cwit> ")
   (setq cwit-input-marker (point-marker))
   (setq cwit-last-entry-index 0
@@ -200,7 +222,7 @@ as `move-beginning-of-line'."
     (cancel-timer cwit-receive-timer))
   (cwit-receive)
   (setq cwit-receive-timer
-        (run-at-time t cwit-refresh-interval 'cwit-receive))
+        (run-at-time t cwit-update-interval 'cwit-receive))
   (kill-buffer (current-buffer)))
 
 (defun cwit-send (message)
@@ -220,12 +242,12 @@ as `move-beginning-of-line'."
   (message "Message sent"))
 
 (defun cwit-receive ()
-  (when (and (not (buffer-live-p (get-buffer cwit-buffer)))
-             cwit-receive-timer)
-    (cancel-timer cwit-receive-timer))
-  (let ((url (format "http://%s/cwit" cwit-server)))
-    (url-retrieve url 'cwit-receive-callback)
-    (message "Reading cwit news...")))
+  (if (and (not (buffer-live-p (get-buffer cwit-buffer)))
+           cwit-receive-timer)
+      (cancel-timer cwit-receive-timer)
+    (let ((url (format "http://%s/cwit" cwit-server)))
+      (url-retrieve url 'cwit-receive-callback)
+      (message "Reading cwit news..."))))
 
 (defun cwit-receive-callback (status)
   (setq cwit-debug-status status)
@@ -280,6 +302,8 @@ as `move-beginning-of-line'."
       (let ((beg (point)))
         (re-search-forward "</span>" nil t 1)
         (re-search-backward "</span>" nil t 1)
+        ;; FIXME: maybe url-retrieve should respect Content-type,
+        ;; charset headers.
         (setq message (decode-coding-string (buffer-substring beg (point)) 'utf-8))
         (when (executable-find "w3m")
           (with-temp-buffer
