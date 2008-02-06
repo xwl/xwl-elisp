@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2008/02/05
+;; Last updated: 2008/02/06
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,11 +23,8 @@
 
 ;;; Commentary:
 
-;; This is an interface for CE's cwit. Its apperance is somehow modeled
-;; after ERC, my favorate irc client. For converting html into plain
-;; texts correctly, external tool "w3m" is required, and is recommended
-;; to install(without "w3m", you might encounter some html
-;; tags). Someday I might try to write a html parser in elisp.
+;; This is an interface for CE's cwit. Its interface is somehow modeled
+;; after ERC, my favorate irc client.
 
 ;; Put this file into your load-path and something like the following
 ;; into your ~/.emacs:
@@ -51,9 +48,10 @@
 
 ;;; TODO
 
+;; - Buddy name completion
 ;; - Also checking new news at next page?
-;; - Add a command for updating right now
 ;; - Handle various errors gracefully
+;;  - send texts, move cursor at the end automatically
 
 ;;; Bugs
 
@@ -184,8 +182,14 @@ nick names right and text left."
 as `move-beginning-of-line'."
   (interactive)
   (call-interactively 'move-beginning-of-line)
-  (when (looking-at "Cwit> ")
-    (forward-char (length "Cwit> "))))
+  (if (looking-at "Cwit> ")
+      (forward-char (length "Cwit> "))
+    (call-interactively 'back-to-indentation)))
+
+(defun cwit-update-now ()
+  "Force an update right now."
+  (interactive)
+  (cwit-receive))
 
 
 ;;; Implementations
@@ -252,17 +256,19 @@ as `move-beginning-of-line'."
 (defun cwit-receive-callback (status)
   (setq cwit-debug-status status)
   (let ((entries '())
+        (coding 'utf-8)                 ; default value
         entry last-entry)
-    (while (and (setq entry (cwit-parse-entry))
+    ;; FIXME: url-mime-content-type-charset-regexp makes me down!
+    (when (re-search-forward "<meta .*charset=\\(.*\\)\"?\\/>" nil t 1)
+      (setq coding (intern (match-string 1))))
+    (goto-char (point-min))
+    (while (and (setq entry (cwit-parse-entry coding))
                 (> (car entry) cwit-last-entry-index))
       (unless last-entry
         (setq last-entry entry))
       (setq entries (cons entry entries)
             cwit-unread-message-counter (1+ cwit-unread-message-counter)))
-    (when (and (not (equal (buffer-name (current-buffer)) cwit-buffer))
-               (> cwit-unread-message-counter 0))
-      (setq cwit-mode-line-string (format "cwit(%d)" cwit-unread-message-counter))
-      (force-mode-line-update))
+    (cwit-update-mode-line)
     (with-current-buffer cwit-buffer
       (if entries
           (progn
@@ -288,7 +294,7 @@ as `move-beginning-of-line'."
       (cwit-make-read-only))
     (goto-char (marker-position cwit-input-marker))))
 
-(defun cwit-parse-entry ()
+(defun cwit-parse-entry (coding)
   "(index timestamp author message)."
   (let (index timestamp author message)
     (when (re-search-forward "<tr id=\"stat_\\(.*\\)\" .*>" nil t 1)
@@ -304,23 +310,25 @@ as `move-beginning-of-line'."
         (re-search-backward "</span>" nil t 1)
         ;; FIXME: maybe url-retrieve should respect Content-type,
         ;; charset headers.
-        (setq message (decode-coding-string (buffer-substring beg (point)) 'utf-8))
-        (when (executable-find "w3m")
-          (with-temp-buffer
-            (insert message)
-            (call-process-region (point-min) (point-max) "w3m" t t nil "-dump" "-T" "text/html")
-            (setq message (buffer-string))))
-        (setq message (replace-regexp-in-string "\n" " " message))))
+        (setq message (decode-coding-string (buffer-substring beg (point)) coding))
+        (with-temp-buffer
+          (insert message)
+          (when (executable-find "w3m")
+            (w3m-region (point-min) (point-max) nil coding))
+          (setq message (replace-regexp-in-string "\n" " " (buffer-string)))
+          (goto-char (point-max)))))
     (when (re-search-forward "<span class=\"published\" title=\"\\(.*\\)\">" nil t 1)
       (setq timestamp (match-string 1)))
     (when (and index timestamp author message)
       (list index timestamp author message))))
 
 (defun cwit-update-mode-line ()
-  (when (equal (buffer-name (current-buffer)) cwit-buffer)
-    (setq cwit-mode-line-string ""
-          cwit-unread-message-counter 0)
-    (force-mode-line-update)))
+  (if (equal (buffer-name (current-buffer)) cwit-buffer)
+      (setq cwit-mode-line-string ""
+            cwit-unread-message-counter 0)
+    (when (> cwit-unread-message-counter 0)
+      (setq cwit-mode-line-string (format "cwit(%d)" cwit-unread-message-counter))))
+  (force-mode-line-update))
 
 (defun cwit-make-read-only ()
   "Make all the text in the current buffer read-only.
