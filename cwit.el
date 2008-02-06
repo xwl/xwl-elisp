@@ -151,7 +151,8 @@ nick names right and text left."
   (insert "Cwit> ")
   (setq cwit-input-marker (point-marker))
   (setq cwit-last-entry-index 0
-        cwit-unread-message-counter 0)
+        cwit-unread-message-counter 0
+        cwit-start-p t)
   (cwit-login)
   (cwit-make-read-only)
   (run-hooks 'cwit-mode-hook))
@@ -170,9 +171,10 @@ nick names right and text left."
   (interactive)
   (if (< (point) (marker-position cwit-input-marker))
       (message "Point not in the input area")
-    (let* ((beg (marker-position cwit-input-marker))
-           (end (point))
-           (message (delete-and-extract-region beg end)))
+    (let* ((start (marker-position cwit-input-marker))
+           (end (point-max))
+           (message (replace-regexp-in-string
+                     "\n" " " (delete-and-extract-region start end))))
       (if (string-match "\\`[[:space:]]+\\'" message)
           (message "Blank line - ignoring...")
         (cwit-send message)))))
@@ -213,6 +215,8 @@ as `move-beginning-of-line'."
 
 (defvar cwit-unread-message-counter 0)
 
+(defvar cwit-start-p nil)
+
 (defun cwit-login ()
   (let ((url (format "http://%s/users/login" cwit-server))
         (url-request-method "POST")
@@ -237,7 +241,6 @@ as `move-beginning-of-line'."
     (cwit-insert-entry (format-time-string "%H:%M" (current-time))
                        cwit-user-name
                        message)
-    (setq cwit-last-entry-index (1+ cwit-last-entry-index))
     (url-retrieve url 'cwit-send-callback)))
 
 (defun cwit-send-callback (status)
@@ -272,12 +275,17 @@ as `move-beginning-of-line'."
     (with-current-buffer cwit-buffer
       (if entries
           (progn
+            (setq cwit-last-entry-index (car last-entry))
             (dolist (entry entries)
-              (let ((timestamp (substring (nth 1 entry) 11 16))
+              (let ((index (nth 0 entry))
+                    (timestamp (substring (nth 1 entry) 11 16))
                     (author (nth 2 entry))
                     (message (nth 3 entry)))
-                (cwit-insert-entry timestamp author message)))
-            (setq cwit-last-entry-index (car last-entry)))
+                (unless (and (= cwit-last-entry-index index)
+                             (string= author cwit-user-name)
+                             (not cwit-start-p))
+                  (cwit-insert-entry timestamp author message))))
+            (setq cwit-start-p nil))
         (message "No cwit news is good news")))
     (kill-buffer (current-buffer))))
 
