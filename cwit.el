@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2008/02/06
+;; Last updated: 2008/02/11
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -50,8 +50,7 @@
 
 ;; - Buddy name completion
 ;; - Also checking new news at next page?
-;; - Handle various errors gracefully
-;;  - send texts, move cursor at the end automatically
+;; - send texts, move cursor at the end automatically
 
 ;;; Bugs
 
@@ -86,7 +85,7 @@
   :type 'string
   :group 'cwit)
 
-(defcustom cwit-update-interval 120
+(defcustom cwit-update-interval 300
   "Auto-update *cwit* intervals, in seconds."
   :type 'number
   :group 'cwit)
@@ -196,9 +195,6 @@ as `move-beginning-of-line'."
 
 ;;; Implementations
 
-(defvar cwit-debug-status nil
-  "Last http request status.")
-
 (defvar cwit-buffer "*cwit*"
   "Name of the buffer used for the cwit.")
 
@@ -225,7 +221,8 @@ as `move-beginning-of-line'."
     (url-retrieve url 'cwit-login-callback)))
 
 (defun cwit-login-callback (status)
-  (setq cwit-debug-status status)
+  (when (eq :error (car status))
+    (error "cwit-login-callback: %S" status))
   (when cwit-receive-timer
     (cancel-timer cwit-receive-timer))
   (cwit-receive)
@@ -244,7 +241,8 @@ as `move-beginning-of-line'."
     (url-retrieve url 'cwit-send-callback)))
 
 (defun cwit-send-callback (status)
-  (setq cwit-debug-status status)
+  (when (eq :error (car status))
+    (error "cwit-send-callback: %S" status))
   (kill-buffer (current-buffer))
   (message "Message sent"))
 
@@ -257,21 +255,19 @@ as `move-beginning-of-line'."
       (message "Reading cwit news..."))))
 
 (defun cwit-receive-callback (status)
-  (setq cwit-debug-status status)
+  (when (eq :error (car status))
+    (error "cwit-receive-callback: %S" status))
   (let ((entries '())
-        (coding 'utf-8)                 ; default value
         entry last-entry)
-    ;; FIXME: url-mime-content-type-charset-regexp makes me down!
-    (when (re-search-forward "<meta .*charset=\\(.*\\)\"?\\/>" nil t 1)
-      (setq coding (intern (match-string 1))))
+    (emms-http-decode-buffer)
     (goto-char (point-min))
-    (while (and (setq entry (cwit-parse-entry coding))
+    (while (and (setq entry (cwit-parse-entry))
                 (> (car entry) cwit-last-entry-index))
       (unless last-entry
         (setq last-entry entry))
       (setq entries (cons entry entries)
             cwit-unread-message-counter (1+ cwit-unread-message-counter)))
-    (cwit-update-mode-line)
+    (kill-buffer (current-buffer))
     (with-current-buffer cwit-buffer
       (if entries
           (progn
@@ -287,7 +283,7 @@ as `move-beginning-of-line'."
                   (cwit-insert-entry timestamp author message))))
             (setq cwit-start-p nil))
         (message "No cwit news is good news")))
-    (kill-buffer (current-buffer))))
+    (cwit-update-mode-line)))
 
 (defun cwit-insert-entry (timestamp author message)
   "Note TIMESTAMP should be in the form as: 20:18."
@@ -302,7 +298,7 @@ as `move-beginning-of-line'."
       (cwit-make-read-only))
     (goto-char (marker-position cwit-input-marker))))
 
-(defun cwit-parse-entry (coding)
+(defun cwit-parse-entry ()
   "(index timestamp author message)."
   (let (index timestamp author message)
     (when (re-search-forward "<tr id=\"stat_\\(.*\\)\" .*>" nil t 1)
@@ -311,20 +307,17 @@ as `move-beginning-of-line'."
                (re-search-forward "<a href=\"/.*\" class=\"url fn\">\\(.*\\)</a>" nil t 1))
       (setq author (match-string 1)))
     (when (re-search-forward "<span class=\"entry-title entry-content\">" nil t 1)
-      ;; Do NOT call it on undecoded buffers with non-ascii characters!
-      ;; (skip-chars-forward "[[:space:]]")
       (let ((beg (point)))
         (re-search-forward "</span>" nil t 1)
         (re-search-backward "</span>" nil t 1)
-        ;; FIXME: maybe url-retrieve should respect Content-type,
-        ;; charset headers.
-        (setq message (decode-coding-string (buffer-substring beg (point)) coding))
-        (with-temp-buffer
-          (insert message)
-          (when (executable-find "w3m")
-            (w3m-region (point-min) (point-max) nil coding))
-          (setq message (replace-regexp-in-string "\n" " " (buffer-string)))
-          (goto-char (point-max)))))
+        (setq message (buffer-substring beg (point)))
+        (when (executable-find "w3m")
+          (with-temp-buffer
+            (insert message)
+            (w3m-region (point-min) (point-max))
+            (setq message (buffer-string))
+            (goto-char (point-max))))
+        (setq (replace-regexp-in-string "\n" "" message))))
     (when (re-search-forward "<span class=\"published\" title=\"\\(.*\\)\">" nil t 1)
       (setq timestamp (match-string 1)))
     (when (and index timestamp author message)
@@ -345,6 +338,31 @@ Put this function on `cwit-insert-entry'."
   (put-text-property (point-min) (1- (point-max)) 'read-only t)
   (put-text-property (point-min) (point-max) 'front-sticky t)
   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
+
+
+;;; Url related
+
+(unless (featurep 'emms-url)
+  (defun emms-http-content-coding ()
+    (save-match-data
+      (and (boundp 'url-http-content-type)
+           (stringp url-http-content-type)
+           (string-match ";\\s-*charset=\\([^;[:space:]]+\\)"
+                         url-http-content-type)
+           (intern-soft (downcase (match-string 1 url-http-content-type))))))
+
+  (defun emms-http-decode-buffer (&optional buffer)
+    "Recode the buffer with `url-retrieve's contents. Else the
+buffer would contain multibyte chars like \\123\\456."
+    (with-current-buffer (or buffer (current-buffer))
+      (let* ((default (or (car default-process-coding-system) 'utf-8))
+             (coding  (or (emms-http-content-coding) default)))
+        (when coding
+          ;; (pop-to-buffer (current-buffer))
+          ;; (message "content-type: %s" url-http-content-type)
+          ;; (message "coding: %S [default: %S]" coding default)
+          (set-buffer-multibyte t)
+          (decode-coding-region (point-min) (point-max) coding))))))
 
 (provide 'cwit)
 
