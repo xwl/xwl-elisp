@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2008/02/11
+;; Last updated: 2008/02/12
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -317,7 +317,7 @@ as `move-beginning-of-line'."
             (w3m-region (point-min) (point-max))
             (setq message (buffer-string))
             (goto-char (point-max))))
-        (setq (replace-regexp-in-string "\n" "" message))))
+        (setq message (replace-regexp-in-string "\n" "" message))))
     (when (re-search-forward "<span class=\"published\" title=\"\\(.*\\)\">" nil t 1)
       (setq timestamp (match-string 1)))
     (when (and index timestamp author message)
