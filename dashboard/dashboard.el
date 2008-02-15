@@ -66,9 +66,9 @@
   (interactive)
   ;; TODO, convert a user defined list to a sequence pair
   ;; Should run sequencely for the first time
-  (dashboard-insert-by-column 'nba-standing 'nba-scoreboard)
-;;  (dashboard-insert-by-row 'nba-standing 'nba-scoreboard)
-)
+ (dashboard-insert-by-column 'nba-standing 'nba-scoreboard)
+  (dashboard-insert-by-row 'nba-standing 'tenseijingo)
+  )
 
 
 ;;; dashboard-mode
@@ -135,7 +135,6 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
         (width 0))
     (with-temp-buffer
       (insert s)
-      (insert " ")          ; an extra space indicating rectangle corner
       (goto-char (point-min))
       (move-end-of-line 1)
       (while (not (eobp))
@@ -143,6 +142,10 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
           (setq width (current-column)))
         (forward-line 1)
         (move-end-of-line 1))
+      (goto-char (point-max))
+      (when (> width (current-column))
+        (insert (make-string (- width (current-column)) ? ))
+        (insert " "))       ; an extra space indicating rectangle corner
       (setq rect (extract-rectangle (point-min) (point-max))))
     (with-current-buffer dashboard-buffer
       (let* ((inhibit-read-only t)
@@ -158,7 +161,7 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
           (if upper-left-point
               (delete-rectangle (1+ upper-left-point) (1- lower-right-point))
             (if dashboard-base-point
-              (goto-char dashboard-base-point)
+                (goto-char dashboard-base-point)
               (goto-char (point-min)))
             (when dashboard-insert-by-row-p
               (let ((col (current-column))
@@ -202,6 +205,16 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
     (setq dashboard-insert-by-row-p t)
     (funcall w2-update)))
 
+(defun dashboard-decode-html ()
+  "Decode html buffer retrieved by `url-retrieve'."
+  (let ((coding 'utf-8))
+    (when (save-excursion
+            (goto-char (point-min))
+            (re-search-forward "charset=[[:blank:]]*\\([a-zA-Z_-]+\\)" nil t 1))
+      (setq coding (intern (downcase (match-string 1)))))
+    (set-buffer-multibyte t)
+    (decode-coding-region (point-min) (point-max) coding)))
+
 
 ;;; Sample Widgets: nba-standing, nba-scoreboard
 
@@ -213,13 +226,17 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
 (defun dashboard-nba-standing ()
   "Get nba standing from www.nba.com."
   (let ((url "http://www.nba.com/standings/team_record_comparison/conferenceNew_Std_Cnf.html"))
-    (url-retrieve url 'dashboard-nba-standing-callback)))
+    (if (marker-position dashboard-nba-standing-upper-left-marker)
+        (url-retrieve url 'dashboard-nba-standing-callback)
+      (with-current-buffer (url-retrieve-synchronously url)
+        (funcall 'dashboard-nba-standing-callback)))))
 
-(defun dashboard-nba-standing-callback (status)
+(defun dashboard-nba-standing-callback (&optional status)
   (when (eq :error (car status))
     (error "dashboard-nba-standing-callback: %S" status))
   (let ((eastern '(("EASTERN" "NICK" "W" "L" "PCT" "GB" "CONF" "DIV" "HOME" "ROAD" "L 10" "STREAK")))
         (western '(("WESTERN" "NICK" "W" "L" "PCT" "GB" "CONF" "DIV" "HOME" "ROAD" "L 10" "STREAK"))))
+    (goto-char (point-min))
     (when (re-search-forward "<tr><td colspan=15 class=\"confTitle\">Eastern Conference</td></tr>" nil t 1)
       (dotimes (i 15)                   ; team numbers
         (re-search-forward "<td class=\"team\"><a href=\"/\\(.*\\)/\">\\(.*\\)</a></td> ")
@@ -284,12 +301,16 @@ EASTERN and WESTERN are lists in the form of:
   (let ((url (format-time-string
               "http://www.nba.com/games/%Y%m%d/scoreboard.html"
               (time-subtract (current-time) (seconds-to-time 86400))))) ; tokyo time -> us time
-    (url-retrieve url 'dashboard-nba-scoreboard-callback)))
+    (if (marker-position dashboard-nba-scoreboard-upper-left-marker)
+        (url-retrieve url 'dashboard-nba-scoreboard-callback)
+      (with-current-buffer (url-retrieve-synchronously url)
+        (funcall 'dashboard-nba-scoreboard-callback)))))
 
-(defun dashboard-nba-scoreboard-callback (status)
+(defun dashboard-nba-scoreboard-callback (&optional status)
   (when (eq :error (car status))
     (error "dashboard-nba-scoreboard-callback: %S" status))
   (let ((score '()))    ; '(visit-team visit-score home-team home-score)
+    (goto-char (point-min))
     (while (re-search-forward "<div class=\"scoreBoardGame\">" nil t 1)
       (let ((visit-team "")
             (visit-score "")
