@@ -51,7 +51,7 @@
   (goto-char (point-min))
   (let ((date "")
         (content ""))
-    (when (search-forward "<h1 id=\"genre\">天声人語</h1>" nil t 1)
+    (when (re-search-forward "<h1 id=\"genre\">.*</h1>" nil t 1)
       (re-search-forward "<p id=\"date\">\\(.*\\)</p>" nil t 1)
       (setq date (match-string 1))
       (search-forward "<div class=\"kiji\">" nil t 1)
@@ -60,9 +60,9 @@
       (let ((start (point)))
         (search-forward "</p>" nil t 1)
         (backward-char (1+ (length "</p>")))
-        (setq content (buffer-substring-no-properties start (point))))
-      (kill-buffer (current-buffer))
-      (dashboard-tenseijingo-format content date))))
+        (setq content (buffer-substring-no-properties start (point)))))
+    (kill-buffer (current-buffer))
+    (dashboard-tenseijingo-format content date)))
 
 (defun dashboard-tenseijingo-format (content date)
   "Called by `dashboard-tenseijingo-callback'."
