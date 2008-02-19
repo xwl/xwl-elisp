@@ -4,7 +4,6 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
-;; Last updated: 2008/02/12
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -58,6 +57,8 @@
 ;;   trouble!  In this case, try undo it.
 
 ;;; Code:
+
+(require 'url-html)
 
 ;;; Customizations
 
@@ -259,7 +260,7 @@ as `move-beginning-of-line'."
     (error "cwit-receive-callback: %S" status))
   (let ((entries '())
         entry last-entry)
-    (emms-http-decode-buffer)
+    (url-html-decode-buffer)
     (goto-char (point-min))
     (while (and (setq entry (cwit-parse-entry))
                 (> (car entry) cwit-last-entry-index))
@@ -338,31 +339,6 @@ Put this function on `cwit-insert-entry'."
   (put-text-property (point-min) (1- (point-max)) 'read-only t)
   (put-text-property (point-min) (point-max) 'front-sticky t)
   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
-
-
-;;; Url related
-
-(unless (featurep 'emms-url)
-  (defun emms-http-content-coding ()
-    (save-match-data
-      (and (boundp 'url-http-content-type)
-           (stringp url-http-content-type)
-           (string-match ";\\s-*charset=\\([^;[:space:]]+\\)"
-                         url-http-content-type)
-           (intern-soft (downcase (match-string 1 url-http-content-type))))))
-
-  (defun emms-http-decode-buffer (&optional buffer)
-    "Recode the buffer with `url-retrieve's contents. Else the
-buffer would contain multibyte chars like \\123\\456."
-    (with-current-buffer (or buffer (current-buffer))
-      (let* ((default (or (car default-process-coding-system) 'utf-8))
-             (coding  (or (emms-http-content-coding) default)))
-        (when coding
-          ;; (pop-to-buffer (current-buffer))
-          ;; (message "content-type: %s" url-http-content-type)
-          ;; (message "coding: %S [default: %S]" coding default)
-          (set-buffer-multibyte t)
-          (decode-coding-region (point-min) (point-max) coding))))))
 
 (provide 'cwit)
 
