@@ -26,11 +26,14 @@
   "Decode html BUFFER(default is current buffer).
 Usually used in buffer retrieved by `url-retrieve'. If no charset info
 is specified in html tag, default is 'utf-8."
-  (with-current-buffer (or buffer (current-buffer))
+  (unless buffer
+    (setq buffer (current-buffer)))
+  (with-current-buffer buffer
     (let ((coding 'utf-8))
+      ;; (switch-to-buffer buffer)
       (when (save-excursion
               (goto-char (point-min))
-              (re-search-forward "charset=[[:blank:]]*\\([a-zA-Z_-]+\\)" nil t 1))
+              (re-search-forward "<meta http-equiv.*charset=[[:blank:]]*\\([a-zA-Z0-9_-]+\\)" nil t 1))
         (setq coding (intern (downcase (match-string 1)))))
       (set-buffer-multibyte t)
       (decode-coding-region (point-min) (point-max) coding))))
