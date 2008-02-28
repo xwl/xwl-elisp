@@ -1,6 +1,6 @@
 ;;; fink.el --- fink administration within Emacs
 
-;; Copyright (C) 2007 William Xu
+;; Copyright (C) 2007, 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.3
@@ -79,7 +79,7 @@
     (define-key map "S" 'fink-apropos)
     (define-key map "s" 'fink-describe)
     (define-key map "u" 'fink-update)
-    (define-key map "U" 'fink-update-all)
+    (define-key map "U" 'fink-selfupdate)
     (define-key map "" 'fink-show-at-point)
 
     ;; services control
