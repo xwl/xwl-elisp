@@ -268,6 +268,8 @@ as `move-beginning-of-line'."
         (setq last-entry entry))
       (setq entries (cons entry entries)
             cwit-unread-message-counter (1+ cwit-unread-message-counter)))
+    (when cwit-start-p
+      (setq cwit-unread-message-counter 0))
     (kill-buffer (current-buffer))
     (with-current-buffer cwit-buffer
       (if (not entries)
@@ -278,9 +280,8 @@ as `move-beginning-of-line'."
                 (timestamp (substring (nth 1 entry) 11 16))
                 (author (nth 2 entry))
                 (message (nth 3 entry)))
-            ;; (= cwit-last-entry-index index)
-            (if (and (string= author cwit-user-name)
-                     (not cwit-start-p))
+            (if (and (not cwit-start-p)
+                     (string= author cwit-user-name))
                 (setq cwit-unread-message-counter
                       (1- cwit-unread-message-counter))
               (cwit-insert-entry timestamp author message))))
