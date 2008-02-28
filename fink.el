@@ -78,8 +78,8 @@
     (define-key map "R" 'fink-remove)
     (define-key map "S" 'fink-apropos)
     (define-key map "s" 'fink-describe)
-    (define-key map "u" 'fink-update)
-    (define-key map "U" 'fink-selfupdate)
+    (define-key map "u" 'fink-selfupdate)
+    (define-key map "U" 'fink-update-all)
     (define-key map "" 'fink-show-at-point)
 
     ;; services control
