@@ -1,4 +1,4 @@
-;;; smart-compile.el --- `compile' and run based on major-mode or filename
+;;; file-action.el --- `compile' and run based on major-mode or filename
 
 ;; Copyright (C) 2005, 2007, 2008 William Xu <william.xwl@gmail.com>
 
@@ -55,19 +55,19 @@
 
 ;;; User Customizable
 
-(defgroup smart-compile nil
-  "smart-compile extension."
-  :prefix "smart-compile-"
-  :group 'smart-compile)
+(defgroup file-action nil
+  "file-action extension."
+  :prefix "file-action-"
+  :group 'file-action)
 
-(defcustom smart-compile-replace-table
+(defcustom file-action-replace-table
   '(("%F" buffer-file-name)
     ("%f" (lambda () (file-name-nondirectory (buffer-file-name))))
     ("%n" (lambda () (file-name-sans-extension
                       (file-name-nondirectory (buffer-file-name)))))
     ("%e" (lambda () (file-name-extension (buffer-file-name)))))
   "File name shortcut format.
-Some special strings(like %f, %F) in `smart-compile-table', will
+Some special strings(like %f, %F) in `file-action-table', will
 be replaced according the following map(with an example in the
 end).
 
@@ -76,9 +76,9 @@ end).
   %n  file name without extention  (netscape)
   %e  extention of file name       (bin)"
   :type 'symbol
-  :group 'smart-compile)
+  :group 'file-action)
 
-(defcustom smart-compile-table
+(defcustom file-action-table
   '((c-mode "gcc -O2 %f -lm -o %n" "%n" "./%n")
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
@@ -88,11 +88,11 @@ end).
      makeinfo-buffer
      "%n.info"
      (lambda ()
-       (Info-revert-find-node (smart-compile-replace "%n.info")
+       (Info-revert-find-node (file-action-replace "%n.info")
                               (makeinfo-current-node))))
     (emacs-lisp-mode
      (lambda ()
-       (byte-compile-file (smart-compile-replace "%f")))
+       (byte-compile-file (file-action-replace "%f")))
      "%n.elc"
      eval-buffer)
 
@@ -110,40 +110,40 @@ COMPILE-HANDLER is the command for compiling.
 BIN is the object file created after compilation.
 RUN-HANDLER is the command for running BIN.
 
-See also `smart-compile-replace-table'."
+See also `file-action-replace-table'."
   :type 'symbol
-  :group 'smart-compile)
+  :group 'file-action)
 
 
 ;;; Interface functions
 
-;; Just run `smart-compile' for the first time, then fall back to
+;; Just run `file-action' for the first time, then fall back to
 ;; normal `compile' for future request. The reason is that user may edit
 ;; compile command in minibuffer manually. Same for run handler.
-(defvar smart-compile-first-compile-p t)
-(make-variable-buffer-local 'smart-compile-first-compile-p)
+(defvar file-action-first-compile-p t)
+(make-variable-buffer-local 'file-action-first-compile-p)
 
-(defvar smart-compile-first-run-p t)
-(make-variable-buffer-local 'smart-compile-first-run-p)
+(defvar file-action-first-run-p t)
+(make-variable-buffer-local 'file-action-first-run-p)
 
 ;; The compile-handler for current buffer. It could be either a string
 ;; or lisp function.
-(defvar smart-compile-compile-handler nil)
-(make-variable-buffer-local 'smart-compile-compile-handler)
+(defvar file-action-compile-handler nil)
+(make-variable-buffer-local 'file-action-compile-handler)
 
-(defvar smart-compile-run-handler nil)
-(make-variable-buffer-local 'smart-compile-run-handler)
+(defvar file-action-run-handler nil)
+(make-variable-buffer-local 'file-action-run-handler)
 
 ;;;###autoload
-(defun smart-compile-replace (str)
-  "Replace in STR by `smart-compile-replace-table'."
-  (dolist (el smart-compile-replace-table str)
+(defun file-action-replace (str)
+  "Replace in STR by `file-action-replace-table'."
+  (dolist (el file-action-replace-table str)
     (setq str (replace-regexp-in-string (car el) (funcall (cadr el)) str))))
 
 ;;;###autoload
-(defun smart-compile-compile ()
+(defun file-action-compile ()
   "Run `compile' by checking project builder(like make, ant, etc) and
-`smart-compile-table'."
+`file-action-table'."
   (interactive)
   ;; obj up-to-date ?
   (let ((up-to-date nil)
@@ -157,15 +157,15 @@ See also `smart-compile-replace-table'."
                                     (string-match matcher (buffer-file-name)))
                                (and (not (stringp matcher))
                                     (eq matcher major-mode))))
-                  (setq bin (smart-compile-replace b))
+                  (setq bin (file-action-replace b))
                   (when (and (file-exists-p bin)
                              (file-newer-than-file-p bin (buffer-file-name)))
                     (setq up-to-date t)
                     (throw 'return t)))))
-            smart-compile-table))
+            file-action-table))
     (cond (up-to-date
            (message "`%s' is already up-to-date" (or bin "Object")))
-          (smart-compile-first-compile-p
+          (file-action-first-compile-p
            (cond ((and (or (file-exists-p "Makefile") ; make
                            (file-exists-p "makefile"))
                        (y-or-n-p "Found Makefile, try 'make'? "))
@@ -186,24 +186,24 @@ See also `smart-compile-replace-table'."
                                         (and (not (stringp matcher))
                                              (eq matcher major-mode)))
                                 (if (stringp compile-handler)
-                                    (setq compile-command (smart-compile-replace compile-handler))
-                                  (setq smart-compile-compile-handler compile-handler))
+                                    (setq compile-command (file-action-replace compile-handler))
+                                  (setq file-action-compile-handler compile-handler))
                                 (throw 'return t))))
-                          smart-compile-table))))
-           (if smart-compile-compile-handler
-               (funcall 'smart-compile-compile1)
+                          file-action-table))))
+           (if file-action-compile-handler
+               (funcall 'file-action-compile1)
              (call-interactively 'compile)
-             (setq smart-compile-compile-handler compile-command))
-           (setq smart-compile-first-compile-p nil))
+             (setq file-action-compile-handler compile-command))
+           (setq file-action-first-compile-p nil))
           (t
-           (funcall 'smart-compile-compile1)))))
+           (funcall 'file-action-compile1)))))
 
 ;;;###autoload
-(defun smart-compile-run ()
+(defun file-action-run ()
   "Run the executable program according to the file type.
-See `smart-compile-table'."
+See `file-action-table'."
   (interactive)
-  (cond (smart-compile-first-run-p
+  (cond (file-action-first-run-p
          (catch 'return
            (mapc (lambda (el)
                    (let ((matcher (nth 0 el))
@@ -213,31 +213,31 @@ See `smart-compile-table'."
                                (and (not (stringp matcher))
                                     (eq matcher major-mode)))
                        (if (stringp run-handler)
-                           (setq smart-compile-run-handler
-                                 (smart-compile-replace run-handler))
-                         (setq smart-compile-run-handler run-handler))
+                           (setq file-action-run-handler
+                                 (file-action-replace run-handler))
+                         (setq file-action-run-handler run-handler))
                        (throw 'return t))))
-                 smart-compile-table))
-         (if smart-compile-run-handler
-             (funcall 'smart-compile-run1)
+                 file-action-table))
+         (if file-action-run-handler
+             (funcall 'file-action-run1)
            (call-interactively 'shell-command)
-           (setq smart-compile-run-handler (car shell-command-history)))
-         (setq smart-compile-first-run-p nil))
+           (setq file-action-run-handler (car shell-command-history)))
+         (setq file-action-first-run-p nil))
         (t
-         (funcall 'smart-compile-run1))))
+         (funcall 'file-action-run1))))
 
 
 ;;; Low Level Functions
 
-(defun smart-compile-compile1 ()
-  (cond ((stringp smart-compile-compile-handler)
-         (compile smart-compile-compile-handler))
+(defun file-action-compile1 ()
+  (cond ((stringp file-action-compile-handler)
+         (compile file-action-compile-handler))
         (t
-         (funcall smart-compile-compile-handler))))
+         (funcall file-action-compile-handler))))
 
 ;; Run shell command either synchronously or asynchronously with a
 ;; unique output buffer, whose window will be deleted automatically.
-(defun smart-compile-shell-command (cmd)
+(defun file-action-shell-command (cmd)
   (if (string-match "&$" cmd)
       (let ((buf (generate-new-buffer-name (concat "*" cmd "*"))))
         (message cmd)
@@ -245,15 +245,15 @@ See `smart-compile-table'."
         (delete-window (get-buffer-window buf)))
     (shell-command cmd)))
 
-(defun smart-compile-run1 ()
-  (cond ((stringp smart-compile-run-handler)
-         (let ((ret (smart-compile-shell-command smart-compile-run-handler)))
+(defun file-action-run1 ()
+  (cond ((stringp file-action-run-handler)
+         (let ((ret (file-action-shell-command file-action-run-handler)))
            (when (and (numberp ret) (not (zerop ret)))
              (call-interactively 'shell-command)
-             (setq smart-compile-run-handler (car shell-command-history)))))
+             (setq file-action-run-handler (car shell-command-history)))))
         (t
-         (funcall smart-compile-run-handler))))
+         (funcall file-action-run-handler))))
 
-(provide 'smart-compile)
+(provide 'file-action)
 
-;;; smart-compile.el ends here
+;;; file-action.el ends here
