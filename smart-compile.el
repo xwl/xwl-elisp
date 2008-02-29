@@ -1,6 +1,6 @@
 ;;; smart-compile.el --- `compile' and run based on major-mode or filename
 
-;; Copyright (C) 2005, 2007 William Xu <william.xwl@gmail.com>
+;; Copyright (C) 2005, 2007, 2008 William Xu <william.xwl@gmail.com>
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 2.3
@@ -85,7 +85,7 @@ end).
     ("\\.php$" nil nil "php %f")
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
     (texinfo-mode
-     makeinfo-buffer 
+     makeinfo-buffer
      "%n.info"
      (lambda ()
        (Info-revert-find-node (smart-compile-replace "%n.info")
@@ -94,7 +94,9 @@ end).
      (lambda ()
        (byte-compile-file (smart-compile-replace "%f")))
      "%n.elc"
-     eval-buffer))
+     eval-buffer)
+
+    ("\\.info$" nil nil (lambda () (info (buffer-file-name)))))
   "Each element in the table has the form:
 
     '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER)
@@ -226,7 +228,7 @@ See `smart-compile-table'."
 
 
 ;;; Low Level Functions
- 
+
 (defun smart-compile-compile1 ()
   (cond ((stringp smart-compile-compile-handler)
          (compile smart-compile-compile-handler))
