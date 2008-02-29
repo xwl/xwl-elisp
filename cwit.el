@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.1
+;; Version: 0.2.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 
 ;;; TODO
 
+;; - my message at the right side?
 ;; - Buddy name completion
 ;; - Also checking new news at next page?
 ;; - send texts, move cursor at the end automatically
@@ -127,6 +128,7 @@ nick names right and text left."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'cwit-send-current-line)
     (define-key map (kbd "M-m") 'cwit-beginning-of-line)
+    (define-key map (kbd "C-c C-u") 'cwit-update-now)
     map)
   "Keymap for `cwit-mode'.")
 
@@ -275,25 +277,39 @@ as `move-beginning-of-line'."
       (if (not entries)
           (message "No cwit news is good news")
         (setq cwit-last-entry-index (car last-entry))
+        ;; for debug
+        ;; (setq entries (list (car entries)))
         (dolist (entry entries)
           (let ((index (nth 0 entry))
                 (timestamp (substring (nth 1 entry) 11 16))
                 (author (nth 2 entry))
-                (message (nth 3 entry)))
+                (message (nth 3 entry))
+                (image-url (nth 4 entry)))
             (if (and (not cwit-start-p)
                      (string= author cwit-user-name))
                 (setq cwit-unread-message-counter
                       (1- cwit-unread-message-counter))
-              (cwit-insert-entry timestamp author message))))
+              (cwit-insert-entry timestamp author message image-url))))
         (setq cwit-start-p nil)))
     (cwit-update-mode-line)))
 
-(defun cwit-insert-entry (timestamp author message)
+(defun cwit-insert-entry (timestamp author message image-url)
   "Note TIMESTAMP should be in the form as: 20:18."
   (let ((inhibit-read-only t))
     (goto-char (marker-position cwit-input-marker))
     (forward-line 0)
-    (insert (format "%s <%s> %s\n" timestamp author message))
+    (insert (format "%s " timestamp ))
+    ;; Hold our image. If simply a whitespace, then fill-region will eat
+    ;; it!
+    (insert ".")
+    (backward-char 1)
+    (let ((start (point))
+          (end (1+ (point))))
+      (put-text-property start end 'w3m-image (concat "http://" cwit-server image-url))
+      (put-text-property start end 'w3m-image-size '(48 . 48))
+      (w3m-toggle-inline-image t)
+      (forward-char 1))
+    (insert (format " <%s> %s\n" author message))
     (let ((end (point))
           (fill-prefix (make-string cwit-fill-static-center 32)))
       (re-search-backward "[0-9]\\{2\\}:[0-9]\\{2\\}" nil t 1)
@@ -302,10 +318,12 @@ as `move-beginning-of-line'."
     (goto-char (marker-position cwit-input-marker))))
 
 (defun cwit-parse-entry ()
-  "(index timestamp author message)."
-  (let (index timestamp author message)
+  "(index timestamp author message image-url)."
+  (let (index timestamp author message image-url)
     (when (re-search-forward "<tr id=\"stat_\\(.*\\)\" .*>" nil t 1)
       (setq index (string-to-number (match-string 1))))
+    (re-search-forward "<img.*src=\"\\([^\"]+\\)\".*>" nil t 1)
+    (setq image-url (match-string 1))
     (when (and (re-search-forward "<span class=\"author\">" nil t 1)
                (re-search-forward "<a href=\"/.*\" class=\"url fn\">\\(.*\\)</a>" nil t 1))
       (setq author (match-string 1)))
@@ -323,8 +341,8 @@ as `move-beginning-of-line'."
         (setq message (replace-regexp-in-string "\n" "" message))))
     (when (re-search-forward "<span class=\"published\" title=\"\\(.*\\)\">" nil t 1)
       (setq timestamp (match-string 1)))
-    (when (and index timestamp author message)
-      (list index timestamp author message))))
+    (when (and index timestamp author message image-url)
+      (list index timestamp author message image-url))))
 
 (defun cwit-update-mode-line ()
   (if (equal (buffer-name (current-buffer)) cwit-buffer)
@@ -337,10 +355,11 @@ as `move-beginning-of-line'."
 (defun cwit-make-read-only ()
   "Make all the text in the current buffer read-only.
 Put this function on `cwit-insert-entry'."
-  ;; FIXME: see Bugs
-  (put-text-property (point-min) (1- (point-max)) 'read-only t)
-  (put-text-property (point-min) (point-max) 'front-sticky t)
-  (put-text-property (point-min) (point-max) 'rear-nonsticky t))
+  )
+;;   ;; FIXME: see Bugs
+;;   (put-text-property (point-min) (1- (point-max)) 'read-only t)
+;;   (put-text-property (point-min) (point-max) 'front-sticky t)
+;;   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
 
 (provide 'cwit)
 
