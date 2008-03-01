@@ -156,11 +156,11 @@ more. If you want to edit it again, please add C-u prefix."
                (progn
                  (setq compile-command buffer-action-compile-action)
                  (call-interactively 'compile))
-             (funcall buffer-action-compile-action))))
-    ((stringp buffer-action-compile-action)
-     (compile buffer-action-compile-action))
-    (t
-     (funcall buffer-action-compile-action))))
+             (funcall buffer-action-compile-action)))
+          ((stringp buffer-action-compile-action)
+           (compile buffer-action-compile-action))
+          (t
+           (funcall buffer-action-compile-action)))))
 
 ;;;###autoload
 (defun buffer-action-run ()
