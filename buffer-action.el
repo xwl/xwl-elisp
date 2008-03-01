@@ -202,15 +202,16 @@ return ANY unchanged."
 
 (defun buffer-action-match ()
   "Retrieve the row matching against current buffer in `buffer-action-table'."
-  (let ((tables buffer-action-table)
+  (let ((table buffer-action-table)
         (row '()))
-    (dolist (i tables)
-      (let ((matcher (nth 0 i)))
-        (when (if (stringp matcher)
-                  (string-match matcher (buffer-file-name))
-                (eq matcher major-mode))
-          (setq tables nil
-                row i))))
+    (while table
+      (setq row (car table)
+            table (cdr table))
+      (let ((matcher (nth 0 row)))
+        (when (or (and (stringp matcher)
+                       (string-match matcher (buffer-file-name)))
+                  (eq matcher major-mode))
+          (setq table nil))))
     row))
 
 (defun buffer-action-shell-command ()
@@ -218,7 +219,7 @@ return ANY unchanged."
 with `&') with a unique output buffer, whose window will be
 deleted automatically."
   (let ((cmd buffer-action-run-action))
-    (if (string-match "&$" cmd)
+    (if (string-match "&\\ *$" cmd)
         (let ((buf (generate-new-buffer-name (concat "*" cmd "*"))))
           (message cmd)
           (shell-command cmd buf)
