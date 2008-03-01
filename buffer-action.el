@@ -47,7 +47,6 @@
 ;;   the compile command from different file buffers, which all belongs
 ;;   to the same directory.
 ;; - Solve FIXME.
-;; - Something like vc-next-action? buffer-next-action? buffer-action-next?
 
 ;;; Code:
 
