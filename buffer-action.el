@@ -139,28 +139,28 @@ more. If you want to edit it again, please add C-u prefix."
     (cond ((and up-to-date (not current-prefix-arg))
            (message "`%s' is already up-to-date" (or bin "Object")))
           ((or current-prefix-arg (not buffer-action-compile-action))
-           (let ((compile-action (buffer-action-replace (nth 1 row))))
-             (cond ((and (or (file-exists-p "Makefile") ; make
-                             (file-exists-p "makefile"))
-                         (y-or-n-p "Found Makefile, try 'make'? "))
-                    (setq buffer-action-compile-action "make "))
-                   ((and (file-exists-p "build.xml") ; ant
-                         (y-or-n-p "Found build.xml, try 'ant'? "))
-                    (setq buffer-action-compile-action "ant "))
-                   ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
-                      (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
-                    (setq buffer-action-compile-action "qmake "))
-                   (t
-                    (setq buffer-action-compile-action compile-action)))
-             (if (stringp buffer-action-compile-action)
-                 (progn
-                   (setq compile-command buffer-action-compile-action)
-                   (call-interactively 'compile))
-               (funcall buffer-action-compile-action))))
-          ((stringp buffer-action-compile-action)
-           (compile buffer-action-compile-action))
-          (t
-           (funcall buffer-action-compile-action)))))
+           (cond ((and (or (file-exists-p "Makefile") ; make
+                           (file-exists-p "makefile"))
+                       (y-or-n-p "Found Makefile, try 'make'? "))
+                  (setq buffer-action-compile-action "make "))
+                 ((and (file-exists-p "build.xml") ; ant
+                       (y-or-n-p "Found build.xml, try 'ant'? "))
+                  (setq buffer-action-compile-action "ant "))
+                 ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
+                    (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
+                  (setq buffer-action-compile-action "qmake "))
+                 (t
+                  (setq buffer-action-compile-action
+                        (buffer-action-replace (nth 1 row)))))
+           (if (stringp buffer-action-compile-action)
+               (progn
+                 (setq compile-command buffer-action-compile-action)
+                 (call-interactively 'compile))
+             (funcall buffer-action-compile-action))))
+    ((stringp buffer-action-compile-action)
+     (compile buffer-action-compile-action))
+    (t
+     (funcall buffer-action-compile-action))))
 
 ;;;###autoload
 (defun buffer-action-run ()
@@ -203,7 +203,8 @@ return ANY unchanged."
 (defun buffer-action-match ()
   "Retrieve the row matching against current buffer in `buffer-action-table'."
   (let ((table buffer-action-table)
-        (row '()))
+        (row '())
+        (ret nil))
     (while table
       (setq row (car table)
             table (cdr table))
@@ -211,8 +212,14 @@ return ANY unchanged."
         (when (or (and (stringp matcher)
                        (string-match matcher (buffer-file-name)))
                   (eq matcher major-mode))
-          (setq table nil))))
-    row))
+          (setq table nil)
+          (setq ret row))))
+    ;; FIXME: there should be a better way to abort, right?
+    (condition-case nil
+        (if ret
+            ret
+          (error))
+      (error "Match nothing in `buffer-action-table'"))))
 
 (defun buffer-action-shell-command ()
   "Run shell command either synchronously or asynchronously(when
