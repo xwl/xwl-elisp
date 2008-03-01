@@ -1,9 +1,10 @@
-;;; file-action.el --- `compile' and run based on major-mode or filename
+;;; buffer-action.el --- Perform actions(compile, etc) in buffer based on mode/filename
 
-;; Copyright (C) 2005, 2007, 2008 William Xu <william.xwl@gmail.com>
+;; Copyright (C) 2005, 2007, 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 2.3
+;; Version: 3.0
+;; Url: http://williamxu.net9.org/ref/buffer-action.el
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,51 +24,48 @@
 ;;; Commentary:
 
 ;; This is a mostly rewritten based on ideas from Seiji Zenitani
-;; <zenitani@mac.com>'s `smart-compile.el'.
-;;
-;; Besides the original `smart-compile-compile'(`smart-compile'
-;; actually) function, i've add a new function:
-;; `smart-compile-run'. These two functions may be the most useful from
-;; this extension.
-;;
+;; <zenitani@mac.com>'s `smart-compile.el'. Besides compile action, i've
+;; add a run action, and maybe more in the future.
+
 ;; Let me illustrate it by an example. Suppose you are editing a file
-;; `foo.c'. To compile it, try `M-x smart-compile-compile', which will
-;; run a shell command similar to `gcc -o foo foo.c -O2'. To run the
-;; executable, say `foo', try `M-x smart-compile-run', which will run a
-;; shell command similar to `./foo'.
-;;
-;; To use, add the following to your .emacs:
-;;
-;;     (autoload 'smart-compile-compile "smart-compile"
-;;       "Run `compile' by checking project builder(like make, ant, etc) and
-;;     `smart-compile-table'." t)
-;;
-;;     (autoload 'smart-compile-run "smart-compile"
-;;       "Run the executable program according to the file type.
-;;     See `smart-compile-table'." t)
-;;
-;;     (autoload 'smart-compile-replace "smart-compile"
-;;       "Replace in STR by `smart-compile-replace-table'." t)
-;;
-;; And you may want to customzie the "trigger" - `smart-compile-table'.
+;; named `foo.c'. To compile it, `M-x buffer-action-compile', it will run
+;; a shell command similar to `gcc -o foo foo.c -O2'; to run the
+;; executable binary `foo' , `M-x buffer-action-run', it will run a shell
+;; command similar to `./foo'. Sounds neat, right?
+
+;; What kind of shell commands or lisp expressions to call for each
+;; action(compile/run) is configurable through `buffer-action-table'.
+
+;; To use, add this file to your load-path and the following to your
+;; .emacs:
+;;       (autoload 'buffer-action-compile "buffer-action")
+;;       (autoload 'buffer-action-run "buffer-action")
+
+;; TODO
+
+;; - Recongize Makefile in a directory, so don't bother me when calling
+;;   the compile command from different file buffers, which all belongs
+;;   to the same directory.
+;; - Solve FIXME.
+;; - Something like vc-next-action? buffer-next-action? buffer-action-next?
 
 ;;; Code:
 
-;;; User Customizable
+;;; Customizations
 
-(defgroup file-action nil
-  "file-action extension."
-  :prefix "file-action-"
-  :group 'file-action)
+(defgroup buffer-action nil
+  "buffer-action extension."
+  :prefix "buffer-action-"
+  :group 'buffer-action)
 
-(defcustom file-action-replace-table
+(defcustom buffer-action-replace-table
   '(("%F" buffer-file-name)
     ("%f" (lambda () (file-name-nondirectory (buffer-file-name))))
     ("%n" (lambda () (file-name-sans-extension
                       (file-name-nondirectory (buffer-file-name)))))
     ("%e" (lambda () (file-name-extension (buffer-file-name)))))
   "File name shortcut format.
-Some special strings(like %f, %F) in `file-action-table', will
+Some special strings(like %f, %F) in `buffer-action-table', will
 be replaced according the following map(with an example in the
 end).
 
@@ -76,9 +74,9 @@ end).
   %n  file name without extention  (netscape)
   %e  extention of file name       (bin)"
   :type 'symbol
-  :group 'file-action)
+  :group 'buffer-action)
 
-(defcustom file-action-table
+(defcustom buffer-action-table
   '((c-mode "gcc -O2 %f -lm -o %n" "%n" "./%n")
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
@@ -88,172 +86,145 @@ end).
      makeinfo-buffer
      "%n.info"
      (lambda ()
-       (Info-revert-find-node (file-action-replace "%n.info")
+       (Info-revert-find-node (buffer-action-replace "%n.info")
                               (makeinfo-current-node))))
     (emacs-lisp-mode
      (lambda ()
-       (byte-compile-file (file-action-replace "%f")))
+       (byte-compile-file (buffer-action-replace "%f")))
      "%n.elc"
      eval-buffer)
 
     ("\\.info$" nil nil (lambda () (info (buffer-file-name)))))
   "Each element in the table has the form:
 
-    '(MATCHER COMPILE-HANDLER BIN RUN-HANDLER)
+    '(MATCHER COMPILER-ACTION BIN RUN-ACTION)
 
-MATCHER, COMPILE-HANDLER, BIN and RUN-HANDLER could be either a
-string or lisp expression(for COMPILE-HANDLER and RUN-HANDLER, it must
-be a lisp function).
+MATCHER is either a filename or major mode.
 
-MATCHER could either match against filename or major mode.
-COMPILE-HANDLER is the command for compiling.
-BIN is the object file created after compilation.
-RUN-HANDLER is the command for running BIN.
+BIN is usually a filename(string) or nil, it should be created by
+COMPILER-ACTION when necessary, and will be executed by
+RUN-ACTION.
 
-See also `file-action-replace-table'."
+COMPILER-ACTION, RUN-ACTION is either a shell command or lisp
+expression.
+
+See also `buffer-action-replace-table'."
   :type 'symbol
-  :group 'file-action)
+  :group 'buffer-action)
 
 
 ;;; Interface functions
 
-;; Just run `file-action' for the first time, then fall back to
-;; normal `compile' for future request. The reason is that user may edit
-;; compile command in minibuffer manually. Same for run handler.
-(defvar file-action-first-compile-p t)
-(make-variable-buffer-local 'file-action-first-compile-p)
+(defvar buffer-action-compile-action nil)
+(make-variable-buffer-local 'buffer-action-compile-action)
 
-(defvar file-action-first-run-p t)
-(make-variable-buffer-local 'file-action-first-run-p)
-
-;; The compile-handler for current buffer. It could be either a string
-;; or lisp function.
-(defvar file-action-compile-handler nil)
-(make-variable-buffer-local 'file-action-compile-handler)
-
-(defvar file-action-run-handler nil)
-(make-variable-buffer-local 'file-action-run-handler)
+(defvar buffer-action-run-action nil)
+(make-variable-buffer-local 'buffer-action-run-action)
 
 ;;;###autoload
-(defun file-action-replace (str)
-  "Replace in STR by `file-action-replace-table'."
-  (dolist (el file-action-replace-table str)
-    (setq str (replace-regexp-in-string (car el) (funcall (cadr el)) str))))
-
-;;;###autoload
-(defun file-action-compile ()
+(defun buffer-action-compile ()
   "Run `compile' by checking project builder(like make, ant, etc) and
-`file-action-table'."
+`buffer-action-table'.
+
+When running for the first time, you can edit the command in
+minibuffer, else use last command without bothering you any
+more. If you want to edit it again, please add C-u prefix."
   (interactive)
-  ;; obj up-to-date ?
-  (let ((up-to-date nil)
-        (bin nil))
-    (catch 'return
-      (mapc (lambda (el)
-              (let ((matcher (nth 0 el))
-                    (b (nth 2 el)))
-                (when (and b
-                           (or (and (stringp matcher)
-                                    (string-match matcher (buffer-file-name)))
-                               (and (not (stringp matcher))
-                                    (eq matcher major-mode))))
-                  (setq bin (file-action-replace b))
-                  (when (and (file-exists-p bin)
-                             (file-newer-than-file-p bin (buffer-file-name)))
-                    (setq up-to-date t)
-                    (throw 'return t)))))
-            file-action-table))
-    (cond (up-to-date
+  (let* ((row (buffer-action-match))
+         (bin (buffer-action-replace (nth 2 row)))
+         (up-to-date                    ; Is BIN up-to-date ?
+          (and (stringp bin)
+               (file-exists-p bin)
+               (file-newer-than-file-p bin (buffer-file-name)))))
+    (cond ((and up-to-date (not current-prefix-arg))
            (message "`%s' is already up-to-date" (or bin "Object")))
-          (file-action-first-compile-p
-           (cond ((and (or (file-exists-p "Makefile") ; make
-                           (file-exists-p "makefile"))
-                       (y-or-n-p "Found Makefile, try 'make'? "))
-                  (setq compile-command "make "))
-                 ((and (file-exists-p "build.xml") ; ant
-                       (y-or-n-p "Found build.xml, try 'ant'? "))
-                  (setq compile-command "ant "))
-                 ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
-                    (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
-                  (setq compile-command "qmake "))
-                 (t
-                  (catch 'return
-                    (mapc (lambda (el)
-                            (let ((matcher (nth 0 el))
-                                  (compile-handler (nth 1 el)))
-                              (when (or (and (stringp matcher)
-                                             (string-match matcher (buffer-file-name)))
-                                        (and (not (stringp matcher))
-                                             (eq matcher major-mode)))
-                                (if (stringp compile-handler)
-                                    (setq compile-command (file-action-replace compile-handler))
-                                  (setq file-action-compile-handler compile-handler))
-                                (throw 'return t))))
-                          file-action-table))))
-           (if file-action-compile-handler
-               (funcall 'file-action-compile1)
-             (call-interactively 'compile)
-             (setq file-action-compile-handler compile-command))
-           (setq file-action-first-compile-p nil))
+          ((or current-prefix-arg (not buffer-action-compile-action))
+           (let ((compile-action (buffer-action-replace (nth 1 row))))
+             (cond ((and (or (file-exists-p "Makefile") ; make
+                             (file-exists-p "makefile"))
+                         (y-or-n-p "Found Makefile, try 'make'? "))
+                    (setq buffer-action-compile-action "make "))
+                   ((and (file-exists-p "build.xml") ; ant
+                         (y-or-n-p "Found build.xml, try 'ant'? "))
+                    (setq buffer-action-compile-action "ant "))
+                   ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
+                      (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
+                    (setq buffer-action-compile-action "qmake "))
+                   (t
+                    (setq buffer-action-compile-action compile-action)))
+             (if (stringp buffer-action-compile-action)
+                 (progn
+                   (setq compile-command buffer-action-compile-action)
+                   (call-interactively 'compile))
+               (funcall buffer-action-compile-action))))
+          ((stringp buffer-action-compile-action)
+           (compile buffer-action-compile-action))
           (t
-           (funcall 'file-action-compile1)))))
+           (funcall buffer-action-compile-action)))))
 
 ;;;###autoload
-(defun file-action-run ()
-  "Run the executable program according to the file type.
-See `file-action-table'."
+(defun buffer-action-run ()
+  "Run the binary file according to `buffer-action-table'.
+
+When running for the first time, you can edit the command in
+minibuffer, else use last command without bothering you any
+more. If you want to edit it again, please add C-u prefix."
   (interactive)
-  (cond (file-action-first-run-p
-         (catch 'return
-           (mapc (lambda (el)
-                   (let ((matcher (nth 0 el))
-                         (run-handler (nth 3 el)))
-                     (when (or (and (stringp matcher)
-                                    (string-match matcher (buffer-file-name)))
-                               (and (not (stringp matcher))
-                                    (eq matcher major-mode)))
-                       (if (stringp run-handler)
-                           (setq file-action-run-handler
-                                 (file-action-replace run-handler))
-                         (setq file-action-run-handler run-handler))
-                       (throw 'return t))))
-                 file-action-table))
-         (if file-action-run-handler
-             (funcall 'file-action-run1)
-           (call-interactively 'shell-command)
-           (setq file-action-run-handler (car shell-command-history)))
-         (setq file-action-first-run-p nil))
+  (cond ((or current-prefix-arg (not buffer-action-run-action))
+         (let ((run (buffer-action-replace (nth 3 (buffer-action-match)))))
+           (if (stringp run)
+               ;; FIXME: I'm unable to avoid using the deprecated
+               ;; INITIAL-CONTENTS parameter.
+               (progn
+                 (setq buffer-action-run-action
+                       (read-from-minibuffer
+                        "Run-action $ " (concat run " ")))
+                 (buffer-action-shell-command))
+             (setq buffer-action-run-action run)
+             (funcall buffer-action-run-action))))
+        ((stringp buffer-action-run-action)
+         (buffer-action-shell-command))
         (t
-         (funcall 'file-action-run1))))
+         (funcall buffer-action-run-action))))
 
 
-;;; Low Level Functions
+;;; Utilities
 
-(defun file-action-compile1 ()
-  (cond ((stringp file-action-compile-handler)
-         (compile file-action-compile-handler))
-        (t
-         (funcall file-action-compile-handler))))
+(defun buffer-action-replace (any)
+  "If ANY is a string, update it by `buffer-action-replace-table', else
+return ANY unchanged."
+  (let ((ret any))
+    (when (stringp any)
+      (dolist (el buffer-action-replace-table ret)
+        (setq ret (replace-regexp-in-string
+                   (car el) (funcall (cadr el)) ret))))
+    ret))
 
-;; Run shell command either synchronously or asynchronously with a
-;; unique output buffer, whose window will be deleted automatically.
-(defun file-action-shell-command (cmd)
-  (if (string-match "&$" cmd)
-      (let ((buf (generate-new-buffer-name (concat "*" cmd "*"))))
-        (message cmd)
-        (shell-command cmd buf)
-        (delete-window (get-buffer-window buf)))
-    (shell-command cmd)))
+(defun buffer-action-match ()
+  "Retrieve the row matching against current buffer in `buffer-action-table'."
+  (let ((tables buffer-action-table)
+        (row '()))
+    (dolist (i tables)
+      (let ((matcher (nth 0 i)))
+        (when (if (stringp matcher)
+                  (string-match matcher (buffer-file-name))
+                (eq matcher major-mode))
+          (setq tables nil
+                row i))))
+    row))
 
-(defun file-action-run1 ()
-  (cond ((stringp file-action-run-handler)
-         (let ((ret (file-action-shell-command file-action-run-handler)))
-           (when (and (numberp ret) (not (zerop ret)))
-             (call-interactively 'shell-command)
-             (setq file-action-run-handler (car shell-command-history)))))
-        (t
-         (funcall file-action-run-handler))))
+(defun buffer-action-shell-command ()
+  "Run shell command either synchronously or asynchronously(when
+with `&') with a unique output buffer, whose window will be
+deleted automatically."
+  (let ((cmd buffer-action-run-action))
+    (if (string-match "&$" cmd)
+        (let ((buf (generate-new-buffer-name (concat "*" cmd "*"))))
+          (message cmd)
+          (shell-command cmd buf)
+          (delete-window (get-buffer-window buf)))
+      (shell-command cmd))))
 
-(provide 'file-action)
+(provide 'buffer-action)
 
-;;; file-action.el ends here
+;;; buffer-action.el ends here
