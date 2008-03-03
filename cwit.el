@@ -240,7 +240,8 @@ as `move-beginning-of-line'."
          (format "stat[entry]=%s" (url-hexify-string message))))
     (cwit-insert-entry (format-time-string "%H:%M" (current-time))
                        cwit-user-name
-                       message)
+                       message
+                       (format "/profile_images/%s_profile.jpg" cwit-user-name))
     (url-retrieve url 'cwit-send-callback)))
 
 (defun cwit-send-callback (status)
