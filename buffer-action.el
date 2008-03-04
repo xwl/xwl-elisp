@@ -213,12 +213,11 @@ return ANY unchanged."
                   (eq matcher major-mode))
           (setq table nil)
           (setq ret row))))
-    ;; FIXME: there should be a better way to abort, right?
-    (condition-case nil
+    (condition-case nil                 ; abort
         (if ret
             ret
           (error))
-      (error "Match nothing in `buffer-action-table'"))))
+      (error "%s" "Match nothing in `buffer-action-table'"))))
 
 (defun buffer-action-shell-command ()
   "Run shell command either synchronously or asynchronously(when
