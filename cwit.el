@@ -47,10 +47,9 @@
 
 ;;; TODO
 
-;; - my message at the right side?
 ;; - Buddy name completion
-;; - Also checking new news at next page?
 ;; - send texts, move cursor at the end automatically
+;; - cwit-generate-script
 
 ;;; Bugs
 
