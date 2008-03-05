@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.2.0
+;; Version: 0.2.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -99,6 +99,20 @@ centered.  This column denotes the point where the ' ' character
 between <nickname> and the entered text will be put, thus aligning
 nick names right and text left."
   :type 'number
+  :group 'cwit)
+
+(defcustom cwit-directory "~/.cwit"
+  "Directory for caching cwit pages and buddy images.
+Note, if you modify this, you should also update you donwload script
+accordingly."
+  :type 'string
+  :group 'cwit)
+
+(defcustom cwit-use-local nil
+  "When t, we will read cwit pages from `cwit-directory'.
+You can use `cwit-generate-script' to generate a appropriate script for
+downloading the page using wget."
+  :type 'bool
   :group 'cwit)
 
 
@@ -217,11 +231,14 @@ as `move-beginning-of-line'."
 (defvar cwit-start-p nil)
 
 (defun cwit-login ()
-  (let ((url (format "http://%s/users/login" cwit-server))
-        (url-request-method "POST")
-        (url-request-data (format "user[uid]=%s&user[pass]=%s"
-                                  cwit-user-name cwit-user-password)))
-    (url-retrieve url 'cwit-login-callback)))
+  (if cwit-use-local
+      (with-temp-buffer
+        (cwit-login-callback '(dummy)))
+    (let ((url (format "http://%s/users/login" cwit-server))
+          (url-request-method "POST")
+          (url-request-data (format "user[uid]=%s&user[pass]=%s"
+                                    cwit-user-name cwit-user-password)))
+      (url-retrieve url 'cwit-login-callback))))
 
 (defun cwit-login-callback (status)
   (when (eq :error (car status))
@@ -254,7 +271,9 @@ as `move-beginning-of-line'."
   (if (and (not (buffer-live-p (get-buffer cwit-buffer)))
            cwit-receive-timer)
       (cancel-timer cwit-receive-timer)
-    (let ((url (format "http://%s/cwit" cwit-server)))
+    (let ((url (if cwit-use-local
+                   (format "file://%s/cwit" (expand-file-name cwit-directory))
+                 (format "http://%s/cwit" cwit-server))))
       (url-retrieve url 'cwit-receive-callback)
       (message "Reading cwit news..."))))
 
@@ -299,17 +318,29 @@ as `move-beginning-of-line'."
   (let ((inhibit-read-only t))
     (goto-char (marker-position cwit-input-marker))
     (forward-line 0)
-    (insert (format "%s " timestamp ))
-    ;; Hold our image. If simply a whitespace, then fill-region will eat
-    ;; it!
-    (insert ".")
-    (backward-char 1)
-    (let ((start (point))
-          (end (1+ (point))))
-      (put-text-property start end 'w3m-image (concat "http://" cwit-server image-url))
-      (put-text-property start end 'w3m-image-size '(48 . 48))
-      (w3m-toggle-inline-image t)
-      (forward-char 1))
+    (insert (concat timestamp " "))
+    (if cwit-use-local
+        (let* ((file (format "%s/images/%s.jpg"
+                             (expand-file-name cwit-directory)
+                             author))
+               (id (create-image
+                    (if (file-exists-p file)
+                        file
+                      (format "%s/images/%s.jpg"
+                              (expand-file-name cwit-directory)
+                              "default")))))
+          (insert-image id "."))
+      ;; Hold our image. If simply a whitespace, then fill-region will eat
+      ;; it!
+      (insert ".")
+      (backward-char 1)
+      (let ((start (point))
+            (end (1+ (point)))
+            (url (concat "http://" cwit-server image-url)))
+        (put-text-property (point) (1+ (point)) 'w3m-image url)
+        (put-text-property start end 'w3m-image-size '(48 . 48))
+        (w3m-toggle-inline-image t)
+        (forward-char 1)))
     (insert (format " <%s> %s\n" author message))
     (let ((end (point))
           (fill-prefix (make-string cwit-fill-static-center 32)))
