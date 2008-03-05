@@ -49,7 +49,6 @@
 
 ;; - Buddy name completion
 ;; - send texts, move cursor at the end automatically
-;; - cwit-generate-script
 
 ;;; Bugs
 
@@ -109,8 +108,8 @@ accordingly."
 
 (defcustom cwit-use-local nil
   "When t, we will read cwit pages from `cwit-directory'.
-You can use `cwit-generate-script' to generate a appropriate script for
-downloading the page using wget."
+You can use `cwit-generate-script' to generate an appropriate
+script in current buffer for downloading cwit pages using wget."
   :type 'bool
   :group 'cwit)
 
@@ -391,6 +390,52 @@ Put this function on `cwit-insert-entry'."
 ;;   (put-text-property (point-min) (1- (point-max)) 'read-only t)
 ;;   (put-text-property (point-min) (point-max) 'front-sticky t)
 ;;   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
+
+(defun cwit-generate-script ()
+  "Generate a proper external script in current buffer."
+  (interactive)
+  (insert
+   (format "#!/bin/sh
+
+# Keep this file secret!
+
+host=http://isugamo.local.ce-lab.net
+user=%s
+passwd=%s
+cwit_dir=%s
+
+\[ ! -e ${cwit_dir} ] && mkdir ${cwit_dir}
+
+# Login
+wget -O ${cwit_dir}/login \"${host}/users/login\" \\
+--post-data=\"user[uid]=${user}&user[pass]=${passwd}\" \\
+--cookies=on --keep-session-cookies --save-cookies=${cwit_dir}/cookies
+
+# # Get cwit page
+wget -O ${cwit_dir}/cwit \"${host}/cwit\" \\
+--cookies=on --keep-session-cookies --load-cookies=${cwit_dir}/cookies
+
+# Download profile images
+
+\[ ! -e ${cwit_dir}/images ] && mkdir ${cwit_dir}/images
+
+for i in `grep profile_images ${cwit_dir}/cwit | sed 's/.*\\(profile_images.*\\)/\\1/' | cut -d '\"' -f 1`
+do
+    image=`sed 's/.*\\/\\(.*\\.jpg\\).*/\\1/' <<< \"${i}\" | sed 's/_profile//'`
+    image_path=\"${cwit_dir}/images/${image}\"
+    wget \"${host}/${i}\" -O ${image_path}
+    convert ${image_path} -resize 48x48 ${image_path}
+done
+
+# my own image
+my_image_path=\"${cwit_dir}/images/${user}.jpg\"
+wget \"${host}/profile_images/${user}_profile.jpg\" -O ${my_image_path}
+convert ${my_image_path} -resize 48x48 ${my_image_path}
+"
+           cwit-user-name
+           cwit-user-password
+           cwit-directory)))
+
 
 (provide 'cwit)
 
