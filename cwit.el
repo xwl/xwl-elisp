@@ -273,7 +273,8 @@ as `move-beginning-of-line'."
                    (format "file://%s/cwit" (expand-file-name cwit-directory))
                  (format "http://%s/cwit" cwit-server))))
       (url-retrieve url 'cwit-receive-callback)
-      (message "Reading cwit news..."))))
+      (unless cwit-use-local
+        (message "Reading cwit news...")))))
 
 (defun cwit-receive-callback (status)
   (when (eq :error (car status))
