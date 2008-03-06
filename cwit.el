@@ -294,7 +294,8 @@ as `move-beginning-of-line'."
     (kill-buffer (current-buffer))
     (with-current-buffer cwit-buffer
       (if (not entries)
-          (message "No cwit news is good news")
+          (unless cwit-use-local
+            (message "No cwit news is good news"))
         (setq cwit-last-entry-index (car last-entry))
         ;; for debug
         ;; (setq entries (list (car entries)))
