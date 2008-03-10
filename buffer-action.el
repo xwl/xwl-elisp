@@ -78,6 +78,7 @@ end).
 (defcustom buffer-action-table
   '((c-mode "gcc -O2 %f -lm -o %n" "%n" "./%n")
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
+    (makefile-mode "Makefile" nil nil)
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
     ("\\.php$" nil nil "php %f")
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
