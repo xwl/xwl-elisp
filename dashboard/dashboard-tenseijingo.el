@@ -46,7 +46,7 @@
 (defun dashboard-tenseijingo-callback (&optional status)
   (when (eq :error (car status))
     (error "dashboard-tenseijingo-callback: %S" status))
-  (dashboard-decode-html)
+  (url-html-decode-buffer)
   ;; (switch-to-buffer (current-buffer))
   (goto-char (point-min))
   (let ((date "")
@@ -81,7 +81,6 @@
 
 ;;; Setup
 
-;; FIXME, this does not work.
 (setq dashboard-font-lock-keywords
       (cons '("天声人語" (0 dashboard-widget-face nil t))
             dashboard-font-lock-keywords))
