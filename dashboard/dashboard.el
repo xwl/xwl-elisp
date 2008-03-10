@@ -69,9 +69,7 @@
   ;; TODO, convert a user defined list to a sequence pair
   ;; Should run sequencely for the first time
   (dashboard-insert-by-column 'nba-standing 'nba-scoreboard)
-  (dashboard-insert-by-row 'nba-standing 'tenseijingo)
-  ;; 'skip)
-  )
+  (dashboard-insert-by-row 'nba-standing 'tenseijingo 'skip))
 
 
 ;;; dashboard-mode
