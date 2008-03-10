@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(require 'url-html)
+
 ;;; Customizations And Interfaces
 
 (defgroup dashboard nil
@@ -66,8 +68,9 @@
   (interactive)
   ;; TODO, convert a user defined list to a sequence pair
   ;; Should run sequencely for the first time
- (dashboard-insert-by-column 'nba-standing 'nba-scoreboard)
+  (dashboard-insert-by-column 'nba-standing 'nba-scoreboard)
   (dashboard-insert-by-row 'nba-standing 'tenseijingo)
+  ;; 'skip)
   )
 
 
@@ -183,37 +186,33 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
             (set lower-left (progn (goto-char (- (point) width 1))
                                    (point-marker)))))))))
 
-(defun dashboard-insert-by-column (w1 w2)
+(defun dashboard-insert-by-column (w1 w2 &optional skip-w1)
   (let* ((w1-update (intern (format "dashboard-%s" w1)))
          (w2-update (intern (format "dashboard-%s" w2)))
          (base (intern (format "dashboard-%s-upper-right-marker" w1))))
-    (funcall w1-update)
-    (while (not (marker-position (symbol-value base)))
-      (sleep-for 1))
+    (unless skip-w1
+      (funcall w1-update))
+    (unless (marker-position (symbol-value base))
+      (sleep-for 3))
+    (unless (marker-position (symbol-value base))
+      (error "dashboard-insert-by-column for w1 timeout"))
     (setq dashboard-base-point (marker-position (symbol-value base)))
     (setq dashboard-insert-by-row-p nil)
     (funcall w2-update)))
 
-(defun dashboard-insert-by-row (w1 w2)
+(defun dashboard-insert-by-row (w1 w2 &optional skip-w1)
   (let* ((w1-update (intern (format "dashboard-%s" w1)))
          (w2-update (intern (format "dashboard-%s" w2)))
          (base (intern (format "dashboard-%s-lower-left-marker" w1))))
-    (funcall w1-update)
-    (while (not (marker-position (symbol-value base)))
-      (sleep-for 1))
+    (unless skip-w1
+      (funcall w1-update))
+    (unless (marker-position (symbol-value base))
+      (sleep-for 3))
+    (unless (marker-position (symbol-value base))
+      (error "dashboard-insert-by-row for w1 timeout"))
     (setq dashboard-base-point (marker-position (symbol-value base)))
     (setq dashboard-insert-by-row-p t)
     (funcall w2-update)))
-
-(defun dashboard-decode-html ()
-  "Decode html buffer retrieved by `url-retrieve'."
-  (let ((coding 'utf-8))
-    (when (save-excursion
-            (goto-char (point-min))
-            (re-search-forward "charset=[[:blank:]]*\\([a-zA-Z_-]+\\)" nil t 1))
-      (setq coding (intern (downcase (match-string 1)))))
-    (set-buffer-multibyte t)
-    (decode-coding-region (point-min) (point-max) coding)))
 
 
 ;;; Sample Widgets: nba-standing, nba-scoreboard
@@ -222,6 +221,38 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
 (defvar dashboard-nba-standing-upper-right-marker (make-marker))
 (defvar dashboard-nba-standing-lower-left-marker (make-marker))
 (defvar dashboard-nba-standing-lower-right-marker (make-marker))
+
+(defconst dashboard-nba-team-chinese
+  '(("celtics" . "凯尔特人")
+    ("pistons" . "活塞")
+    ("magic" . "魔术")
+    ("raptors" . "猛龙")
+    ("cavaliers" . "骑士")
+    ("wizards" . "奇才")
+    ("nets" . "网队")
+    ("sixers" . "76人")
+    ("hawks" . "老鹰")
+    ("bulls" . "公牛")
+    ("pacers" . "步行者")
+    ("bucks" . "雄鹿")
+    ("bobcats" . "山猫")
+    ("knicks" . "尼克斯")
+    ("heat" . "热火")
+    ("hornets" . "黄蜂")
+    ("lakers" . "湖人")
+    ("suns" . "太阳")
+    ("jazz" . "爵士")
+    ("spurs" . "马刺")
+    ("mavericks" . "小牛")
+    ("rockets" . "火箭")
+    ("nuggets" . "掘金")
+    ("warriors" . "勇士")
+    ("blazers" . "开拓者")
+    ("kings" . "国王")
+    ("clippers" . "快船")
+    ("sonics" . "超音速")
+    ("grizzlies" . "灰熊")
+    ("timberwolves" . "森林狼")))
 
 (defun dashboard-nba-standing ()
   "Get nba standing from www.nba.com."
@@ -239,11 +270,12 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
     (goto-char (point-min))
     (when (re-search-forward "<tr><td colspan=15 class=\"confTitle\">Eastern Conference</td></tr>" nil t 1)
       (dotimes (i 15)                   ; team numbers
-        (re-search-forward "<td class=\"team\"><a href=\"/\\(.*\\)/\">\\(.*\\)</a></td> ")
-        (let ((team (list (if (= i 7)   ; highlight the 8-th team
-                              (concat "*" (match-string 2) "*")
-                            (match-string 2))
-                          (match-string 1))))
+        (re-search-forward "<td class=\"team\"><a href=\"/\\(.*\\)/\">\\(.*\\)</a>.*</td> ")
+        (let* ((city (if (= i 7)        ; highlight the 8-th team
+                         (concat "*" (match-string 2) "*")
+                       (match-string 2)))
+               (nick (cdr (assoc (match-string 1) dashboard-nba-team-chinese)))
+               (team (list city nick)))
           (dotimes (j 10)               ; columns
             (re-search-forward "<td>\\(.*\\)</td>" nil 1)
             (setq team (append team (list (replace-regexp-in-string
@@ -251,11 +283,12 @@ The starting point is at `dashboard-base-point'. WIDGET is a symbol."
           (setq eastern (append eastern (list team))))))
     (when (re-search-forward "<tr><td colspan=15 class=\"confTitle\">Western Conference</td></tr>" nil t 1)
       (dotimes (i 15)                   ; team numbers
-        (re-search-forward "<td class=\"team\"><a href=\"/\\(.*\\)/\">\\(.*\\)</a></td> ")
-        (let ((team (list (if (= i 7)   ; highlight the 8-th team
-                              (concat "*" (match-string 2) "*")
-                            (match-string 2))
-                          (match-string 1))))
+        (re-search-forward "<td class=\"team\"><a href=\"/\\(.*\\)/\">\\(.*\\)</a>.*</td> ")
+        (let* ((city (if (= i 7)        ; highlight the 8-th team
+                         (concat "*" (match-string 2) "*")
+                       (match-string 2)))
+               (nick (cdr (assoc (match-string 1) dashboard-nba-team-chinese)))
+               (team (list city nick)))
           (dotimes (j 10)               ; columns
             (re-search-forward "<td>\\(.*\\)</td>" nil 1)
             (setq team (append team (list (replace-regexp-in-string
@@ -286,8 +319,7 @@ EASTERN and WESTERN are lists in the form of:
                         (nth 5 i) (nth 6 i) (nth 7 i) (nth 8 i) (nth 9 i)
                         (nth 10 i) (nth 11 i))))
       (insert "\n")
-      (let ((title (format-time-string "NBA Standing  %Y/%m/%d %H:%M:%S"
-                                       (current-time))))
+      (let ((title (format-time-string "NBA Standing %H:%M:%S" (current-time))))
         (insert (dashboard-padding title width)))
       (dashboard-insert-as-rectangle 'nba-standing (buffer-string)))))
 
@@ -324,8 +356,13 @@ EASTERN and WESTERN are lists in the form of:
         (setq home-team (match-string 1))
         (when (re-search-forward ">\\([0-9]+\\)<" nil t 1)
           (setq home-score (match-string 1)))
-        (setq score (cons (list visit-team visit-score home-team home-score)
-                          score))))
+        (setq score
+              (cons
+               (list (cdr (assoc visit-team dashboard-nba-team-chinese))
+                     visit-score
+                     (cdr (assoc home-team dashboard-nba-team-chinese))
+                     home-score)
+               score))))
     (kill-buffer (current-buffer))
     (dashboard-nba-scoreboard-format score)))
 
@@ -349,7 +386,7 @@ EASTERN and WESTERN are lists in the form of:
       (insert "\n")
       (insert
        (dashboard-padding
-        (format-time-string "NBA Scoreboard  %Y/%m/%d %H:%M:%S" (current-time))
+        (format-time-string "NBA Scoreboard %H:%M:%S" (current-time))
         width))
       (dashboard-insert-as-rectangle 'nba-scoreboard (buffer-string)))))
 
