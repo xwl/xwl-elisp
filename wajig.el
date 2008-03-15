@@ -5,7 +5,7 @@
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.6
 ;; Url: http://williamxu.net9.org
-;; Last updated: 2008/01/30
+;; Last updated: 2008/03/15
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -182,7 +182,7 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
   (setq wajig-commands-string
         (shell-command-to-string
          (format "%s sudo wajig list-commands"
-                 (mapconcat (lambda (i) i) wajig-command-prefix " "))))
+                 (mapconcat 'identity wajig-command-prefix " "))))
   (wajig-update-installed-pkgs)
   (wajig-update-daemons)
   (wajig-update-command-path-alist)
@@ -207,7 +207,7 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
 	(split-string
 	 (shell-command-to-string
           (format "%s sudo wajig list-installed"
-                  (mapconcat (lambda (i) i) wajig-command-prefix " "))))))
+                  (mapconcat 'identity wajig-command-prefix " "))))))
 
 (defun wajig-update-daemons ()
   "Update daemons' list."
@@ -217,7 +217,7 @@ e.g., '((\"ls\" . \"/bin/ls\")). ")
 	  "^Found.*\n" ""
 	  (shell-command-to-string
            (format "%s sudo wajig list-daemons"
-                   (mapconcat (lambda (i) i) wajig-command-prefix " ")))))))
+                   (mapconcat 'identity wajig-command-prefix " ")))))))
 
 (defun wajig-update-command-path-alist ()
   "Update `wajig-command-path-alist' immediately."
@@ -325,7 +325,7 @@ pkg is the package name to operate on."
 		      (list
 		       (wajig-completing-read
 			,(format "$ %s sudo wajig %s "
-                                 (mapconcat (lambda (i) i) wajig-command-prefix " ")
+                                 (mapconcat 'identity wajig-command-prefix " ")
                                  command)
 			,(if (memq wajig-command
 				  wajig-daemons-command-list)
@@ -543,7 +543,7 @@ OPTION could be:
    (list
     (wajig-completing-read
      (format "$ %s apt-cache search -n "
-             (mapconcat (lambda (i) i) wajig-command-prefix " "))
+             (mapconcat 'identity wajig-command-prefix " "))
      wajig-installed-pkgs)))
   (wajig-do `("apt-cache" "search" ,pkg "-n")))
 
