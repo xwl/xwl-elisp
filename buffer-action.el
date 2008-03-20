@@ -94,7 +94,7 @@ end).
      "%n.elc"
      eval-buffer)
     ("\\.info$" nil nil (lambda () (info (buffer-file-name))))
-    ("\\.dot$" "dot -Tjpg %f -o %n.jpg" "%n.png" "qiv %f")
+    ("\\.dot$" "dot -Tjpg %f -o %n.jpg" "%n.png" "qiv %f &")
     )
   "Each element in the table has the form:
 
