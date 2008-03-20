@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007, 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 3.0
+;; Version: 3.1
 ;; Url: http://williamxu.net9.org/ref/buffer-action.el
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -93,8 +93,9 @@ end).
        (byte-compile-file (buffer-action-replace "%f")))
      "%n.elc"
      eval-buffer)
-
-    ("\\.info$" nil nil (lambda () (info (buffer-file-name)))))
+    ("\\.info$" nil nil (lambda () (info (buffer-file-name))))
+    ("\\.dot$" "dot -Tjpg %f -o %n.jpg" "%n.png" "qiv %f")
+    )
   "Each element in the table has the form:
 
     '(MATCHER COMPILER-ACTION BIN RUN-ACTION)
