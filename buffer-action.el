@@ -75,7 +75,7 @@ end).
   :type 'symbol
   :group 'buffer-action)
 
-(defcustom buffer-action-table
+(setq buffer-action-table
   '((c-mode "gcc -O2 %f -lm -o %n" "%n" "./%n")
     (c++-mode "g++ -O2 %f -lm -o %n" "%n" "./%n")
     (makefile-mode "make" nil nil)
@@ -86,8 +86,9 @@ end).
      makeinfo-buffer
      "%n.info"
      (lambda ()
-       (Info-revert-find-node (buffer-action-replace "%n.info")
-                              (makeinfo-current-node))))
+       (Info-revert-find-node
+        (replace-regexp-in-string "\\.*$" ".info" (buffer-action-replace "%F"))
+        (makeinfo-current-node))))
     (emacs-lisp-mode
      (lambda ()
        (byte-compile-file (buffer-action-replace "%f")))
@@ -95,7 +96,7 @@ end).
      eval-buffer)
     ("\\.info$" nil nil (lambda () (info (buffer-file-name))))
     ("\\.dot$" "dot -Tjpg %f -o %n.jpg" "%n.png" "qiv %f &")
-    )
+    ))
   "Each element in the table has the form:
 
     '(MATCHER COMPILER-ACTION BIN RUN-ACTION)
