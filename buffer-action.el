@@ -83,13 +83,14 @@ end).
     ("\\.php$" nil nil "php %f")
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
     (texinfo-mode
-     makeinfo-buffer
-     "%n.info"
      (lambda ()
        (texinfo-make-menu)
        (texinfo-all-menus-update)
        (texinfo-every-node-update)
        (save-buffer)
+       (makeinfo-buffer))
+     "%n.info"
+     (lambda ()
        (Info-revert-find-node
         (replace-regexp-in-string "\\.texinfo*$" ".info" (buffer-action-replace "%F"))
         (makeinfo-current-node))))
