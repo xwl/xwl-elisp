@@ -53,7 +53,12 @@
 
 ;;; Code:
 
-(require 'nnheader)
+;; FIXME: i have to copy mail-header-extra here?
+;; (require 'nnheader)
+
+;; (defmacro mail-header-extra (header)
+;;   "Return the extra headers in HEADER."
+;;   `(aref ,header 9))
 
 ;;;###autoload
 (defun rs-gnus-summary-tree-arrows-ascii-default ()
