@@ -1,1 +1,1 @@
-include ../Makefile.common
+include ~/.emacs.d/site-lisp/Makefile.common
