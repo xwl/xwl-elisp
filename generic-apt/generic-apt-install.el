@@ -1,4 +1,4 @@
-;;; generic-apt-install.el --- install generic-apt
+;;; generic-apt-install.el --- install generic-apt extension
 
 ;; Copyright (C) 2008 William Xu
 
@@ -22,9 +22,14 @@
 
 ;;; Commentary:
 
-;; Put this file into your load-path and the following into your
+;; See `generic-apt.el' for a brief description of what this extension
+;; does.
+
+;; Put generic-apt files into your load-path and the following into your
 ;; ~/.emacs:
 ;;           (require 'generic-apt-install)
+;;
+;; Then type: `M-x generic-apt'.
 
 ;;; Code:
 
