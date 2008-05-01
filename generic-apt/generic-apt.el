@@ -27,15 +27,12 @@
 ;; tools, such as: apt-get(Debian GNU/Linux), yum(redhat/fedora),
 ;; emerge(Gentoo GNU/Linux), fink(Mac OS X), pkg-get(Solaris), etc.
 
-;; Put this file into your load-path and the following into your
-;; ~/.emacs:
-;;           (autoload 'generic-apt "generic-apt")
+;; See `generic-apt-install.el' for installation instructions.
 
 ;;; TODO
 
-;; - Support multiple sessions, i.e., use local variables.
-;; - startup screen better print some more useful info on the screen.
 ;; - search by name,  search by description.
+;; - 关键字高亮
 
 ;;; Code:
 
@@ -91,54 +88,50 @@ as: \"$ ssh foo sudo apt-get ...\""
 
 (defvar generic-apt-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "C" 'generic-apt-auto-clean)
-    (define-key map "c" 'generic-apt-commands)
-    (define-key map "d" 'generic-apt-source)
-    (define-key map "D" 'generic-apt-source-download)
-    (define-key map "E" 'generic-apt-edit-sources)
     (define-key map "h" 'generic-apt-help)
+    (define-key map "u" 'generic-apt-update)
     (define-key map "i" 'generic-apt-install)
     (define-key map "I" 'generic-apt-install-at-point)
     (define-key map "K" 'generic-apt-kill)
-    (define-key map "l" 'generic-apt-list-files)
-    (define-key map "m" 'generic-apt-manually)
+    (define-key map "s" 'generic-apt-search)
+    ;; (define-key map "S" 'generic-apt-search-by-name)
     (define-key map "o" 'generic-apt-show)
     (define-key map "R" 'generic-apt-remove)
-    (define-key map "S" 'generic-apt-search)
-    (define-key map "r" 'generic-apt-run-frequent-commands)
-    (define-key map "s" 'generic-apt-search-by-name)
-    (define-key map "t" 'generic-apt-toupgrade)
-    (define-key map "u" 'generic-apt-update)
     (define-key map "U" 'generic-apt-upgrade)
+    (define-key map "E" 'generic-apt-edit-sources)
+
+;;     (define-key map "C" 'generic-apt-auto-clean)
+;;     (define-key map "c" 'generic-apt-commands)
+;;     (define-key map "d" 'generic-apt-source)
+;;     (define-key map "D" 'generic-apt-source-download)
+
+;;     (define-key map "l" 'generic-apt-list-files)
+;;     (define-key map "t" 'generic-apt-toupgrade)
+
+
     (define-key map "" 'generic-apt-show-at-point)
-    (define-key map "w" 'generic-apt-whichpkg)
+;;     (define-key map "w" 'generic-apt-whichpkg)
     ;; query status
-    (define-key map (kbd "Q a") 'generic-apt-available)
-    (define-key map (kbd "Q b") 'generic-apt-bug)
-    (define-key map (kbd "Q c") 'generic-apt-changelog)
-    (define-key map (kbd "Q i") 'generic-apt-query-installed)
-    (define-key map (kbd "Q l") 'generic-apt-list-log)
-    (define-key map (kbd "Q N") 'generic-apt-non-free)
-    (define-key map (kbd "Q n") 'generic-apt-news)
-    (define-key map (kbd "Q p") 'generic-apt-policy)
-    (define-key map (kbd "Q r") 'generic-apt-readme)
-    (define-key map (kbd "Q S") 'generic-apt-list-scripts)
-    (define-key map (kbd "Q s") 'generic-apt-status)
-    ;; file operation
-    (define-key map (kbd "F i") 'generic-apt-file-install)
-    ;; services control
-    (define-key map (kbd "V x") 'generic-apt-start)
-    (define-key map (kbd "V v") 'generic-apt-stop)
-    (define-key map (kbd "V r") 'generic-apt-restart)
+;;     (define-key map (kbd "Q a") 'generic-apt-available)
+;;     (define-key map (kbd "Q b") 'generic-apt-bug)
+;;     (define-key map (kbd "Q c") 'generic-apt-changelog)
+;;     (define-key map (kbd "Q i") 'generic-apt-query-installed)
+;;     (define-key map (kbd "Q l") 'generic-apt-list-log)
+;;     (define-key map (kbd "Q N") 'generic-apt-non-free)
+;;     (define-key map (kbd "Q n") 'generic-apt-news)
+;;     (define-key map (kbd "Q p") 'generic-apt-policy)
+;;     (define-key map (kbd "Q r") 'generic-apt-readme)
+;;     (define-key map (kbd "Q S") 'generic-apt-list-scripts)
+;;     (define-key map (kbd "Q s") 'generic-apt-status)
     ;; cursor movement
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
-    ;; network admin
-    (define-key map (kbd "N i") 'generic-apt-network-ifconfig)
-    (define-key map (kbd "N n") 'generic-apt-network-netstat)
-    (define-key map (kbd "N p") 'generic-apt-network-ping)
-    (define-key map (kbd "N t") 'generic-apt-network-traceroute)
-    (define-key map (kbd "N m") 'generic-apt-network-nmap)
+;;     ;; network admin
+;;     (define-key map (kbd "N i") 'generic-apt-network-ifconfig)
+;;     (define-key map (kbd "N n") 'generic-apt-network-netstat)
+;;     (define-key map (kbd "N p") 'generic-apt-network-ping)
+;;     (define-key map (kbd "N t") 'generic-apt-network-traceroute)
+;;     (define-key map (kbd "N m") 'generic-apt-network-nmap)
     map)
     "Keymap for `generic-apt-mode'.")
 
@@ -170,23 +163,6 @@ as: \"$ ssh foo sudo apt-get ...\""
 (define-derived-mode generic-apt-mode nil "Generic-Apt"
   "Major mode for generic apt alike interfaces for various package management tools.
 \\{generic-apt-mode-map}"
-  (setq generic-apt-command
-        (ido-completing-read "generic-apt: "
-                             (mapcar (lambda (i) (cadr i))
-                                     generic-apt-select-methods)))
-  (setq generic-apt-protocol
-        (let ((methods generic-apt-select-methods)
-              (i nil)
-              (ret nil))
-          (while methods
-            (setq i (car methods)
-                  methods (cdr methods))
-            (when (string= generic-apt-command (cadr i))
-              (setq ret (car i)
-                    methods nil)))
-          ret))
-  (setq generic-apt-buffer-name
-        (format "*Generic-Apt/%s*" generic-apt-command))
   (set-syntax-table generic-apt-mode-syntax-table)
   (setq font-lock-defaults '(generic-apt-font-lock-keywords))
   (setq buffer-read-only t)
@@ -195,12 +171,30 @@ as: \"$ ssh foo sudo apt-get ...\""
   (generic-apt-help))
 
 ;;;###autoload
-(defun generic-apt ()
+(defun generic-apt (&optional method)
   "Create or switch to a generic-apt buffer."
   (interactive)
   (let ((generic-apt-exist-p (get-buffer generic-apt-buffer-name)))
     (switch-to-buffer generic-apt-buffer-name)
     (unless generic-apt-exist-p
+      (setq generic-apt-command
+            (or method
+                (ido-completing-read "generic-apt: "
+                                     (mapcar (lambda (i) (cadr i))
+                                             generic-apt-select-methods))))
+      (setq generic-apt-protocol
+            (let ((methods generic-apt-select-methods)
+                  (i nil)
+                  (ret nil))
+              (while methods
+                (setq i (car methods)
+                      methods (cdr methods))
+                (when (string= generic-apt-command (cadr i))
+                  (setq ret (car i)
+                        methods nil)))
+              ret))
+      (setq generic-apt-buffer-name
+            (format "*Generic-Apt/%s*" generic-apt-command))
       (generic-apt-mode))))
 
 
@@ -340,9 +334,11 @@ Here is a brief list of the most used commamnds:
     s - Search packages
     o - Describe a package
     i - Install a package
-    u - Upgrade a package
-    r - Remove a package
+    U - Upgrade a package
+    R - Remove a package
     E - Edit config file
+
+------------- done --------------
 ")
     (message "For a list of all available commands, press `F1 m'.")))
 
