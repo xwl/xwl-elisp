@@ -175,7 +175,6 @@ as: \"$ ssh foo sudo apt-get ...\""
   "Create or switch to a generic-apt buffer."
   (interactive)
   (let ((generic-apt-exist-p (get-buffer generic-apt-buffer-name)))
-    (switch-to-buffer generic-apt-buffer-name)
     (unless generic-apt-exist-p
       (setq generic-apt-command
             (or method
@@ -194,7 +193,9 @@ as: \"$ ssh foo sudo apt-get ...\""
                         methods nil)))
               ret))
       (setq generic-apt-buffer-name
-            (format "*Generic-Apt/%s*" generic-apt-command))
+            (format "*Generic-Apt/%s*" generic-apt-command)))
+    (switch-to-buffer generic-apt-buffer-name)
+    (unless generic-apt-exist-p
       (generic-apt-mode))))
 
 
@@ -362,24 +363,25 @@ Here is a brief list of the most used commamnds:
 ;;; Required Backend Interface
 
 (defun generic-apt-edit-sources ()
-  "Edit /etc/apt/sources.list using `tramp'."
+  "Edit /etc/apt/sources.list using sudo, with `tramp' when necessary."
   (interactive)
   (let ((f (funcall
             (intern
              (format "generic-apt-%S-edit-sources" generic-apt-protocol)))))
-    (when (string-match "^ssh" generic-apt-command)
-      (let ((hostname "")
-            (proxies tramp-default-proxies-alist)
-            (i '()))
-        (while proxies
-          (setq i (car proxies)
-                proxies (cdr proxies))
-          (when (string-match (regexp-opt (list (car i)))
-                              generic-apt-command)
-            (setq hostname (car i)
-                  (setq f (format "/ssh:%s:%s" hostname f)))
-            (setq proxies nil)))))
-    (find-file f)))
+    (if (string-match "^ssh" generic-apt-command)
+        (let ((hostname "")
+              (proxies tramp-default-proxies-alist)
+              (i '()))
+          (while proxies
+            (setq i (car proxies)
+                  proxies (cdr proxies))
+            (when (string-match (regexp-opt (list (car i)))
+                                generic-apt-command)
+              (setq hostname (car i)
+                    (setq f (format "/ssh:%s:%s" hostname f)))
+              (setq proxies nil)))
+          (find-file f))
+      (find-file (concat "/sudo::" f)))))
 
 (defun generic-apt-search (pkg)
   "Search PKG by package name."
