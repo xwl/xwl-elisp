@@ -33,6 +33,8 @@
 
 ;; - search by name,  search by description.
 ;; - 关键字高亮
+;; - remove generic-apt-install.el, 而用类似 gnus add-to-methods 的方式
+;;   来添加新的 methods
 
 ;;; Code:
 
@@ -82,6 +84,10 @@ as: \"$ ssh foo sudo apt-get ...\""
 
 (defvar generic-apt-available-pkgs '())
 (make-local-variable 'generic-apt-buffer-name)
+
+(defvar generic-apt-font-lock-keywords nil
+  "Keywords to highlight in generic-apt mode.")
+(make-local-variable 'generic-apt-font-lock-keywords)
 
 
 ;;; Generic-Apt Mode
@@ -141,25 +147,6 @@ as: \"$ ssh foo sudo apt-get ...\""
     st)
   "Syntax table used while in `generic-apt-mode'.")
 
-(defvar generic-apt-font-lock-keywords
-  `(("^Package:\\(.*\\)"
-     (1 font-lock-function-name-face nil t))
-    ("^Conflicts:"
-     (0 font-lock-warning-face nil t))
-    ("^Description:\\(.*\n\\)"
-     (1 font-lock-function-name-face nil t))
-    (,(concat
-       "^\\("
-       (regexp-opt
-	'("Package" "Priority" "Section" "Installed-Size" "Maintainer"
-	  "Architecture" "Version" "Depends" "Suggests" "Filename"
-	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
-	  "Conffiles" "Source" "Provides" "Pre-Depends" "Recommends"
-          "SHA1" "SHA256" "Enhances" "Config-Version" "Task"))
-       "\\):")
-     (0 font-lock-keyword-face t t)))
-  "Keywords to highlight in generic-apt mode.")
-
 (define-derived-mode generic-apt-mode nil "Generic-Apt"
   "Major mode for generic apt alike interfaces for various package management tools.
 \\{generic-apt-mode-map}"
@@ -174,8 +161,8 @@ as: \"$ ssh foo sudo apt-get ...\""
 (defun generic-apt (&optional method)
   "Create or switch to a generic-apt buffer."
   (interactive)
-  (let ((generic-apt-exist-p (get-buffer generic-apt-buffer-name)))
-    (unless generic-apt-exist-p
+  (let ((exist-p (get-buffer generic-apt-buffer-name)))
+    (unless exist-p
       (setq generic-apt-command
             (or method
                 (ido-completing-read "generic-apt: "
@@ -192,10 +179,13 @@ as: \"$ ssh foo sudo apt-get ...\""
                   (setq ret (car i)
                         methods nil)))
               ret))
+      (setq generic-apt-font-lock-keywords
+            (intern (format "generic-apt-%S-font-lock-keywords"
+                            generic-apt-protocol)))
       (setq generic-apt-buffer-name
             (format "*Generic-Apt/%s*" generic-apt-command)))
     (switch-to-buffer generic-apt-buffer-name)
-    (unless generic-apt-exist-p
+    (unless exist-p
       (generic-apt-mode))))
 
 
