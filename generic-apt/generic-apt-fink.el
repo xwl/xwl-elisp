@@ -52,7 +52,7 @@
         (split-string
          (generic-apt-run-command-to-string
           ;; FIXME: Why doesn't "sed 's/.\{4\}'"  work?
-          "list | head | sed 's/....//' | awk '{print $1}'"))))
+          "list | sed 's/....//' | awk '{print $1}'"))))
 
 (provide 'generic-apt-fink)
 
