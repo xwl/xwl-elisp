@@ -22,9 +22,6 @@
 
 ;;; Commentary:
 
-;; See `generic-apt.el' for a brief description of what this extension
-;; does.
-
 ;; Put generic-apt files into your load-path and the following into your
 ;; ~/.emacs:
 ;;           (require 'generic-apt-install)

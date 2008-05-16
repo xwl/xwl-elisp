@@ -29,13 +29,6 @@
 
 ;; See `generic-apt-install.el' for installation instructions.
 
-;;; TODO
-
-;; - search by name,  search by description.
-;; - 关键字高亮
-;; - remove generic-apt-install.el, 而用类似 gnus add-to-methods 的方式
-;;   来添加新的 methods
-
 ;;; Code:
 
 (require 'tramp)
@@ -72,9 +65,8 @@ as: \"$ ssh foo sudo apt-get ...\""
   :type 'list
   :group 'generic-apt)
 
-;; Symbol tag for different tools.
 (defvar generic-apt-protocol nil)
-(make-local-variable 'generic-apt-tag)
+(make-local-variable 'generic-apt-protocol)
 
 (defvar generic-apt-command "")
 (make-local-variable 'generic-apt-command)
@@ -350,7 +342,7 @@ Here is a brief list of the most used commamnds:
    (current-word)))
 
 
-;;; Required Backend Interface
+;;; Required Backend Interfaces
 
 (defun generic-apt-edit-sources ()
   "Edit /etc/apt/sources.list using sudo, with `tramp' when necessary."
@@ -427,7 +419,25 @@ Here is a brief list of the most used commamnds:
 ;; generic-apt-%s-update-available-pkgs
 
 
+;;; Optional Backend Interfaces
+
+(defun generic-apt-upgrade-all ()
+  "Upgrade all installed packages."
+  (interactive)
+  (let ((func (intern (format "generic-apt-%S-upgrade-all"
+                              generic-apt-protocol))))
+    (if (fboundp func)
+        (funcall func)
+      (generic-apt-info-unsupported))))
+
+
 ;;; Utilities
+
+(defun generic-apt-info-unsupported ()
+  (message "Requested operation is not yet supported for `%S' backend"
+           generic-apt-protocol))
+
+
 
 
 ;; ;; Compatibility

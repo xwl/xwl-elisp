@@ -61,6 +61,12 @@
           ;; FIXME: Why doesn't "sed 's/.\{4\}'"  work?
           "list | sed 's/....//' | awk '{print $1}'"))))
 
+
+;;; Optional Interfaces
+
+(defun generic-apt-fink-upgrade-all ()
+  (generic-apt-run-command (list "update-all")))
+
 (provide 'generic-apt-fink)
 
 ;;; generic-apt-fink.el ends here
