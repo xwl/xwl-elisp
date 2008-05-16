@@ -75,7 +75,7 @@ as: \"$ ssh foo sudo apt-get ...\""
 (make-local-variable 'generic-apt-buffer-name)
 
 (defvar generic-apt-available-pkgs '())
-(make-local-variable 'generic-apt-buffer-name)
+(make-local-variable 'generic-apt-available-pkgs)
 
 (defvar generic-apt-font-lock-keywords nil
   "Keywords to highlight in generic-apt mode.")
