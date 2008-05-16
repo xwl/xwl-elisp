@@ -26,6 +26,13 @@
 
 ;;; Required Interfaces
 
+(defvar generic-apt-fink-font-lock-keywords
+  '(("^\n\\([a-zA-Z0-9].*: \\)\\(.*\\)"
+     (1 font-lock-keyword-face nil t)
+     (2 font-lock-function-name-face nil t))
+    ("Web site:\\|Maintainer:"
+     (0 font-lock-keyword-face t t))))
+
 (defun generic-apt-fink-edit-sources ()
   '"/sw/etc/fink.conf")
 

@@ -26,6 +26,24 @@
 
 ;;; Required Interfaces
 
+(defvar generic-apt-apt-get-font-lock-keywords
+  `(("^Package:\\(.*\\)"
+     (1 font-lock-function-name-face nil t))
+    ("^Conflicts:"
+     (0 font-lock-warning-face nil t))
+    ("^Description:\\(.*\n\\)"
+     (1 font-lock-function-name-face nil t))
+    (,(concat
+       "^\\("
+       (regexp-opt
+	'("Package" "Priority" "Section" "Installed-Size" "Maintainer"
+	  "Architecture" "Version" "Depends" "Suggests" "Filename"
+	  "Size" "MD5sum" "Description" "Tag" "Status" "Replaces"
+	  "Conffiles" "Source" "Provides" "Pre-Depends" "Recommends"
+          "SHA1" "SHA256" "Enhances" "Config-Version" "Task"))
+       "\\):")
+     (0 font-lock-keyword-face t t))))
+
 (defun generic-apt-apt-get-edit-sources ()
   '"/etc/apt/sources.list")
 
