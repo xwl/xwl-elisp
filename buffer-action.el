@@ -167,6 +167,7 @@ more. If you want to edit it again, please add C-u prefix."
               (buffer-action-replace (nth 1 row)))))
       (if (stringp buffer-action-compile-action)
           (progn
+            ;; First time run will be interactive.
             (setq compile-command buffer-action-compile-action)
             (call-interactively 'compile)
             (setq buffer-action-compile-action compile-command))
