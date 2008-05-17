@@ -145,31 +145,37 @@ more. If you want to edit it again, please add C-u prefix."
           (and (stringp bin)
                (file-exists-p bin)
                (file-newer-than-file-p bin (buffer-file-name)))))
-    (cond ((and up-to-date (not current-prefix-arg))
-           (message "`%s' is already up-to-date" (or bin "Object")))
-          ((or current-prefix-arg (not buffer-action-compile-action))
-           (cond ((and (or (file-exists-p "Makefile") ; make
-                           (file-exists-p "makefile"))
-                       (y-or-n-p "Found Makefile, try 'make'? "))
-                  (setq buffer-action-compile-action "make "))
-                 ((and (file-exists-p "build.xml") ; ant
-                       (y-or-n-p "Found build.xml, try 'ant'? "))
-                  (setq buffer-action-compile-action "ant "))
-                 ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
-                    (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
-                  (setq buffer-action-compile-action "qmake "))
-                 (t
-                  (setq buffer-action-compile-action
-                        (buffer-action-replace (nth 1 row)))))
-           (if (stringp buffer-action-compile-action)
-               (progn
-                 (setq compile-command buffer-action-compile-action)
-                 (call-interactively 'compile))
-             (funcall buffer-action-compile-action)))
-          ((stringp buffer-action-compile-action)
-           (compile buffer-action-compile-action))
-          (t
-           (funcall buffer-action-compile-action)))))
+    (cond
+     ;; No need to recompile.
+     ((and up-to-date (not current-prefix-arg))
+      (message "`%s' is already up-to-date" (or bin "Object")))
+     ;; Reset or Setup compile command and compile with new command.
+     ((or current-prefix-arg (not buffer-action-compile-action))
+      (cond
+       ((and (or (file-exists-p "Makefile") ; make
+                 (file-exists-p "makefile"))
+             (y-or-n-p "Found Makefile, try 'make'? "))
+        (setq buffer-action-compile-action "make "))
+       ((and (file-exists-p "build.xml") ; ant
+             (y-or-n-p "Found build.xml, try 'ant'? "))
+        (setq buffer-action-compile-action "ant "))
+       ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
+          (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
+        (setq buffer-action-compile-action "qmake "))
+       (t
+        (setq buffer-action-compile-action
+              (buffer-action-replace (nth 1 row)))))
+      (if (stringp buffer-action-compile-action)
+          (progn
+            (setq compile-command buffer-action-compile-action)
+            (call-interactively 'compile)
+            (setq buffer-action-compile-action compile-command))
+        (funcall buffer-action-compile-action)))
+     ;; Compile using previous compile command.
+     ((stringp buffer-action-compile-action)
+      (compile buffer-action-compile-action))
+     (t
+      (funcall buffer-action-compile-action)))))
 
 ;;;###autoload
 (defun buffer-action-run ()
@@ -179,22 +185,23 @@ When running for the first time, you can edit the command in
 minibuffer, else use last command without bothering you any
 more. If you want to edit it again, please add C-u prefix."
   (interactive)
-  (cond ((or current-prefix-arg (not buffer-action-run-action))
-         (let ((run (buffer-action-replace (nth 3 (buffer-action-match)))))
-           (if (stringp run)
-               ;; FIXME: I'm unable to avoid using the deprecated
-               ;; INITIAL-CONTENTS parameter.
-               (progn
-                 (setq buffer-action-run-action
-                       (read-from-minibuffer
-                        "Run-action $ " (concat run " ")))
-                 (buffer-action-shell-command))
-             (setq buffer-action-run-action run)
-             (funcall buffer-action-run-action))))
-        ((stringp buffer-action-run-action)
-         (buffer-action-shell-command))
-        (t
-         (funcall buffer-action-run-action))))
+  (cond
+   ((or current-prefix-arg (not buffer-action-run-action))
+    (let ((run (buffer-action-replace (nth 3 (buffer-action-match)))))
+      (if (stringp run)
+          ;; FIXME: I'm unable to avoid using the deprecated
+          ;; INITIAL-CONTENTS parameter.
+          (progn
+            (setq buffer-action-run-action
+                  (read-from-minibuffer
+                   "Run-action $ " (concat run " ")))
+            (buffer-action-shell-command))
+        (setq buffer-action-run-action run)
+        (funcall buffer-action-run-action))))
+   ((stringp buffer-action-run-action)
+    (buffer-action-shell-command))
+   (t
+    (funcall buffer-action-run-action))))
 
 
 ;;; Utilities
