@@ -33,6 +33,8 @@
     ("Web site:\\|Maintainer:"
      (0 font-lock-keyword-face t t))))
 
+(defvar generic-apt-fink-available-pkgs '())
+
 (defun generic-apt-fink-edit-sources ()
   '"/sw/etc/fink.conf")
 
@@ -43,13 +45,13 @@
   (generic-apt-run-command (list "selfupdate")))
 
 (defun generic-apt-fink-install (pkg)
-  (generic-apt-run-command (list "install" pkg)))
+  (generic-apt-run-command (list "--yes" "install" pkg)))
 
 (defun generic-apt-fink-upgrade (pkg)
   (generic-apt-run-command (list "update" pkg)))
 
 (defun generic-apt-fink-remove (pkg)
-  (generic-apt-run-command (list "remove" pkg)))
+  (generic-apt-run-command (list "--yes" "remove" pkg)))
 
 (defun generic-apt-fink-show (pkg)
   (generic-apt-run-command (list "describe" pkg)))
@@ -66,6 +68,9 @@
 
 (defun generic-apt-fink-upgrade-all ()
   (generic-apt-run-command (list "update-all")))
+
+(defun generic-apt-fink-listfiles (pkg)
+  (generic-apt-run-other-command (list "dpkg" "--listfiles" pkg)))
 
 (provide 'generic-apt-fink)
 

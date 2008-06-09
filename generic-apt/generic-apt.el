@@ -98,6 +98,8 @@ as: \"$ ssh foo sudo apt-get ...\""
     (define-key map "U" 'generic-apt-upgrade)
     (define-key map "E" 'generic-apt-edit-sources)
 
+    (define-key map "L" 'generic-apt-listfiles)
+
 ;;     (define-key map "C" 'generic-apt-auto-clean)
 ;;     (define-key map "c" 'generic-apt-commands)
 ;;     (define-key map "d" 'generic-apt-source)
@@ -175,7 +177,12 @@ as: \"$ ssh foo sudo apt-get ...\""
             (intern (format "generic-apt-%S-font-lock-keywords"
                             generic-apt-protocol)))
       (setq generic-apt-buffer-name
-            (format "*Generic-Apt/%s*" generic-apt-command)))
+            (format "*Generic-Apt/%s*" generic-apt-command))
+
+      (setq generic-apt-available-pkgs
+            (eval
+             (intern (format "generic-apt-%S-available-pkgs"
+                            generic-apt-protocol)))))
     (switch-to-buffer generic-apt-buffer-name)
     (unless exist-p
       (generic-apt-mode))))
@@ -214,11 +221,10 @@ as: \"$ ssh foo sudo apt-get ...\""
     (write-region (point-min) (point-max) generic-apt-cache-filename))
   (message "Updating generic-apt cache...done"))
 
-;; TODO, test this.
-;; ;; initial variables
-;; (if (file-readable-p generic-apt-cache-filename)
-;;     (load-file generic-apt-cache-filename)
-;;   (generic-apt-update-cache))
+;; initial variables
+(if (file-readable-p generic-apt-cache-filename)
+    (load-file generic-apt-cache-filename)
+  (generic-apt-update-cache))
 
 (defun generic-apt-process-sentinel (process event)
   "Set buffer read-only after a generic-apt command finishes."
@@ -360,7 +366,7 @@ Here is a brief list of the most used commamnds:
             (when (string-match (regexp-opt (list (car i)))
                                 generic-apt-command)
               (setq hostname (car i)
-                    (setq f (format "/ssh:%s:%s" hostname f)))
+                    f (format "/ssh:%s:%s" hostname f))
               (setq proxies nil)))
           (find-file f))
       (find-file (concat "/sudo::" f)))))
@@ -387,7 +393,8 @@ Here is a brief list of the most used commamnds:
     (ido-completing-read "Install: " generic-apt-available-pkgs)))
   (funcall
    (intern
-    (format "generic-apt-%S-install" generic-apt-protocol))))
+    (format "generic-apt-%S-install" generic-apt-protocol))
+   pkg))
 
 (defun generic-apt-upgrade (pkg)
   "Upgrade PKG."
@@ -429,6 +436,16 @@ Here is a brief list of the most used commamnds:
     (if (fboundp func)
         (funcall func)
       (generic-apt-info-unsupported))))
+
+(defun generic-apt-listfiles (pkg)
+  "List files installed by PKG."
+  (interactive
+   (list
+    (ido-completing-read "Listfiles: " generic-apt-available-pkgs)))
+  (funcall
+   (intern
+    (format "generic-apt-%S-listfiles" generic-apt-protocol))
+   pkg))
 
 
 ;;; Utilities
