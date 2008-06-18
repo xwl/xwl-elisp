@@ -27,6 +27,7 @@
 ;; Put this file into your load-path and the following into your
 ;; ~/.emacs:
 ;;           (autoload 'finkinfo-mode "finkinfo-mode")
+;;           (add-to-list 'auto-mode-alist '("\\.info$" . finkinfo-mode))
 
 ;;; Code:
 
