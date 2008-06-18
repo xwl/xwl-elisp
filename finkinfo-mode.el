@@ -22,6 +22,8 @@
 
 ;;; Commentary:
 
+;; This is a simple major mode for editing fink info files under Mac OS X.
+
 ;; Put this file into your load-path and the following into your
 ;; ~/.emacs:
 ;;           (autoload 'finkinfo-mode "finkinfo-mode")
