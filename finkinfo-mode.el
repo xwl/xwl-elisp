@@ -47,7 +47,8 @@
     "ConfigureParams" "GCC" "NoPerlTests" "InfoTest" "UpdatePOD"
     "AppBundles" "JarFiles" "RuntimeVars" "PreInstScript"
     "PostInstScript" "PreRmScript" "PostRmScript" "ConfFiles" "InfoDocs"
-    "DaemonicFile" "DaemonicName" "DescPackaging"))
+    "DaemonicFile" "DaemonicName" "DescPackaging" "SetLIBS"
+    "SetCFLAGS"))
 
 (defvar finkinfo-font-lock-keywords
   `((,(format "\\(%s\\|%s\\)\\(:\\) \\(.*\\)"
