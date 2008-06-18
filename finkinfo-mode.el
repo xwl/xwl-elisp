@@ -79,7 +79,7 @@
   "Insert keywords defined by `finkinfo-keywords'."
   (interactive)
   (insert (ido-completing-read "Insert keyword: " finkinfo-keywords)
-          " "))
+          ": "))
 
 
 (provide 'finkinfo-mode)
