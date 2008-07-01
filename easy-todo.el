@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007, 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.2
+;; Version: 0.3a
 ;; Url: http://williamxu.net9.org/ref/easy-todo.el
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -100,37 +100,29 @@
      (0 font-lock-string-face t t))))
 
 (defun easy-todo-item-ongoing ()
-  "Switch current item into ongoing status and sort todos automatically."
+  "Switch item into ongoing status."
   (interactive)
   (easy-todo-item-switch easy-todo-ongoing-regexp))
 
 (defun easy-todo-item-todo ()
-  "Switch current item into todo status and sort todos automatically."
+  "Switch item into todo status."
   (interactive)
   (easy-todo-item-switch easy-todo-todo-regexp))
 
 (defun easy-todo-item-unfinished ()
-  "Switch current item into unfinished status and sort todos automatically."
+  "Switch item into unfinished status."
   (interactive)
   (easy-todo-item-switch easy-todo-unfinished-regexp))
 
 (defun easy-todo-item-switch (regexp)
-  "Switch current item into status matched by REGEX and sort todos automatically.
+  "Switch item into status matched by REGEX.
 REGEX could be like `easy-todo-ongoing-regexp'."
   (let ((inhibit-read-only t))
     (save-excursion
       (move-beginning-of-line 1)
-      (or (re-search-forward easy-todo-regexps
-                             (progn (move-end-of-line 1)
-                                    (point))
-                             t
-                             1)
-          (re-search-backward easy-todo-regexps
-                              (point-min)
-                              t
-                              1))
-      (replace-match (replace-regexp-in-string "^\\^" "" regexp)))
-    (easy-todo-sort-buffer)))
+      (or (re-search-forward easy-todo-regexps (line-end-position) t 1)
+          (re-search-backward easy-todo-regexps (point-min) t 1))
+      (replace-match (replace-regexp-in-string "^\\^" "" regexp)))))
 
 (defun easy-todo-sort-buffer ()
   "Sort all todo items in buffer."
@@ -146,25 +138,23 @@ BEG and END are points."
                                easy-todo-todo-regexp
                                easy-todo-unfinished-regexp))
         (pos beg)                     ; position for inserting new items
-        item-beg item-end flag)
-    (save-excursion
-      (goto-char beg)
-      (while (and remaining-flags (cdr remaining-flags))
-        (setq flag (car remaining-flags))
-        (while (setq item-beg (re-search-forward flag end t 1))
-          (setq item-beg (- item-beg 2))
-          (setq item-end (re-search-forward
-                          (mapconcat 'identity (cdr remaining-flags) "\\|")
-                          end
-                          t
-                          1))
-          (if item-end
-              (setq item-end (- (point) 2))
-            (setq item-end end))
-          (goto-char pos)
-          (insert (delete-and-extract-region item-beg item-end))
-          (setq pos (point)))
-        (setq remaining-flags (cdr remaining-flags))))))
+        item-beg item-end flag
+        (orig-pos (point)))
+    (goto-char beg)
+    (while (and remaining-flags (cdr remaining-flags))
+      (setq flag (car remaining-flags))
+      (while (setq item-beg (re-search-forward flag end t 1))
+        (setq item-beg (- item-beg 2))
+        (setq item-end (re-search-forward
+                        (mapconcat 'identity (cdr remaining-flags) "\\|") end t 1))
+        (if item-end
+            (setq item-end (- (point) 2))
+          (setq item-end end))
+        (goto-char pos)
+        (insert (delete-and-extract-region item-beg item-end))
+        (setq pos (point)))
+      (setq remaining-flags (cdr remaining-flags)))
+    (goto-char beg)))                   ; place point at begin
 
 (defun easy-todo-kill-item ()
   "Kill most recent item."
@@ -173,23 +163,12 @@ BEG and END are points."
     (save-excursion
       (let (beg end)
         (move-beginning-of-line 1)
-        (setq beg (or (re-search-forward easy-todo-regexps
-                                         (save-excursion
-                                           (move-end-of-line 1)
-                                           (point))
-                                         t
-                                         1)
-                      (re-search-backward easy-todo-regexps
-                                          (point-min)
-                                          t
-                                          1)))
+        (setq beg (or (re-search-forward easy-todo-regexps (line-end-position) t 1)
+                      (re-search-backward easy-todo-regexps (point-min) t 1)))
         (if beg
             (progn
               (setq beg (- beg 2))
-              (setq end (re-search-forward easy-todo-regexps
-                                           (point-max)
-                                           t
-                                           1))
+              (setq end (re-search-forward easy-todo-regexps (point-max) t 1))
               (if end
                   (setq end (- end 2))
                 (setq end (point-max)))
