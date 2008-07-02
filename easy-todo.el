@@ -70,6 +70,37 @@
   :type 'string
   :group 'easy-todo)
 
+;; ,----
+;; | faces
+;; `----
+;; (defgroup easy-todo-faces nil
+;;   "easy-todo status faces."
+;;   :group 'easy-todo)
+
+;; (defface easy-todo-ongoing-face '((t (:bold t :foreground "magenta")))
+;;   "Face for `easy-todo-ongoing-regexp'."
+;;   :group 'easy-todo-faces)
+
+;; (defvar easy-todo-ongoing-face 'easy-todo-ongoing-face)
+
+;; (defface easy-todo-todo-face '((t (:bold t :foreground "green")))
+;;   "Face for `easy-todo-todo-regexp'."
+;;   :group 'easy-todo-faces)
+
+;; (defvar easy-todo-todo-face 'easy-todo-todo-face)
+
+;; (defface easy-todo-interrupted-face '((t (:bold t :foreground "yellow")))
+;;   "Face for `easy-todo-interrupted-regexp'."
+;;   :group 'easy-todo-faces)
+
+;; (defvar easy-todo-interrupted-face 'easy-todo-interrupted-face)
+
+;; (defface easy-todo-done-face '((t (:bold t :foreground "purple")))
+;;   "Face for `easy-todo-done-regexp'."
+;;   :group 'easy-todo-faces)
+
+;; (defvar easy-todo-done-face 'easy-todo-done-face)
+
 
 ;;; Interfaces
 
@@ -80,29 +111,30 @@
   (setq font-lock-defaults '(easy-todo-font-lock-keywords))
   (run-hooks 'easy-todo-mode-hook))
 
+(defvar easy-todo-regexp-face-alist
+  `((,easy-todo-ongoing-regexp     . ,font-lock-constant-face) ; magenta
+    (,easy-todo-todo-regexp        . ,font-lock-doc-face)      ; green
+    (,easy-todo-interrupted-regexp . ,font-lock-variable-name-face) ; yellow
+    (,easy-todo-done-regexp        . ,font-lock-function-name-face))) ; blue
+
+(defvar easy-todo-regexps (mapcar 'car easy-todo-regexp-face-alist))
+
+(defvar easy-todo-matcher (mapconcat 'identity easy-todo-regexps "\\|"))
+
+(defvar easy-todo-font-lock-keywords
+  (mapcar (lambda (regexp-face)
+            `(,(concat (car regexp-face) ".*")
+              (0 ,(cdr regexp-face) t t)))
+          easy-todo-regexp-face-alist))
+
 (define-key easy-todo-mode-map (kbd "C-c C-o") 'easy-todo-item-ongoing)
 (define-key easy-todo-mode-map (kbd "C-c C-t") 'easy-todo-item-todo)
-(define-key easy-todo-mode-map (kbd "C-c C-i") 'easy-todo-item-interrupted)
+(define-key easy-todo-mode-map (kbd "C-c C-u") 'easy-todo-item-interrupted)
 (define-key easy-todo-mode-map (kbd "C-c C-d") 'easy-todo-item-done)
 
 (define-key easy-todo-mode-map (kbd "C-c C-b") 'easy-todo-sort-buffer)
 (define-key easy-todo-mode-map (kbd "C-c C-r") 'easy-todo-sort-region)
 (define-key easy-todo-mode-map (kbd "C-c C-k") 'easy-todo-kill-item)
-
-(defvar easy-todo-flags (list easy-todo-ongoing-regexp
-                              easy-todo-todo-regexp
-                              easy-todo-interrupted-regexp
-                              easy-todo-done-regexp))
-
-(defvar easy-todo-regexps (mapconcat 'identity easy-todo-flags "\\|"))
-
-(defvar easy-todo-font-lock-keywords
-  `((,(concat easy-todo-ongoing-regexp ".*")
-     (0 font-lock-keyword-face t t))
-    (,(concat easy-todo-todo-regexp ".*")
-     (0 font-lock-variable-name-face t t))
-    (,(concat easy-todo-interrupted-regexp ".*")
-     (0 font-lock-string-face t t))))
 
 (defun easy-todo-item-ongoing ()
   "Switch item into ongoing status."
@@ -133,8 +165,8 @@ REGEX could be like `easy-todo-ongoing-regexp'."
   (let ((inhibit-read-only t))
     (save-excursion
       (move-beginning-of-line 1)
-      (or (re-search-forward easy-todo-regexps (line-end-position) t 1)
-          (re-search-backward easy-todo-regexps (point-min) t 1))
+      (or (re-search-forward easy-todo-matcher (line-end-position) t 1)
+          (re-search-backward easy-todo-matcher (point-min) t 1))
       (replace-match (replace-regexp-in-string "^\\^" "" regexp)))))
 
 (defun easy-todo-sort-buffer ()
@@ -143,11 +175,11 @@ REGEX could be like `easy-todo-ongoing-regexp'."
   (easy-todo-sort-region (point-min) (point-max)))
 
 (defun easy-todo-sort-region (beg end)
-  "Sort todo items by `easy-todo-regexps' between BEG and END.
+  "Sort todo items by `easy-todo-matcher' between BEG and END.
 BEG and END are points."
   (interactive "r")
   (let ((inhibit-read-only t)
-        (remaining-flags easy-todo-flags)
+        (remaining-flags easy-todo-regexps)
         (pos beg)                     ; position for inserting new items
         item-beg item-end flag
         (orig-pos (point)))
@@ -174,12 +206,12 @@ BEG and END are points."
     (save-excursion
       (let (beg end)
         (move-beginning-of-line 1)
-        (setq beg (or (re-search-forward easy-todo-regexps (line-end-position) t 1)
-                      (re-search-backward easy-todo-regexps (point-min) t 1)))
+        (setq beg (or (re-search-forward easy-todo-matcher (line-end-position) t 1)
+                      (re-search-backward easy-todo-matcher (point-min) t 1)))
         (if beg
             (progn
               (setq beg (- beg 2))
-              (setq end (re-search-forward easy-todo-regexps (point-max) t 1))
+              (setq end (re-search-forward easy-todo-matcher (point-max) t 1))
               (if end
                   (setq end (- end 2))
                 (setq end (point-max)))
