@@ -34,6 +34,7 @@
 ;; | > (work) Check compress() function
 ;; | > (easy-todo) Finish easy-todo-mode
 ;; | | (emms) share music with iTunes user?
+;; | o (misc) take a cup of tea
 ;; `----
 
 ;; Put this file into your load-path and the following into your
@@ -64,8 +65,13 @@
   :type 'string
   :group 'easy-todo)
 
+(defcustom easy-todo-done-regexp "^o "
+  "Prefix for finished items."
+  :type 'string
+  :group 'easy-todo)
+
 
-;;; Implementations
+;;; Interfaces
 
 ;;;###autoload
 (define-derived-mode easy-todo-mode text-mode "Easy-Todo"
@@ -76,7 +82,9 @@
 
 (define-key easy-todo-mode-map (kbd "C-c C-o") 'easy-todo-item-ongoing)
 (define-key easy-todo-mode-map (kbd "C-c C-t") 'easy-todo-item-todo)
-(define-key easy-todo-mode-map (kbd "C-c C-u") 'easy-todo-item-interrupted)
+(define-key easy-todo-mode-map (kbd "C-c C-i") 'easy-todo-item-interrupted)
+(define-key easy-todo-mode-map (kbd "C-c C-d") 'easy-todo-item-done)
+
 (define-key easy-todo-mode-map (kbd "C-c C-b") 'easy-todo-sort-buffer)
 (define-key easy-todo-mode-map (kbd "C-c C-r") 'easy-todo-sort-region)
 (define-key easy-todo-mode-map (kbd "C-c C-k") 'easy-todo-kill-item)
@@ -111,6 +119,14 @@
   (interactive)
   (easy-todo-item-switch easy-todo-interrupted-regexp))
 
+(defun easy-todo-item-done ()
+  "Switch item into done status."
+  (interactive)
+  (easy-todo-item-switch easy-todo-done-regexp))
+
+
+;;; Low Level Functions
+
 (defun easy-todo-item-switch (regexp)
   "Switch item into status matched by REGEX.
 REGEX could be like `easy-todo-ongoing-regexp'."
@@ -133,7 +149,8 @@ BEG and END are points."
   (let ((inhibit-read-only t)
         (remaining-flags (list easy-todo-ongoing-regexp
                                easy-todo-todo-regexp
-                               easy-todo-interrupted-regexp))
+                               easy-todo-interrupted-regexp
+                               easy-todo-done-regexp))
         (pos beg)                     ; position for inserting new items
         item-beg item-end flag
         (orig-pos (point)))
