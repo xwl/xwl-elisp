@@ -28,15 +28,12 @@
 ;; different types of todo items) upon `text-mode'.
 
 ;; It supports three different prefix flags, namely "^> "(ongoing),
-;; "^- "(todo), "^x "(unfinished). Here's a screenshot:
+;; "^- "(todo), "^| "(interrupted). Here's a screenshot:
 ;;
 ;; ,----
 ;; | > (work) Check compress() function
-;; | > Finish easy-todo-mode
-;; | - Make a nicer buddy interface for erc
-;; |     * display buddy images
-;; |     * learn from adium's look and feel
-;; | x (emmms) share music with iTunes user?
+;; | > (easy-todo) Finish easy-todo-mode
+;; | | (emms) share music with iTunes user?
 ;; `----
 
 ;; Put this file into your load-path and the following into your
@@ -62,8 +59,8 @@
   :type 'string
   :group 'easy-todo)
 
-(defcustom easy-todo-unfinished-regexp "^x "
-  "Prefix for unfinished items."
+(defcustom easy-todo-interrupted-regexp "^| "
+  "Prefix for interrupted items."
   :type 'string
   :group 'easy-todo)
 
@@ -79,7 +76,7 @@
 
 (define-key easy-todo-mode-map (kbd "C-c C-o") 'easy-todo-item-ongoing)
 (define-key easy-todo-mode-map (kbd "C-c C-t") 'easy-todo-item-todo)
-(define-key easy-todo-mode-map (kbd "C-c C-u") 'easy-todo-item-unfinished)
+(define-key easy-todo-mode-map (kbd "C-c C-u") 'easy-todo-item-interrupted)
 (define-key easy-todo-mode-map (kbd "C-c C-b") 'easy-todo-sort-buffer)
 (define-key easy-todo-mode-map (kbd "C-c C-r") 'easy-todo-sort-region)
 (define-key easy-todo-mode-map (kbd "C-c C-k") 'easy-todo-kill-item)
@@ -88,7 +85,7 @@
   (mapconcat 'identity
              (list easy-todo-ongoing-regexp
                    easy-todo-todo-regexp
-                   easy-todo-unfinished-regexp)
+                   easy-todo-interrupted-regexp)
              "\\|"))
 
 (defvar easy-todo-font-lock-keywords
@@ -96,7 +93,7 @@
      (0 font-lock-keyword-face t t))
     (,(concat easy-todo-todo-regexp ".*")
      (0 font-lock-variable-name-face t t))
-    (,(concat easy-todo-unfinished-regexp ".*")
+    (,(concat easy-todo-interrupted-regexp ".*")
      (0 font-lock-string-face t t))))
 
 (defun easy-todo-item-ongoing ()
@@ -109,10 +106,10 @@
   (interactive)
   (easy-todo-item-switch easy-todo-todo-regexp))
 
-(defun easy-todo-item-unfinished ()
-  "Switch item into unfinished status."
+(defun easy-todo-item-interrupted ()
+  "Switch item into interrupted status."
   (interactive)
-  (easy-todo-item-switch easy-todo-unfinished-regexp))
+  (easy-todo-item-switch easy-todo-interrupted-regexp))
 
 (defun easy-todo-item-switch (regexp)
   "Switch item into status matched by REGEX.
@@ -136,7 +133,7 @@ BEG and END are points."
   (let ((inhibit-read-only t)
         (remaining-flags (list easy-todo-ongoing-regexp
                                easy-todo-todo-regexp
-                               easy-todo-unfinished-regexp))
+                               easy-todo-interrupted-regexp))
         (pos beg)                     ; position for inserting new items
         item-beg item-end flag
         (orig-pos (point)))
