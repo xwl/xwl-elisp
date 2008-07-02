@@ -24,11 +24,11 @@
 ;;; Commentary:
 
 ;; `easy-todo-mode' is a very easy todo manager. It simply adds some
-;; hilighting keywords, some special prefix flags(for indicating
-;; different types of todo items) upon `text-mode'.
+;; highlighted keywords, some special prefix flags(for indicating
+;; different status of todo items) upon `text-mode'.
 
-;; It supports three different prefix flags, namely "^> "(ongoing),
-;; "^- "(todo), "^| "(interrupted). Here's a screenshot:
+;; It supports four different prefix flags, namely, "^> "(ongoing),
+;; "^- "(todo), "^| "(interrupted), "^o "(done). Here's a screenshot:
 ;;
 ;; ,----
 ;; | > (work) Check compress() function
@@ -89,12 +89,12 @@
 (define-key easy-todo-mode-map (kbd "C-c C-r") 'easy-todo-sort-region)
 (define-key easy-todo-mode-map (kbd "C-c C-k") 'easy-todo-kill-item)
 
-(defvar easy-todo-regexps
-  (mapconcat 'identity
-             (list easy-todo-ongoing-regexp
-                   easy-todo-todo-regexp
-                   easy-todo-interrupted-regexp)
-             "\\|"))
+(defvar easy-todo-flags (list easy-todo-ongoing-regexp
+                              easy-todo-todo-regexp
+                              easy-todo-interrupted-regexp
+                              easy-todo-done-regexp))
+
+(defvar easy-todo-regexps (mapconcat 'identity easy-todo-flags "\\|"))
 
 (defvar easy-todo-font-lock-keywords
   `((,(concat easy-todo-ongoing-regexp ".*")
@@ -147,10 +147,7 @@ REGEX could be like `easy-todo-ongoing-regexp'."
 BEG and END are points."
   (interactive "r")
   (let ((inhibit-read-only t)
-        (remaining-flags (list easy-todo-ongoing-regexp
-                               easy-todo-todo-regexp
-                               easy-todo-interrupted-regexp
-                               easy-todo-done-regexp))
+        (remaining-flags easy-todo-flags)
         (pos beg)                     ; position for inserting new items
         item-beg item-end flag
         (orig-pos (point)))
