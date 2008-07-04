@@ -37,7 +37,7 @@
     "Recommends" "Source" "Source-MD5" "NoSetCPPFLAGS"
     "SetCPPFLAGS" "NoSetLDFLAGS" "SetLIBRARY_PATH"
     "CompileScript" "InstallScript" "Shlibs" "DocFiles" "DescPort"
-    "DescDetail" "DescUsage" "Homepage" "SplitOff"
+    "DescDetail" "DescUsage" "HomePage" "SplitOff"
     "BuildDependsOnly" "Files" "Distribution" "Type" "Epoch"
     "Provides" "Conflicts" "BuildConflicts" "Replaces" "Suggests"
     "Enhances" "Pre-Depends" "Essential" "CustomMirror"
