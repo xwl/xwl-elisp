@@ -85,11 +85,11 @@ end).
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
     (texinfo-mode
      (lambda ()
-;;        (save-excursion
-;;          (texinfo-make-menu)
-;;          (texinfo-all-menus-update)
-;;          (texinfo-every-node-update)
-;;          (save-buffer))
+       (save-excursion
+         ;; (texinfo-make-menu)
+         (texinfo-all-menus-update)
+         (texinfo-every-node-update)
+         (save-buffer))
        (makeinfo-buffer))
      "%n.info"
      (lambda ()
