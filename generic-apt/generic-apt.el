@@ -42,8 +42,6 @@
 ;;          ))
 ;;
 ;;     (require 'generic-apt-install)
-;;     (add-hook 'generic-apt-mode-hook 'less-minor-mode-on)
-;;
 ;;     (setq generic-apt-select-methods
 ;;           '((apt-get "ssh 192.168.1.20 sudo apt-get")
 ;;             (fink "sudo fink")))
