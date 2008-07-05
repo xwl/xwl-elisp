@@ -3,7 +3,6 @@
 ;; Copyright (C) 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,8 +23,7 @@
 
 (require 'generic-apt)
 
-;;; Required Interfaces
-
+;; Variables
 (defvar generic-apt-fink-font-lock-keywords
   '(("^\n\\([a-zA-Z0-9].*: \\)\\(.*\\)"
      (1 font-lock-keyword-face nil t)
@@ -35,26 +33,37 @@
 
 (defvar generic-apt-fink-available-pkgs '())
 
-(defun generic-apt-fink-edit-sources ()
-  '"/sw/etc/fink.conf")
+(defvar generic-apt-fink-sources-file "/sw/etc/fink.conf")
 
-(defun generic-apt-fink-search (pkg)
-  (generic-apt-run-command (list "list" pkg)))
-
+;; Interfaces
 (defun generic-apt-fink-update ()
   (generic-apt-run-command (list "selfupdate")))
+
+(defun generic-apt-fink-search-by-name (pkg)
+  (generic-apt-run-command (list "list" pkg)))
+
+(defun generic-apt-fink-search (pkg)
+  (generic-apt-run-command (list "apropos" pkg)))
+
+(defun generic-apt-fink-show (pkg)
+  (generic-apt-run-command (list "describe" pkg)))
 
 (defun generic-apt-fink-install (pkg)
   (generic-apt-run-command (list "--yes" "install" pkg)))
 
+(defun generic-apt-fink-listfiles (pkg)
+  (generic-apt-run-other-command (list "dpkg" "--listfiles" pkg)))
+
 (defun generic-apt-fink-upgrade (pkg)
   (generic-apt-run-command (list "update" pkg)))
+
+(defun generic-apt-clean ()
+  (generic-apt-run-command (list "cleanup")))
 
 (defun generic-apt-fink-remove (pkg)
   (generic-apt-run-command (list "--yes" "remove" pkg)))
 
-(defun generic-apt-fink-show (pkg)
-  (generic-apt-run-command (list "describe" pkg)))
+;; Misc
 
 (defun generic-apt-fink-update-available-pkgs ()
   (setq generic-apt-available-pkgs
@@ -63,14 +72,9 @@
           ;; FIXME: Why doesn't "sed 's/.\{4\}'"  work?
           "list | sed 's/....//' | awk '{print $1}'"))))
 
-
-;;; Optional Interfaces
+;; (defun generic-apt-fink-upgrade-all ()
+;;   (generic-apt-run-command (list "update-all")))
 
-(defun generic-apt-fink-upgrade-all ()
-  (generic-apt-run-command (list "update-all")))
-
-(defun generic-apt-fink-listfiles (pkg)
-  (generic-apt-run-other-command (list "dpkg" "--listfiles" pkg)))
 
 (provide 'generic-apt-fink)
 

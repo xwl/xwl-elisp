@@ -3,7 +3,6 @@
 ;; Copyright (C) 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,14 +18,6 @@
 ;; along with this program; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
 ;; MA 02110-1301, USA.
-
-;;; Commentary:
-
-;; Put generic-apt files into your load-path and the following into your
-;; ~/.emacs:
-;;           (require 'generic-apt-install)
-;;
-;; Then type: `M-x generic-apt'.
 
 ;;; Code:
 
