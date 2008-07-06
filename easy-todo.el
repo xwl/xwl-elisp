@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007, 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.4a
+;; Version: 0.3
 ;; Url: http://williamxu.net9.org/ref/easy-todo.el
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@
 ;;
 ;; ,----
 ;; | > (work) Check compress() function
-;; | > (easy-todo) Finish easy-todo-mode
+;; | - (easy-todo) Sort by catagory/tag?
 ;; | | (emms) share music with iTunes user?
 ;; | o (misc) take a cup of tea
 ;; `----
