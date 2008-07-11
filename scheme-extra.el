@@ -62,10 +62,13 @@
         (put i 'scheme-indent-function 1))
       scheme-extra-let)
 
+;; if
+(put 'if 'scheme-indent-function 2)
+
 ;; none
 (defvar scheme-extra-none
   '(optional cut set!-values assert cond-expand eval-when ensure
-             include nth-value time))
+             include nth-value time use))
 
 
 ;;; Highlighting
