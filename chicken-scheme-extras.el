@@ -1,4 +1,4 @@
-;;; chicken-scheme-extras.el --- Non-standard macros and special forms support.
+;;; chicken-scheme-extras.el --- Non-standard macros and special forms support
 
 ;; Copyright (C) 2008 William Xu
 
