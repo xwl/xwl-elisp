@@ -1,9 +1,9 @@
-;;; scheme-extra.el --- Non-standard macros and special forms
+;;; chicken-scheme-extras.el --- Non-standard macros and special forms
 
 ;; Copyright (C) 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.1a
+;; Version: 0.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 ;; Put this file into your load-path and the following into your
 ;; ~/.emacs:
-;;           (require 'scheme-extra)
+;;           (require 'chicken-scheme-extras)
 
 ;;; Code:
 
@@ -39,7 +39,7 @@
 ;;; Indention
 
 ;; define style
-(defvar scheme-extra-define
+(defvar chicken-scheme-extra-define
   '(define-extension define-values define-constant define-inline
      define-macro define-for-syntax define-record define-record-printer
      define-record-type))
@@ -50,23 +50,23 @@
                ;; The function is called with point right after "define".
                (forward-comment (point-max))
                (if (eq (char-after) ?\() 2 0))))
-      scheme-extra-define)
+      chicken-scheme-extra-define)
 
 ;; let style
-(defvar scheme-extra-let
+(defvar chicken-scheme-extra-let
   '(when unless  case-lambda  let-optionals let-optionals* and-let* rec
          let-values let*-values letrec-values parameterize receive
          select))
 
 (mapc (lambda (i)
         (put i 'scheme-indent-function 1))
-      scheme-extra-let)
+      chicken-scheme-extra-let)
 
 ;; if
 (put 'if 'scheme-indent-function 2)
 
 ;; none
-(defvar scheme-extra-none
+(defvar chicken-scheme-extra-none
   '(optional cut set!-values assert cond-expand eval-when ensure
              include nth-value time use))
 
@@ -78,12 +78,12 @@
  `((,(concat "(\\<\\("
              (regexp-opt
               (mapcar 'symbol-name
-                      (append scheme-extra-define
-                              scheme-extra-let
-                              scheme-extra-none)))
+                      (append chicken-scheme-extra-define
+                              chicken-scheme-extra-let
+                              chicken-scheme-extra-none)))
              "\\)\\>")
     1 'font-lock-keyword-face nil t)))
 
-(provide 'scheme-extra)
+(provide 'chicken-scheme-extras)
 
-;;; scheme-extra.el ends here
+;;; chicken-scheme-extras.el ends here
