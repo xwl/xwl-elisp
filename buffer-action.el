@@ -222,20 +222,19 @@ return ANY unchanged."
   (let ((table buffer-action-table)
         (row '())
         (ret nil))
-    (while table
-      (setq row (car table)
-            table (cdr table))
-      (let ((matcher (nth 0 row)))
-        (when (or (and (stringp matcher)
-                       (string-match matcher (buffer-file-name)))
-                  (eq matcher major-mode))
-          (setq table nil)
-          (setq ret row))))
-    (condition-case nil                 ; abort
-        (if ret
-            ret
-          (error))
-      (error "%s" "Match nothing in `buffer-action-table'"))))
+    (condition-case nil
+        (progn
+          (while table
+            (setq row (car table)
+                  table (cdr table))
+            (let ((matcher (nth 0 row)))
+              (when (or (and (stringp matcher)
+                             (string-match matcher (buffer-file-name)))
+                        (eq matcher major-mode))
+                (setq table nil)
+                (setq ret row))))
+          (when ret ret))
+      (error "Action not found for current buffer"))))
 
 (defun buffer-action-shell-command ()
   "Run shell command either synchronously or asynchronously(when
