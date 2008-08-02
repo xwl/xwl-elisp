@@ -55,7 +55,7 @@
   (generic-apt-run-other-command (list "dpkg" "--listfiles" pkg)))
 
 (defun generic-apt-fink-upgrade (pkg)
-  (generic-apt-run-command (list "update" pkg)))
+  (generic-apt-run-command (list "--yes" "update" pkg)))
 
 (defun generic-apt-clean ()
   (generic-apt-run-command (list "cleanup")))
