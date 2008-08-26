@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Non-standard macros and special forms: (targed at chicken scheme)
+;; Non-standard macros and special forms:
 ;;
 ;;    http://chicken.wiki.br/Non-standard%20macros%20and%20special%20forms
 ;;
