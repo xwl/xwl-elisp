@@ -1,5 +1,4 @@
-;;;; /* Time-stamp: "2004-08-05 12:16:25 heyyy" */
-;;;; from www.emacswiki.org
+;;;; From http://www.emacswiki.org
 
 (defvar page-break-face 'bold)
 (defvar page-break-string-char ?-)
@@ -10,7 +9,7 @@
                    (make-display-table))))
     (aset table ?\^L
           (let ((face-offset (lsh (face-id page-break-face) 19)))
-            (vconcat (mapcar (lambda (c) (+ face-offset c)) 
+            (vconcat (mapcar (lambda (c) (+ face-offset c))
 			     (make-string (1- (window-width window))
 					  page-break-string-char)))))
     table))
@@ -18,8 +17,8 @@
 
 (defun page-break-mode-hook-function  ()
   "Function called for updating display table"
-  (mapcar (lambda (window) 
-	    (set-window-display-table window 
+  (mapcar (lambda (window)
+	    (set-window-display-table window
 				      (page-break-display-table window)))
 	  (window-list nil 'no-minibuffer)))
 
@@ -28,12 +27,12 @@
 
 In Page Break mode, page breaks (^L characters) are displayed as a
 horizontal line of `page-break-string-char' characters."
-  :global t 
-;;  :lighter " Pgbrk" 
+  :global t
+;;  :lighter " Pgbrk"
   (if page-break-mode
-      (add-hook 'window-configuration-change-hook 
+      (add-hook 'window-configuration-change-hook
 		'page-break-mode-hook-function )
-    (remove-hook 'window-configuration-change-hook 
+    (remove-hook 'window-configuration-change-hook
 		 'page-break-mode-hook-function)))
 
 (defun turn-on-page-break-mode ()

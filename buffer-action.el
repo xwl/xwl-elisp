@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007, 2008 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 3.1
+;; Version: 3.2a
 ;; Url: http://williamxu.net9.org/ref/buffer-action.el
 
 ;; This program is free software; you can redistribute it and/or modify
