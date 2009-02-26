@@ -6,7 +6,7 @@
 ;; Created: 2004/10/21 19:44:23
 ;; Version: 2.0
 ;; Keywords: convenience
-;; Url: http://williamxu.net9.org/ref/wordnet.el
+;; Url: http://xwl.appspot.com/ref/wordnet.el
 ;; Last updated: 2007/09/10 17:04:39
 
 ;; This program is free software; you can redistribute it and/or modify

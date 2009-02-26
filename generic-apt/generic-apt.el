@@ -169,15 +169,15 @@ as: \"$ ssh foo sudo apt-get ...\""
          (intern (format "generic-apt-%S-sources-file"
                          generic-apt-protocol))))
 
-  (setq generic-apt-available-pkgs
-        (eval
-         (intern (format "generic-apt-%S-available-pkgs"
-                         generic-apt-protocol))))
-
   ;; initial variables
   (if (file-readable-p generic-apt-cache-filename)
       (load-file generic-apt-cache-filename)
     (generic-apt-update-cache))
+
+  (setq generic-apt-available-pkgs
+        (eval
+         (intern (format "generic-apt-%S-available-pkgs"
+                         generic-apt-protocol))))
 
   (run-hooks 'generic-apt-mode-hook)
   (generic-apt-help))

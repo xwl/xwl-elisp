@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.4a
-;; Url: http://williamxu.net9.org/ref/easy-todo.el
+;; Url: http://xwl.appspot.com/ref/easy-todo.el
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

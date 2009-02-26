@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 3.2a
-;; Url: http://williamxu.net9.org/ref/buffer-action.el
+;; Url: http://xwl.appspot.com/ref/buffer-action.el
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

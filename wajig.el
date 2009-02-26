@@ -4,8 +4,8 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.6
-;; Url: http://williamxu.net9.org
-;; Last updated: 2008/03/15
+;; Url: http://xwl.appspot.com/ref/wajig.el
+;; Last updated: 2009/01/29
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
