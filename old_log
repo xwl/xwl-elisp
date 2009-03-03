@@ -1,0 +1,2206 @@
+commit 917673ab8b107aebdf529e6ffd96faefa9f0da55
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Sep 7 22:25:25 2008 +0800
+
+    minor updates.
+
+commit 6824dc80bc32cb38fab53e53aa0bab1dd01f6111
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Aug 26 22:02:54 2008 +0800
+
+    Revert "Release 1.0."
+    
+    This reverts commit a9df80e22e1dc5f461d1f7ff8cedc9f39f3fff9c.
+
+commit d9f95c0c04028a8377cc34892dc7709fe6ae2f06
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Aug 26 22:01:40 2008 +0800
+
+    *** empty log message ***
+
+commit a9df80e22e1dc5f461d1f7ff8cedc9f39f3fff9c
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Aug 26 21:49:28 2008 +0800
+
+    Release 1.0.
+
+commit 885d31bd7eda6d3aa76959b68a43da965d46ff4f
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Aug 2 10:28:32 2008 +0800
+
+    (generic-apt-fink-upgrade): Default to "yes" for interactive questions.
+
+commit 1c3e7125eee73d3dd78a5c552965f6376b862628
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Aug 1 12:53:37 2008 +0800
+
+    (calendar-generate-month): New function.  generate-calendar-month has been
+    changed to calendar-generate-month since 23, update to reflect this.
+
+commit a81b81cebcb67e0ec64544bb4f87386f7ffd8ebd
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Aug 1 12:34:11 2008 +0800
+
+    chinese-date-diary-pattern, etc: Update them to work under 23.
+
+commit a6e5154264c252b64ede733a4ded1d0bf897d85b
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jul 13 18:54:29 2008 +0900
+
+    (buffer-action-match): Catch `string-match' error.
+
+commit c95f9fedfa43b3fa2c78688637673064fa37ea88
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jul 12 20:55:13 2008 +0900
+
+    Fix typo.
+
+commit f079587aaf0512f544764423b48be92e3160e7a0
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jul 12 20:54:28 2008 +0900
+
+    Minor updates.
+
+commit 21d91f5938dbaa2859d9c34100c121a2963c18f2
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jul 12 20:53:04 2008 +0900
+
+    * Update variable / function namings due to filename changes.
+    * Release 0.1.
+
+commit ca2a39958180cb057bcfb9a121f4e92c33da6948
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jul 12 20:47:34 2008 +0900
+
+    Renamed:    scheme-extra.el -> chicken-scheme-extras.el
+
+commit 8800ea709f249754a39a1a083801a37b18dd8600
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jul 11 16:50:15 2008 +0900
+
+    (calendar-mark-holidays, mark-calendar-holidays): defadvice both of them for 23
+    and 22, respectively.
+    
+    Hmm, (defalias 'mark-calendar-holidays 'calendar-mark-holidays), then defadvice
+    only calendar-chinese-year doesn't work. :(
+
+commit 26912193d8f818b8dbba3024f78c27bd0cd8223d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jul 11 16:29:41 2008 +0900
+
+    * Add a new section Compatabilities.
+    * chinese-year has been renamed to calendar-chinese-year in 23, fix this.
+
+commit 4586d9e3040cc6e7941e3496dbdc36c49d8e77d1
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jul 11 11:48:03 2008 +0900
+
+    Make 'if indented as in elisp.
+
+commit 4ebc2931d84c31b902b8a24227148f61eaa58475
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jul 10 13:19:43 2008 +0900
+
+    Initial commit.
+
+commit 611f067591e22c6ca4cbdd374db2be6d64a11910
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Jul 8 14:54:47 2008 +0900
+
+    Bump version to 0.4a.
+
+commit 3a6f5c24f7b4972546eff359619b038f64e28e67
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jul 6 21:02:45 2008 +0900
+
+    Commentary updates.
+
+commit 6c2ce994caf9d8ed03c66f5b135d645b43338882
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jul 6 20:39:12 2008 +0900
+
+    Release 0.3, bump version to 0.4a.
+
+commit 961358c97edc6b5b1b0c8e75685f3a3f036b5732
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jul 6 01:09:27 2008 +0900
+
+    Bump version to 0.2a.
+
+commit 556dfe57e6a1544800a70a10ee0aba0055e7a7bf
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jul 6 00:53:25 2008 +0900
+
+    Commentary fix.
+
+commit 21a34ebecf1634e78ebc011ea59ebbf0c3cf5eac
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jul 6 00:39:02 2008 +0900
+
+    Rewrite many parts, now running multiple sessions(eg, fink on localhost, apt-get
+    on a remote debian machine) also work well.
+
+commit 068a91dc0f00c6b9c8d9ad667674888470c1cf00
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jul 4 17:52:24 2008 +0900
+
+    smart-operator c++ mode updates.
+
+commit d5b9ada8ff92593bbb0f0ba667d2b039f86d234d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jul 4 17:51:50 2008 +0900
+
+    Fix spelling.
+
+commit b558df09b6a0fb6d210f0b22dcdae5b9d6fddbf3
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jul 4 17:48:58 2008 +0900
+
+    Also updating menus for texinfo mode.
+
+commit b2ceb600fd855af52e644713b3dfcfa4137c2059
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jul 2 17:58:48 2008 +0900
+
+    * easy-todo-regexp-face-alist, easy-todo-regexps, easy-todo-matcher: New
+      variables.
+    * Change color scheme for items in different status.
+
+commit 560e025cf17446e5c684e4172af9b9bcc41dac38
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jul 2 17:08:00 2008 +0900
+
+    * easy-todo-flags: New variable.
+    * Improve Commentary.
+
+commit a928975bad88fc8ff8b6bb40461c82884cfa3094
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jul 2 17:03:30 2008 +0900
+
+    * (easy-todo-item-done): New function.
+    * Bind easy-todo-item-interrupted from "C-c C-u" to "C-c C-i".
+
+commit a46fddafab4453e3557febdd6711f17a04784dab
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jul 2 16:54:06 2008 +0900
+
+    Rename "*-unfinished-*" to "*-interrupted-*", and replace "^x" with "^|".
+
+commit 67259937a35d3fbe364fd5735a6c35451e908f89
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jul 2 02:02:31 2008 +0900
+
+    * Don't sort buffer automatically when switching item status.
+    * Bump version to 3.0a
+    * (easy-todo-sort-region): save-excursion doesn't work for we're
+      modifying the buffer with insertion and deletion? Anyway, thus let's
+      disable save-excursion and simply place final point at the beginning
+      of the region.
+    * (easy-todo-item-todo, and alike): Improve docs.
+
+commit ff9459d389f4d6c1423e5079f05d58a3904dbc0e
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 23 19:21:37 2008 +0900
+
+    Initial commit: Turn on bracketphobia-hide only for bracketphobia-modes.
+
+commit e98486925a88d7dee6ce9957ec3cc9f8c0363086
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 18 21:37:37 2008 +0900
+
+    Update Commentary.
+
+commit 249c1327cf4685402308e8525db49e8159f1d976
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 18 21:36:59 2008 +0900
+
+    finkinfo-keywords: Add two new fields: "SetLIBS"，"SetCFLAGS".
+
+commit 812f7fbbbab701c69f207f84e5dbcc059a981152
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 18 19:49:30 2008 +0900
+
+    Update Commentary.
+
+commit cde494b43d9ada1bdfa47af39aafc9d576f4e6b1
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 18 19:35:45 2008 +0900
+
+    (finkinfo-insert-keyword): Append ":" after keywords.
+
+commit 313f06b5376c0dd02b50b437a85318bd3e945099
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 18 19:33:20 2008 +0900
+
+    Init commit.
+
+commit b9df73bdbc4409db1045684daff489fb4a35d874
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 9 13:19:10 2008 +0900
+
+    Add new command listfiles and fix package caching support.
+    
+    * (generic-apt-listfiles): New function.
+    * generic-apt-available-pkgs: Make it function properly.
+
+commit aca35f20b169ad0a99fa70b3f76a753dbe6e767b
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun May 18 18:20:08 2008 +0900
+
+    Revert "Add a file variable: -*- coding: utf-8; -*-."
+    
+    This reverts commit 4cd7936aa7f73ac16285f63092d9312459d64a66.
+
+commit df6b14b1b0732c53d9f5aebed2f0b2cc921be1f7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun May 18 18:16:52 2008 +0900
+
+    Upgrade licence to GPL3+.
+
+commit 4cd7936aa7f73ac16285f63092d9312459d64a66
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun May 18 17:39:26 2008 +0900
+
+    Add a file variable: -*- coding: utf-8; -*-.
+
+commit 04814d0e870a101536084d5e9eaf3af8f7f685bc
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun May 18 17:21:19 2008 +0900
+
+    Release v0.9.
+
+commit e3fc587fd67ff3f6d2d017ab4cca5bb16e903334
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat May 17 22:59:14 2008 +0900
+
+    *** empty log message ***
+
+commit b9f94501e1ef1807d0d11f4538a50dd675ed4c7d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat May 17 22:58:26 2008 +0900
+
+    (buffer-action-compile): Now when a user's edited the compile command
+    interactively, we can save it for next time use !
+
+commit 8065b4d3fa2e95eb75846389483819cc405e433b
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 19:56:18 2008 +0900
+
+    Now Makefile can build for subdirs.
+
+commit 5f17f1fb004cbbd76fe87009506c18d0f7a297f5
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 19:39:30 2008 +0900
+
+    generic-apt-available-pkgs: Typo fix.
+
+commit 52b68624cc8e52e7b4a28b0d7aa0df848a75be4a
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 19:29:23 2008 +0900
+
+    (generic-apt-upgrade-all): New command.
+
+commit 4a900db8383fcc24828a03b238407460fcd204f3
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 19:09:06 2008 +0900
+
+    generic-apt-*: Add per backend font-lock keywords highlighting setup.
+
+commit d1b8a16ea0f4ba459c8bdc11dc06e1ea80edb4dc
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 19:08:22 2008 +0900
+
+    buffer-action-table: Add java support.
+
+commit 93f257a6e01639d922696c2de8f1cfe7c9502f95
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 19:07:14 2008 +0900
+
+    generic-apt-font-lock-keywords: Make font-lock highlighting backend configurable.
+
+commit 009bb86b0c8c93085a789aa749bb4a6c01c5fd7f
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 18:57:13 2008 +0900
+
+    (generic-apt-edit-sources): Concat "/sudo::" with config filename.
+
+commit a705428a9a5b23a3da8c9bdb6cd4fd1accaa4881
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 16 18:48:52 2008 +0900
+
+    (generic-apt-fink-update-available-pkgs): Remove debug command.
+
+commit d21b2a37dcddb467e17bd17ff3350ac54de90caf
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu May 15 20:56:26 2008 +0900
+
+    - When holiday-lunar returns a holiday that is beyond current calendar
+      view, we should not add it to calendar-holidays.
+    
+      Testcase: (holiday-lunar 10 21 "Hello"), calendar centered at
+      2009.01.  The correct holidays are 2008.11.18 and 2009.12.07, but
+      you'll find that 2008.12.07 is marked as holiday incorrectly.
+    
+      Thanks to wxd@#emacs-cn for reporting this.
+
+commit 4391010525060b6eec61e0798c4a62292d92aaa7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 2 00:31:53 2008 +0900
+
+    - Update keymaps settings, Commentary, Todo.
+    - (generic-apt): Add a new optional argument `method'.
+
+commit 9e14895b1f3783bb4aa0692df46cdc0f8a88764e
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 2 00:30:20 2008 +0900
+
+    Update commentary.
+
+commit e7fbba41360aadb84d7f347082b0052f3d980ca9
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri May 2 00:08:02 2008 +0900
+
+    generic-apt: Initial commit.
+    
+    fink seems basically working. :-)
+
+commit b6624de8dbd5eaa903072c423baac46015f8f709
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Apr 24 00:37:11 2008 +0900
+
+    *** empty log message ***
+
+commit 35f3d71868807f4826982c62c3e000af4f8f74c9
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Apr 20 15:40:47 2008 +0900
+
+    Initial commit.
+
+commit eac38bef9659f6ea626ce7f3429a11c748fbed36
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Apr 19 14:54:00 2008 +0000
+
+    Comment last change.
+    
+    darcs-hash:20080419145457-cfa61-9a3672fc22a9e7017d95fdba9b3fbe3d648e6ddf.gz
+
+commit f4bddb6ffc899fea69d55884172ea9beeae0e3af
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Apr 19 14:52:00 2008 +0000
+
+    Removed to CEjp repo.
+    
+    darcs-hash:20080419145223-cfa61-6bc1a0d5fe037458b1ed61f9556c2f6c68777cf6.gz
+
+commit cb72c75f02c8398ed02f3caf9afdd686f8b52eed
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Apr 15 12:33:00 2008 +0000
+
+    - Initial commit.
+    
+    - (require 'nnheader) to avoid failures encountered after byte-compiling.
+    
+    darcs-hash:20080415123304-cfa61-76da9e4a8830a9b5fa4de78211027b6d099d11e7.gz
+
+commit 1ee7429c8cff29fe9d0cc4c268700cd27aeb9380
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Apr 11 14:36:00 2008 +0000
+
+    *** empty log message ***
+    
+    darcs-hash:20080411143603-cfa61-6c785c6d833c5fe8e1ff1be5058f281b902cec90.gz
+
+commit d8db4ebaaa733f5aef47c9ddf5917226731d70f8
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Apr 11 12:21:00 2008 +0000
+
+    - update-calendar-mode-line has been renamed to
+    
+      calendar-update-mode-line in cvs 23, update this. (Thanks to
+      zm3345@gmail.com for reporting this.)
+    
+    - Version bumped to 0.8.3.  (Previous version is 0.82,  which was bad?
+      Should be 0.8.2)
+    
+    darcs-hash:20080411122101-cfa61-92ef2f6b70591c2ff5baf408fe559cbdb0030f20.gz
+
+commit bfa8cc602b3eeb2f7a81f97f9027548f5b34fa34
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Apr 1 15:46:00 2008 +0000
+
+    *** empty log message ***
+    
+    darcs-hash:20080401154630-cfa61-197994c1eea4633116ee41304e05e5ded7b9018d.gz
+
+commit 95ebd1d04ec7faa2a5edc9c9fa539a49044d8c6f
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Apr 1 07:42:00 2008 +0000
+
+    *** empty log message ***
+    
+    darcs-hash:20080401074256-cfa61-b0177f640f4e1bc14d2629a01f408d382c8f3d3e.gz
+
+commit d1d582463db9b8be68da1892deb2cc5b4c18f10c
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 31 06:22:00 2008 +0000
+
+    (require 'holidays) for `calendar-holiday-list'.
+    
+    darcs-hash:20080331062232-cfa61-c20c6dd469894dac5baf41905e6ff90e7e9ffb16.gz
+
+commit b5716107db6ca0dd4f6589a8f4cb6db96e1115cb
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Mar 27 03:55:00 2008 +0000
+
+    * buffer-action-table: for texinfo-mode compile handler, do not update
+    
+     menu/nodes automatically now.
+    
+    darcs-hash:20080327035523-cfa61-52bdddff4b58be0c488027d26926417fce706e8d.gz
+
+commit c28cdf2c551cdc518daaf71efe5f719278cd1086
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Mar 26 04:12:00 2008 +0000
+
+    buffer-action-table: texinfo-mode, restore original cursor position.
+    
+    darcs-hash:20080326041239-cfa61-579aef60e4156c93cd2a71b6297ae998910d8889.gz
+
+commit f6b3befa35efe1a16319b272769742eae310c342
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Mar 26 04:10:00 2008 +0000
+
+    buffer-action-table: Fix compile handler bug for texinfo-mode.
+    
+    darcs-hash:20080326041002-cfa61-f4cdc3084c3fd41b378657ed7b0fce9c521c0c3c.gz
+
+commit 7623b9c216ff6b49ec855725b898c39fcb85cdbc
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 24 15:20:00 2008 +0000
+
+    buffer-action-table: When generating info files, make/update menu and
+    
+    notes automatically.
+    
+    darcs-hash:20080324152022-cfa61-65c0adcddba60441000f7d700ab08388f4307b60.gz
+
+commit 541ad2d2c068d61b82677ef9a04c9605b0719d9b
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 22 15:53:00 2008 +0000
+
+    buffer-action-table: Fix run handler for texinfo-mode by using full path
+    
+    for buffer file.
+    
+    darcs-hash:20080322155334-cfa61-1bf14847f79a4b475a3eabc796fd0d833d227296.gz
+
+commit 3640661f7ba8944edd43c9a41b109b754a4df895
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Mar 20 10:53:00 2008 +0000
+
+    buffer-action-table: Fix compile handler for Makefile.
+    
+    darcs-hash:20080320105332-cfa61-0dc9306a6a0258f3790ba20265dda3edcc44401b.gz
+
+commit a01cb5f919a3e5c9a0070ee15382ac55e6c79ad1
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Mar 20 10:52:00 2008 +0000
+
+    *** empty log message ***
+    
+    darcs-hash:20080320105209-cfa61-8cd5b3e155ec97d248d27a5e959ca8c6a0c8bb19.gz
+
+commit 7abff8a1f00c274181f143d13a473915c8668aed
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Mar 20 10:50:00 2008 +0000
+
+    - Bump version to 3.1.
+    
+    - buffer-action-table: Add graphviz dot files handler.
+    
+    darcs-hash:20080320105000-cfa61-84f78365bf3bd1841a1c06213f19c71aeefbf535.gz
+
+commit 88b95206437ff61a6c46757feea8198504b05424
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 15 09:32:00 2008 +0000
+
+    Initial commit.
+    
+    darcs-hash:20080315093206-cfa61-03a7f5417294b8924309fed3a788c1fa15f35703.gz
+
+commit cdb2ff84d737bc9bb172808b18d4d511e82d6a24
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 15 09:31:00 2008 +0000
+
+    wajig.el: Replace occurances of (lambda (el) el) with 'identify.
+    
+    darcs-hash:20080315093138-cfa61-02ae0c1bb5cb4ce8460d1536fbe5d6e5e4c3b080.gz
+
+commit aa81534118fda823166dcf929ec71354fe491c9d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Mar 12 14:29:00 2008 +0000
+
+    (require 'cl) when byte compiling.
+    
+    darcs-hash:20080312142914-cfa61-fdc0630d2578bbf290689b381ba35a925865c24d.gz
+
+commit 3d0b65d732f01c08e0d7e4a13ea3a492a6478d79
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 10 08:33:00 2008 +0000
+
+    buffer-action-table: Add Makefile handler.
+    
+    darcs-hash:20080310083306-cfa61-7e74033c6b3b81720b02a41000962b343ec39cb5.gz
+
+commit 1c4744c7ec3dfe3bf624634a2a5b5d791f7fa1b3
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 10 04:00:00 2008 +0000
+
+    (dashboard-tenseijingo-callback): Replace dashboard-decode-html
+    
+    w/url-html-decode-buffer.
+    
+    darcs-hash:20080310040051-cfa61-8e4eed37bd6d1c24afe4f8e12f58bf6e74d5736b.gz
+
+commit 4628b11703d756029b57f53d84ee1f4c51db5e58
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 10 03:59:00 2008 +0000
+
+    Seems we'd better skip the already updated widgets.
+    
+    darcs-hash:20080310035950-cfa61-7c3cec52c78073737c1a18d14eb5fea419a1496a.gz
+
+commit 94996143409331de32a755a68da0d158cf2d9956
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 10 03:52:00 2008 +0000
+
+    - Sync w/nba website updates.
+    
+    - Use url-html.el.
+    
+    darcs-hash:20080310035223-cfa61-3d2ede34c1c40fcb6974e62018879ecb6b4185ff.gz
+
+commit ebbf3ef8fb3acac0409ff2eb77ab9128f86130a3
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Mar 7 08:48:00 2008 +0000
+
+    (smart-operator-%): Bug fix.
+    
+    darcs-hash:20080307084807-cfa61-2383016fd8461eced006fbce7a292a32a5dd6241.gz
+
+commit 8000a00ca5833110d2587e914ebee50916eab225
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Mar 7 08:29:00 2008 +0000
+
+    (smart-operator-%): New function.
+    
+    darcs-hash:20080307082958-cfa61-d1c57da5c4ad8c5059b1ca9996b13ebc43ceec62.gz
+
+commit e9f2b7ac71109f5d9c88eca5c8530dd705cbdd01
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Mar 6 03:59:00 2008 +0000
+
+    (cwit-receive-callback): Also keep silent when cwit-use-local is t.
+    
+    darcs-hash:20080306035927-cfa61-8c04d2a3dd58516f317fcf93905a79045a43f7d8.gz
+
+commit c3b2c78f5705a8c70fc924b2690d81b596b0d023
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Mar 6 03:51:00 2008 +0000
+
+    (cwit-receive): Turn off `message' in minibuffer when `cwit-use-local'
+    
+    is t.
+    
+    darcs-hash:20080306035115-cfa61-e1e17dc8289658d1e36e99d4111dd4708a447fc1.gz
+
+commit a3364abdd4aeb9fc0200c3e68f761c308093b079
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Mar 5 10:16:00 2008 +0000
+
+    (cwit-generate-script): New function.
+    
+    darcs-hash:20080305101622-cfa61-e76d5d82323bce7bc093ebdea1c16cc3019b229d.gz
+
+commit 44ce926f4540639a27afeccd79af470e462c0123
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Mar 5 07:38:00 2008 +0000
+
+    Update TODO.
+    
+    darcs-hash:20080305073837-cfa61-914c513beeffcedb479ac547bce4e5a7dd9f690b.gz
+
+commit 95b1a6429b670eb3968fde0f610caf142f5d2076
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Mar 5 07:37:00 2008 +0000
+
+    Now cwit can read from local cached html pages, images.  The key
+    
+    variable is `cwit-use-local'.
+    
+    Bump to 0.2.1
+    
+    darcs-hash:20080305073751-cfa61-9d01c8d29d8e9e2e66c4c08768e75c56e3a6bba3.gz
+
+commit 39a63e942befb713ab5e93eab095021b3b537626
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Mar 4 15:39:00 2008 +0000
+
+    (buffer-action-match): Remove local exit FIXME.
+    
+    darcs-hash:20080304153916-cfa61-ff2e473388436a3d4f9950a7053763c6459201bd.gz
+
+commit 6b464fcad25b879d83a12dfcae3b22d684ee49d1
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Mar 4 14:50:00 2008 +0000
+
+    (smart-operator-<): Define `<' as `<>' in sgml-mode.
+    
+    darcs-hash:20080304145013-cfa61-119f268d72cc297368bdc74122a6a70400d71d89.gz
+
+commit f73539586f2c8f6809a8df6611aa4f6c8266b2ce
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Mar 4 07:13:00 2008 +0000
+
+    (smart-operator->): In c-mode, place cursor after `->' correctly.
+    
+    darcs-hash:20080304071350-cfa61-429a2a7a9d90579956c25d7cbeaca40d699a4f15.gz
+
+commit 9a8b0a678a9118b3e1e80e37ee9c2f79c923003c
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 3 10:20:00 2008 +0000
+
+    *** empty log message ***
+    
+    darcs-hash:20080303102046-cfa61-243e9f6657c633a35baad5d560da87a31ce88a7b.gz
+
+commit 26a67387796c83b1f56d634e58f1626815f497c8
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 3 07:55:00 2008 +0000
+
+    (cwit-send): Add missing argument image-url for cwit-insert-entry call.
+    
+    darcs-hash:20080303075516-cfa61-2e08b79896e16aff3b715ac5de9338b096c02d2a.gz
+
+commit db37dafc6a21428eff839b821c1693ede0a06bd6
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Mar 2 06:34:00 2008 +0000
+
+    (smart-operator-?): New function.
+    
+    darcs-hash:20080302063435-cfa61-31981618fa598643662621c9859982831a165a82.gz
+
+commit ac67c32b81a2846453dec81290d9c25dc40489d8
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Mar 2 05:15:00 2008 +0000
+
+    Update GPLv2 to GPLv3.
+    
+    darcs-hash:20080302051557-cfa61-6969b85076ae5d8d35f6aa976c832e4dfcabff00.gz
+
+commit bfa2723a6d5b9b09fd56e332b5c9dac7acccdfeb
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 17:45:00 2008 +0000
+
+    Remove temp debug info.
+    
+    darcs-hash:20080301174531-cfa61-5e170191c5e35188b03f0f26653e6a314b727f1b.gz
+
+commit 0be073ebca89e63236a35b3163ce49fa98bb4f18
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 17:38:00 2008 +0000
+
+    Add lots of fine tuned smart-operator-* functions.  Remove c, c++ mode
+    
+    specific functions.
+    
+    darcs-hash:20080301173817-cfa61-bb905ae35b5295be72caf526d99b57d57a986b6d.gz
+
+commit 4b3e79185ce40611775dec2905443ea0fe9f19ac
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 16:39:00 2008 +0000
+
+    A complete rewritten, now as a minor mode.
+    
+    Bump to version 3.0.
+    
+    darcs-hash:20080301163959-cfa61-7f4dcbe160a2c5ac673b99fc0c3d48097d07bf96.gz
+
+commit a04d6e26ed1eeeb6b04e36f41bedcb002b69270d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 09:22:00 2008 +0000
+
+    *** empty log message ***
+    
+    darcs-hash:20080301092224-cfa61-34efcbff69bf447044630e3c8cca03bde7c37de9.gz
+
+commit 426fc5a990d668c0630647189cb4ae630fb84efe
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 09:15:00 2008 +0000
+
+    (buffer-action-compile): Fix stupid missing ) bug.
+    
+    darcs-hash:20080301091515-cfa61-63ac839e13b9cc4b8830d919d4f909ac804f9fc8.gz
+
+commit b744709bcabc8c236281a76140792290583340c7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 08:53:00 2008 +0000
+
+    (buffer-action-match): Let's abort when buffer matches nothing in
+    
+    buffer-action-table.
+    
+    darcs-hash:20080301085355-cfa61-24b608f3e3c3e950100916918c95e55e565ddbe7.gz
+
+commit 53143f5e7f3d83fa7fc5c4e8989ba3b19e549208
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 08:34:00 2008 +0000
+
+    (buffer-action-match): Fix matching bug, replace dolist with while loop.
+    
+    (buffer-action-shell-command): Fix closing async command buffer bug.
+    
+    darcs-hash:20080301083412-cfa61-7f05ea8d5b353d3441fced58a5f69bc569b8c3cc.gz
+
+commit 3764882c3198000f99c38bbd33ab4df9901b5595
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 07:58:00 2008 +0000
+
+    - Refactoring lots of codes, should be much cleaner than previous' now.
+    
+    - Bumped to 3.0
+    - Test passing by playing with foo.c.
+    
+    darcs-hash:20080301075802-cfa61-d7eacc95130af629f357bb04b32c830a8be735d6.gz
+
+commit 9f54492d49130943ca3f4eead9c23985c378f8e7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Mar 1 05:56:00 2008 +0000
+
+    Rename file-action.el to buffer-action.el
+    
+    darcs-hash:20080301055606-cfa61-8a069d4c1dde4b86082693378671241c7b4bb628.gz
+
+commit b35a454e8605ee03ef4c7288c39d1f0c1e391ed9
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 29 14:54:00 2008 +0000
+
+    Rename smart-compile.el to file-action.el
+    
+    darcs-hash:20080229145407-cfa61-3cf994279e836a2418334c357060150713b8f73d.gz
+
+commit c7d56cc08600f202e347924e1b144a7659ab6cb5
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 29 14:46:00 2008 +0000
+
+    smart-compile-table: Add .info files handler.
+    
+    darcs-hash:20080229144613-cfa61-998737ad8b6772022b11e160ec97a64c5ac80508.gz
+
+commit 971917aeb83ee6b4de0dfb3eccc4287e1d67d9b8
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 29 09:42:00 2008 +0000
+
+    Add buddy icon display support.
+    
+    Buggy though, maybe in cwit.el, maybe in w3m.
+    
+    darcs-hash:20080229094245-cfa61-0cef2e929d3e0f290f396bc3efd8664a0a51fa92.gz
+
+commit 8760abe868c761e81af5c5f0700da2a2296517e7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Feb 28 07:49:00 2008 +0000
+
+    (cwit-receive-callback): When startup, do not increase
+    
+    cwit-unread-message-counter.
+    
+    darcs-hash:20080228074908-cfa61-844506766450453f41b58e74548d6309e5d8a93b.gz
+
+commit 0c51f7a843683174cf2cf4fef341087128186cc7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Feb 28 07:35:00 2008 +0000
+
+    Bind u, U to fink-selfupdate and fink-update-all respectively.
+    
+    darcs-hash:20080228073535-cfa61-bed1cc1763ad4a4cd348d72e7e7fbb5392fbc532.gz
+
+commit 2f8b90217965769a195052b95722b0f821581b59
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Feb 28 07:27:00 2008 +0000
+
+    fink-mode-map: Bind `U' to fink-selfupdate instead of fink-upgrade-all.
+    
+    darcs-hash:20080228072736-cfa61-f9c36d460eefe880bf83abb51b51745d2bc94007.gz
+
+commit fd640b26afaca1f1e20cf9d47192dcd6f90f89a2
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Feb 28 03:22:00 2008 +0000
+
+    (cwit-receive-callback): Do not increase unread message counter when
+    
+    author is me.
+    
+    darcs-hash:20080228032246-cfa61-b07d68de32b2dd90312c30b6a0b9cbdfed1f258b.gz
+
+commit b6bb9e2e192d02de7b41496cc4eac76c488c6dd9
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Feb 27 15:09:00 2008 +0000
+
+    Initial commit.
+    
+    darcs-hash:20080227150950-cfa61-45ed84b0d7514d1d5b5fe648cd186610392cc952.gz
+
+commit b031f2f6d7649dcb8e51984a8f1a919d1ae4e397
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Feb 21 12:09:00 2008 +0000
+
+    Bump version to 0.81.
+    
+    darcs-hash:20080221120950-cfa61-b602b8ec5884427e90316fe06fd4448713a33055.gz
+
+commit ab89df61cdceefbfc4744d5c9c944766b6ac7520
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Feb 21 12:09:00 2008 +0000
+
+    `mark-calendar-holidays' in emacs22 has been renamed to
+    
+    `calendar-mark-holidays' since 23, fixed this.
+    
+    darcs-hash:20080221120909-cfa61-d5a6cda190ee478789c12af20bf429c2d4ecf224.gz
+
+commit fc3e43a41f586f83910aedf1777c32b662ec7671
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Feb 19 04:12:00 2008 +0000
+
+    (cwit-receive-callback): Use `url-html-decode-buffer' defined in
+    
+    url-html.el, replacing emms-url. Release 0.1.
+    
+    darcs-hash:20080219041219-cfa61-e4b671447e7a032c011a267904653353992c4019.gz
+
+commit d6ed4c141c1807398a133ea2598462f237a82d9d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Feb 19 04:09:00 2008 +0000
+
+    (url-html-decode-buffer): Set parameter BUFFER at the start. Fix regex
+    
+    searching for charset info, so as not to mess with http header.
+    
+    darcs-hash:20080219040911-cfa61-231f4d07ba256ec37ee490ff2d548d7ca3b6205d.gz
+
+commit 4bd39767a7cee779517be57a95ecf00e01532100
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Feb 19 04:01:00 2008 +0000
+
+    url-html.el: New file, for handling html pages.
+    
+    darcs-hash:20080219040141-cfa61-74d821257ec23b0a8b65fe785c278d8293c96879.gz
+
+commit 73b5893059fb575617dbc15a8f6b2e778c359f87
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Feb 16 09:13:00 2008 +0000
+
+    (dashboard-tenseijingo-callback): Use re-search-forward instead of
+    
+    search-forward when locating the starting point of tenseijingo content.
+    
+    darcs-hash:20080216091341-cfa61-1b70150c805ef39fdc849ae665f4d4058c2ec614.gz
+
+commit 3c1f31db9c0971cb0bdfdda0fc26a6517b2a968a
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 15 11:21:00 2008 +0000
+
+    Now a basically working version! Add a new widget dashboard-tenseijingo.el.
+    
+    darcs-hash:20080215112153-cfa61-3a6b0f73fedccf519875e1265e640f10ab9ede84.gz
+
+commit 61908b52716a07c5d75b9244738a967e96df4135
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 15 08:23:00 2008 +0000
+
+    dashboard: New module. Dashboard inside Emacs.
+    
+    darcs-hash:20080215082308-cfa61-0b15b369372c78bcfa3da182c81ff94eb9e12079.gz
+
+commit 8465c12ccf180f86ebe17815e9c8d6ae79a0e363
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 15 08:16:00 2008 +0000
+
+    Make predefined holidays a const.
+    
+    darcs-hash:20080215081609-cfa61-d8096beb4bc6468cd68a1386f0f8ac5302adc721.gz
+
+commit d80737c3e47c968acf5d81d1ec11d49c45d8439e
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Feb 12 02:40:00 2008 +0000
+
+    - Fix typo.
+    
+    darcs-hash:20080212024038-cfa61-4860776c0d591624dae72a8d05edaea2d7a42906.gz
+
+commit b824d666bc4732f582673d403f0ac12736eff28d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Feb 11 12:14:00 2008 +0000
+
+    - Display error message at minibuffer for url failures.
+    
+    - Make use of emms-url.el for decoding html buffer returned by
+      url-retrieve.
+    
+    darcs-hash:20080211121449-cfa61-00527ce33ab044ced5547cd0ee1083ff2c7c9223.gz
+
+commit d42e30eb9baef1946dcfc0526fca3d8377746c92
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Feb 6 09:24:00 2008 +0000
+
+    - Fix `cwit-last-entry-index' lock issue.
+    
+    darcs-hash:20080206092433-cfa61-6bf7d3c4473f2d3284afa8e131a1e14400e7fd86.gz
+
+commit 7ebaaf526e095c4ef25f8ec1c7cb6b3f3c308b87
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Feb 6 08:24:00 2008 +0000
+
+    - Replace call-process-region with w3m-region.
+    
+    - Detect coding system by looking at Content-type, charset.
+    - Fix `cwit-update-mode-line'.
+    
+    darcs-hash:20080206082405-cfa61-37f0c272617705dc24b2cbd5c1b17cfa8f3a7847.gz
+
+commit 8ddc13b0cad40e5d8f2ddc290d96a77c5adbffb1
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Feb 5 03:14:00 2008 +0000
+
+    * Add cowsay welcome startup page.
+    
+    * cwit-update-interval: Renamed from `cwit-refresh-interval'.
+    * Comments updates.
+    
+    darcs-hash:20080205031432-cfa61-7f4301d43922128776fc92531835d27b5a8070ed.gz
+
+commit a2bb4fb58e48caf57f21df1a466cab0f9caab650
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Feb 4 12:53:00 2008 +0000
+
+    Work around utf-8 partial characters missing problem by commenting
+    
+    "(skip-chars-forward "[[:space:]]")". Now this is a fairly workable
+    version !
+    
+    darcs-hash:20080204125315-cfa61-6dc2566d3d2247ac57ca7c77ba65152b9f5dff8c.gz
+
+commit f9ed8a84e6a855b643c000acf6bb7c8c36cb8e6d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 1 12:24:00 2008 +0000
+
+    - Wash html correctly using external tool "w3m", when available.
+    
+    - Update Commentary.
+    
+    darcs-hash:20080201122407-cfa61-3258ad37493ecda242f78dddbc5ffe059a533412.gz
+
+commit 3285a2099bd13f6f8e74094ee6e77f3ce1fd03c7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Feb 1 11:51:00 2008 +0000
+
+    Initial commit.
+    
+    Version 0.1,  works fairly okay.
+    
+    darcs-hash:20080201115142-cfa61-3f1051a8a9922af4489637601b07d7119568bdfc.gz
+
+commit adbf56c5d1d30abcf10ea2a27a9e1407e24701ac
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jan 30 09:10:00 2008 +0000
+
+    Release 0.6.
+    
+    wajig-command-prefix: New variable, for controlling wajig on a remote
+    machine via ssh.
+    
+    darcs-hash:20080130091043-cfa61-a1fb1184b48c8d851422041b2832194052fe8e4f.gz
+
+commit 6e5b33e144de01c1cf36e99da191cad4119dd0c3
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jan 28 12:22:00 2008 +0000
+
+    Fix Url info.
+    
+    darcs-hash:20080128122204-cfa61-4c18056bb81824d86929de321ac5ca59ab1ab91e.gz
+
+commit ce1c83831e1bfd4bfe0af4069b205bc25b365657
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jan 27 08:57:00 2008 +0000
+
+    Release 0.8:
+    
+      - cal-china-x-priority1-holidays: renamed from
+        cal-china-x-important-holidays. Similar for
+        cal-china-x-priority2-holidays, cal-china-x-priority1-holiday-face,
+        cal-china-x-priority2-holiday-face.
+    
+      - cal-china-x-chinese-holidays: New variable.
+    
+      - Remove modifications to calendar-holidays, leave it as default.
+    
+      - Various comments updates.
+    
+    darcs-hash:20080127085703-cfa61-0cdb42b1bfee0079b31a3fb89e45c081bc4a4dbd.gz
+
+commit ee5f3d21200d1c2ad0509aa15c70d72ebce3681e
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Jan 22 07:26:00 2008 +0000
+
+    Release 0.8a1:
+    
+    - Change "jieqi" to "solar term"
+    - Add cal-china-x-japanese-holidays
+    - Add cal-china-x-important-holidays, cal-china-x-misc-holidays, which
+      could be marked with different faces in calendar buffer.
+    - Add holiday-solar-term: Now you can define holidays based on solar
+      terms.
+    - Reorganize calendar-mode-line-format: mode line display is updated
+      according to date under cursor. It can also display holiday name on
+      the mode line for holidays.
+    - Defadvice calendar-mark-holidays for different color schemes on
+      different holidays to work
+    
+    darcs-hash:20080122072616-cfa61-6308ebfa7810295be178849eade5fba3c91e8ba6.gz
+
+commit 3013b8b6c8d93f7a13e581113cb9f22de5eedc9d
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jan 20 13:48:00 2008 +0000
+
+    Switch from git to darcs again.
+    
+    darcs-hash:20080120134819-cfa61-c328222f442482c1870c1f1f10b8225239928924.gz
+
+commit 2be76542322db13f618177246aea2730f87e06f6
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jul 1 06:36:00 2007 +0000
+
+    cal-china-x.el: Add chinese month and year to
+    
+    calendar-font-lock-keywords. Release 0.7
+    
+    darcs-hash:20070701063630-cfa61-7b202dfbe65ad7b58a585f0944ea64ed8192a350.gz
+
+commit b6c707a6e0d7c2b6b22fecbf85311a97fdec5d83
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jun 30 06:08:00 2007 +0000
+
+    smart-compile.el: Set run-handler of emacs-lisp-mode to eval-buffer.
+    
+    darcs-hash:20070630060827-cfa61-650db1fd5b0ef22b050ffa1d57d90edb0bea5000.gz
+
+commit 67c65359329dc46c965bcfb4728afde40d9645ac
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jun 30 06:01:00 2007 +0000
+
+    smart-compile.el: Add emacs-lisp-mode handler to
+    
+    `smart-compile-table'. Release 2.3.
+    
+    darcs-hash:20070630060129-cfa61-afd190becc903a27ccc56212f5a718ae2492c829.gz
+
+commit 39737598bc007099a5ec99868c910ee9cb4a9311
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jun 30 05:34:00 2007 +0000
+
+    Remove qterm.el to ../qterm
+    
+    darcs-hash:20070630053402-cfa61-452f3e2e071461a3d142b831372d7656a0e629e3.gz
+
+commit e483cdfc6bb2ac0ad2ca17e33d82371d53dc7e82
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 29 17:44:00 2007 +0000
+
+    qterm.el: Remove use of replace-regexp, which is said to be used only
+    
+    interactively. Thanks to analyz@newsmth for reporting this.
+    
+    darcs-hash:20070629174414-cfa61-7fbb0eb0a421581eaafd6d1c5327d34425604e31.gz
+
+commit 32dc09754019693197961fb8b265c7e98ff51215
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 29 17:28:00 2007 +0000
+
+    qterm.el: Release 0.21.
+    
+    darcs-hash:20070629172828-cfa61-4a859b27cf6e22d67415ff7e3a92a2aa91f27974.gz
+
+commit 1f9f5433f3315d3c0e1f04a09b8c1f94c6184a40
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 29 14:46:00 2007 +0000
+
+    Add various autoload tags.
+    
+    darcs-hash:20070629144622-cfa61-0df260541f4b1c7fee45cbaaba0cc94c76d48604.gz
+
+commit 980720cb27f26e21d13403fc03b8c249383b65da
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 29 14:40:00 2007 +0000
+
+    qterm.el: inhibit-read-only should be t..
+    
+    darcs-hash:20070629144049-cfa61-cf5847e1a309a944a79d0a0424af187c42094868.gz
+
+commit 800278dceba04c8f764429eaf32b8a6cbb8ad7d7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 29 12:44:00 2007 +0000
+
+    qterm.el: Add `qterm-signature'.
+    
+    darcs-hash:20070629124443-cfa61-79ebaefd62fb7f503866457a76a185070ebbd808.gz
+
+commit bfc63e2a5daaa918f75961ec3030f08a6f2b9ae9
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 29 12:09:00 2007 +0000
+
+    Initial commit.
+    
+    darcs-hash:20070629120906-cfa61-c8fa6ccabcf298b6d2abefa47d6a501be01d0656.gz
+
+commit 3bb1d1e249b5bc48955b26698a31c94c69f5eed9
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 12:21:00 2007 +0000
+
+    smart-compile.el: When bin file `foo' for `foo.c' is not found. Prompt a
+    
+    shell-command explicitly.
+    
+    darcs-hash:20070625122152-cfa61-3eada9fa63ef5bb008e0fb1a34bad07cd6a938cd.gz
+
+commit 9d99e4d287a243c5dd6bfb524d603006a1cc6d26
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 11:32:00 2007 +0000
+
+    smart-compile.el: Commentary updates.
+    
+    darcs-hash:20070625113236-cfa61-6ba7f494e3b4f3d8746fcd6a34b23c447c56eec1.gz
+
+commit d32ad2b13cd3f2b41ffd6243306537984069530a
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 11:23:00 2007 +0000
+
+    smart-compile.el: Fix a tiny bug. Release 2.2.
+    
+    darcs-hash:20070625112344-cfa61-04b4dccec595f706d3d3448d89aea781a10ca959.gz
+
+commit 81f76d6e2c657f52b6892119a5c0ae9868b366a1
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 11:16:00 2007 +0000
+
+    smart-compile.el:
+    
+      - Rename smart-compile to smart-compile-compile
+    
+      - Add smart-compile-compile1, smart-compile-run1 and various
+        functions, varialbes, in the hope of just let
+        smart-compile-compile and smart-compile-run do the real work for the
+        first time, and remember the result later. Thus, it requires fewer
+        interactions with a user. (e.g., a compile/run action for current
+        will only running interactively for the first time, when necessary)
+    
+    darcs-hash:20070625111658-cfa61-8c1d254a1c9a594c2d03f0a2360b35f5c269a880.gz
+
+commit 2bd9951f86f1e45875384f64167739e9077344c5
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 09:57:00 2007 +0000
+
+    smart-compile.el: Remove use of
+    
+    smart-compile-shell-command-asynchronously. Use shell-command by
+    appending a '&'.
+    
+    darcs-hash:20070625095719-cfa61-6e556923871e4ce6b8064f7ee0c2d96c74214bdf.gz
+
+commit 5f3a2397f6ea9565353a5aac1f09d21662922f25
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 08:42:00 2007 +0000
+
+    smart-compile.el:
+    
+       - Remove use of `eval' (use of `eval' will be evil, right?)
+       - Let smart-compile run `compile' interactively only for the first time,
+         don't bother me later
+       - New variable: smart-compile-command
+    
+    darcs-hash:20070625084257-cfa61-9bf1797563c2eef00142236bbf5bd80f4c9449b7.gz
+
+commit 76b694d4c2fcd77767ee95a0f8ca5370a1da1429
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 07:35:00 2007 +0000
+
+    smart-compile.el: When shell-command fails, set what-to-do to nil.
+    
+    darcs-hash:20070625073507-cfa61-8d5265564fc183383f8a3dee51982aabbae33efd.gz
+
+commit 89103012683e1aa5004601bdd6ae27c4d6c521f5
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 07:27:00 2007 +0000
+
+    smart-compile.el: Commentary updates.
+    
+    darcs-hash:20070625072704-cfa61-21f84dd5a2fe062cad8e133714ee6707c4c32966.gz
+
+commit 83eac0c136c0696d36a5f408b5cb231df9cbd412
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 07:26:00 2007 +0000
+
+    smart-compile.el:
+    
+        - Rename `smart-compile-and-run' to `smart-compile-run'
+        - Now `smart-compile-run' will just run, no compile
+        - If we don't know what to run(Ag, when we are using some project
+          builders, who knows what the BIN target is?) Prompt shell-command for
+          user to specify manually.(maybe can save it to local variable?)
+    
+    darcs-hash:20070625072632-cfa61-b70d3061ad055f7ef30e15af85c7ca693df40446.gz
+
+commit de26e322da1b9fe783ea8e69bbbee8251125352e
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 25 07:12:00 2007 +0000
+
+    smart-compile.el:
+    
+        * Rename `smart-compile-checked-p' to `smart-compile-first-time-p'
+        * Remove `smart-compile-check-makefile'
+        * Clean `smart-compile' a bit and add `qmake' support
+        * Release 2.1
+    
+    darcs-hash:20070625071204-cfa61-96c8c85096f6b66b453bbcf0416043fc2d34c107.gz
+
+commit 96e58d3f05ba0e1928748e62b585e8b324a6a480
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 22 09:27:00 2007 +0000
+
+    smart-compile.el: Minor updates.
+    
+    darcs-hash:20070622092733-cfa61-851defdb2ae2a9357d1cade9b82ac67dd7142389.gz
+
+commit 63fe3192df5c6d5a16756c3c22ccb837b3600a03
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 22 09:02:00 2007 +0000
+
+    smart-compile.el: Release 2.0.
+    
+    darcs-hash:20070622090248-cfa61-56ec0085e879540e7ca55e775401b2aaba75b757.gz
+
+commit ab72540ffc581388515cb2b126dc238b14043cb5
+Author: William Xu <william.xwl@gmail.com>
+Date:   Fri Jun 22 09:02:00 2007 +0000
+
+    smart-compile.el: Merge smart-compile-table, smart-run-table,
+    
+    smart-executable-table into one single table, namely
+    smart-compile-table. Rewrite smart-compile, smart-run.
+    
+    darcs-hash:20070622090224-cfa61-dd6d52e94bde2955be9fa2209dcae5bcb1c7e2e8.gz
+
+commit 773494b1e105d91c764ba672bc2528e55cb0379c
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jun 21 15:05:00 2007 +0000
+
+    smart-compile.el: Make `smart-compile-replace' autoloaded.
+    
+    darcs-hash:20070621150513-cfa61-2e2253ceba465bdaa5ac271195c478d3bdf0d16c.gz
+
+commit 4e5aebcfa7442cd7055aa551cd72290e3a223fac
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Jun 18 10:17:00 2007 +0000
+
+    smart-compile.el: Add `smart-compile-checked-p'. With it, we'll run
+    
+    smart-compile only for the first time, and rely back on original compile
+    for future request. The reason is that user may edit the compile-command
+    in the minibuffer.
+    
+    darcs-hash:20070618101714-cfa61-0adda5f582be11b66d8a5c96a2fca745a9d3a87e.gz
+
+commit 72ed03a304fc084a1faa9d8c68e0d0f5037fdc0a
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jun 14 06:17:00 2007 +0000
+
+    smart-compile.el: Release 1.0.
+    
+    darcs-hash:20070614061714-cfa61-170b43d3b6480d728006a1c977c4a2fcd457d958.gz
+
+commit 650c513632d4cc390efb40386f13dd9ec131a81a
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jun 14 06:11:00 2007 +0000
+
+    smart-compile.el: Cleanups.
+    
+    darcs-hash:20070614061112-cfa61-70999cae4bbd440f450368c46417c99388fc8680.gz
+
+commit 62d0b04ac561191595c7ac4b9de384981c22e5f3
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jun 14 05:51:00 2007 +0000
+
+    smart-compile.el: Rename *-alist to *-table, and don't use alist any
+    
+    more.
+    
+    darcs-hash:20070614055112-cfa61-e71acf849448f358051d144bdecfd8f7cc6ef017.gz
+
+commit 98181c35e46187689f2901cdf34d543938ecaad0
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jun 14 04:01:00 2007 +0000
+
+    smart-compile.el:
+    
+        - Continue simplying code.
+        - Update Copyright info.
+    
+    darcs-hash:20070614040121-cfa61-61c87a6c05351e76e04c37ed486e3a9fedbd2707.gz
+
+commit 3ed6ed8a5ba5d20229249f3336191619dc3ab9cc
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jun 14 03:33:00 2007 +0000
+
+    smart-compile.el: Make (smart-compile), (smart-run) autoloaded.
+    
+    darcs-hash:20070614033357-cfa61-f51f8ca40396ede9d834831ca6768d9c8f4e255d.gz
+
+commit 0146af3843293d815e0f1391900414d02c34c177
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 13 06:42:00 2007 +0000
+
+    smart-compile.el: Fix a tiny bug.
+    
+    darcs-hash:20070613064221-cfa61-2e1dc1100afae2328572bce0373a805f8a64cb9f.gz
+
+commit 01d37fcc58f87e4ba9ee47504be8ffdd61c3fa19
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 13 06:36:00 2007 +0000
+
+    smart-compile.el: Rewritten smart-compile and smart-run.
+    
+    darcs-hash:20070613063603-cfa61-fe5cd26dfc0afd4fde65b47ceac4772e16236b3d.gz
+
+commit 93bd80024b5b7e1284af5ea56e74b8c4cef7c204
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jun 13 05:47:00 2007 +0000
+
+    smart-compile.el: Initial commit.
+    
+    darcs-hash:20070613054742-cfa61-d4b6b78c0adf577bd1f87e61255943556f99a2f2.gz
+
+commit f27974014a61a6fc88f62ade412114800cf7855a
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon May 21 08:48:00 2007 +0000
+
+    Add "Deprecated" subdir.
+    
+    darcs-hash:20070521084829-cfa61-78c212b7acd0e6ad5b41ef6b3dc24d9c2f598e45.gz
+
+commit 81899fcea91fdbea485b9fecef3da172db18c2ae
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon May 21 08:45:00 2007 +0000
+
+    Remove old files.
+    
+    darcs-hash:20070521084547-cfa61-da73d7ee185228a81b757cc56b326290b95a77b2.gz
+
+commit 31baee67aea5b2984af3ef3360ad8e07ba2e3ffa
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon May 21 08:45:00 2007 +0000
+
+    dired-view.el: Minor updates.
+    
+    darcs-hash:20070521084534-cfa61-c3ca76401cdb4b070f7d1b6486831500509f9cec.gz
+
+commit cd9c81de57528747fd8fdc4693fcd39187ef8a4a
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon May 21 08:43:00 2007 +0000
+
+    wajig.el: Commentary minor updates.
+    
+    darcs-hash:20070521084321-cfa61-a5ff34117d6f599297b8042ffa421011b996eed2.gz
+
+commit 2f50c7a664e191e5618235982b841e71b0dfbc70
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon May 21 08:40:00 2007 +0000
+
+    less.el: Add "Version" header. Update to 0.2
+    
+    darcs-hash:20070521084000-cfa61-f35fd380df2047d24c68d95cfa65c59913a33841.gz
+
+commit 017458bb96959dd28240d49239f93867b40c51f6
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu May 10 09:27:00 2007 +0000
+
+    smart-operator.el:
+    
+        * (smart-insert-operator): If the inserted sign is just at the
+        beginning of the line, call `indent-according-to-mode'.
+    
+        * Fix version in header part to 0.9. Damn, i think i lost it
+        sometime ago by mistake..
+    
+    darcs-hash:20070510092714-cfa61-50a95616aace6451f479678a8b9417ec49b1ce60.gz
+
+commit 43b1e5af85c159f03114604f0364dc2c3b81a11e
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Apr 15 04:28:00 2007 +0000
+
+    dired-isearch.el: Add "Bugs" Section and update copyright info.
+    
+    darcs-hash:20070415042839-cfa61-e09a7cbb14342e871c4c13136b3acba7852a046a.gz
+
+commit 7a1ccd99cd3c85ab5326adbe239687396dbe7ffa
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Apr 10 09:51:00 2007 +0000
+
+    cal-china-x.el: Update TODO.
+    
+    darcs-hash:20070410095139-cfa61-c1a28a35bf75d54df0bf20ac9f89ab273f7b465b.gz
+
+commit 71323c116aedec8f965595b416cf22126afb7550
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Apr 10 09:42:00 2007 +0000
+
+    cal-china-x.el: Update Url.
+    
+    darcs-hash:20070410094212-cfa61-17486c28791ccd2298d63a98f70f55093330a9c4.gz
+
+commit 444863f4d27cfca0a210bd8f4fc2968fef7d7fca
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Apr 10 09:40:00 2007 +0000
+
+    cal-china-x.el:
+    
+        - Fix bug related with `dairy-lib' (Thanks to Sen Zhang for
+          reporting this)
+        - Rename "qijie" -> "jieqi"
+        - Add "Url" keyword
+        - Release v0.6
+    
+    darcs-hash:20070410094014-cfa61-2e0810505fede53785e522f725bb7346f207be5d.gz
+
+commit a64542a98ce3905fd90e8a53fabcb424785e2615
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Mar 27 12:17:00 2007 +0000
+
+    cal-china-x.el: Rename `holiday-chinese' to `holiday-lunar'.
+    
+    darcs-hash:20070327121729-cfa61-a2d5a6239bd19b0e4f02fdf9ea05b5a0536d0663.gz
+
+commit 0664f312e6aa31b4e96869f53a18733a2afe5230
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 26 10:40:00 2007 +0000
+
+    cal-china-x.el: Minor updates.
+    
+    darcs-hash:20070326104047-cfa61-07bdc3aac8c2391afb58970867b63ae8480e1e3f.gz
+
+commit ef01106bdc5dc7432efec99298742bc810828b48
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 26 10:37:00 2007 +0000
+
+    cal-china-x.el: Now `holiday-chinese' recognize "run" month ! Release v0.5.
+    
+    darcs-hash:20070326103728-cfa61-ae75e56a9af1b0ce23ec32ad99e874f42ef96b81.gz
+
+commit 6b5269a75122e2c56fe449008b1a1fb2e901aa72
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 26 08:56:00 2007 +0000
+
+    cal-china-x.el: Make use of `defconst'. Update version to v0.4.
+    
+    darcs-hash:20070326085638-cfa61-a4cc2fbf9730c43146d97960951eb08e425d2fa1.gz
+
+commit 3c99b314f48a174bb6b3cf6fbed086ed5b21f684
+Author: William Xu <william.xwl@gmail.com>
+Date:   Mon Mar 26 08:53:00 2007 +0000
+
+    cal-china-x.el: Add Qijie support.
+    
+    darcs-hash:20070326085356-cfa61-83d2bedfc9beb9b8fa6fbfc8ff82757a288f41aa.gz
+
+commit 40f839ddf0a0ea407c42d779e9d484492740ae37
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Feb 28 11:21:00 2007 +0000
+
+    cal-china-x.el: Minor updates.
+    
+    darcs-hash:20070228112117-cfa61-7b60d52f267d948b6227c847155e98f3250f5517.gz
+
+commit 185cc4bb4afa1ae0cdffcf3e36a1db9123f23cf3
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Feb 24 05:02:00 2007 +0000
+
+    smart-operator.el: Initial commit. Resolve "1. #include <stdio.h>" in c
+    
+    & c++ modes problem somehow by introducing a new function
+    `smart-insert-c-style-<'.
+    
+    darcs-hash:20070224050232-cfa61-0bb990d20da56fc45abd6ee159dd328098884590.gz
+
+commit fe19f9d006ba1a6b66a7bf7a29e4a516349a48c7
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jan 28 09:36:00 2007 +0000
+
+    read-completer.el: Pack codes tightly.
+    
+    darcs-hash:20070128093638-cfa61-6e25a02ef93d16b8809e76f5c8d71c323db6f07f.gz
+
+commit 0b4f858902d5ac043904f1f0660689206c807866
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sun Jan 28 08:49:00 2007 +0000
+
+    read-completer.el: Initial commit, support latex at present.
+    
+    darcs-hash:20070128084946-cfa61-4d7f75022b9cb6320624cec35d88fb1656a2b7f2.gz
+
+commit 596ce3992dc0f929e61e8134e3578750d643cb2c
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Jan 18 12:31:00 2007 +0000
+
+    cal-china-x.el: Correct calendar buffer name from "Calendar" to
+    
+    "*Calendar*".
+    
+    darcs-hash:20070118123144-cfa61-06e5319b07161aa02f229cdf80e59f4d627a2a19.gz
+
+commit e5ad64f9b6152f80c24cc82c59bf0f190db9d3d9
+Author: William Xu <william.xwl@gmail.com>
+Date:   Wed Jan 17 11:04:00 2007 +0000
+
+    .xwl-emacs-standard.el: Minor updates.
+    
+    darcs-hash:20070117110436-cfa61-ba4afb15934ae423d89f0b4dc5ae8337a04a4fee.gz
+
+commit 283ff6a468e7494af0a6e62eb5efb3f96a80f7a1
+Author: William Xu <william.xwl@gmail.com>
+Date:   Sat Jan 6 02:31:00 2007 +0000
+
+    .xwl-emacs.el: Add lyrics-crawler section.
+    
+    darcs-hash:20070106023109-cfa61-c7888e6c8e88cc9f2b1a50657e049d2d37b4402f.gz
+
+commit bfaa9539a3ddff9069181831a56bba74345228c8
+Author: William Xu <william.xwl@gmail.com>
+Date:   Tue Dec 26 16:20:00 2006 +0000
+
+    .xwl-emacs.el:
+    
+    - Using wqy fonts instead of simsun
+    - Remove Gnus chinese stuffs(testing stage)
+    
+    darcs-hash:20061226162058-cfa61-b6b2d97cb527ac69b6ce40855427fddedef8ebe8.gz
+
+commit fe3d6074ed23c36b7a37db74b71518ffd3a946f8
+Author: William Xu <william.xwl@gmail.com>
+Date:   Thu Dec 21 06:41:00 2006 +0000
+
+    .xwl-emacs.el: Add `vc-print-log'.
+    
+    darcs-hash:20061221064138-cfa61-309c2c416cb158dc6feca304c5245c9c1dbc5a67.gz
+
+commit f5e70692da882393003b54ab65db6fc72b4c9407
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Tue Dec 12 11:03:00 2006 +0000
+
+    cal-china-x: Fix copyright manifesto. Release v0.32.
+    
+    darcs-hash:20061212110340-e8fe6-1926a1c18c5d12d8476c1d1f2e2948a63d0d86f3.gz
+
+commit f9e10feebf0d23fd31c79c8047d9e716f761bf13
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Dec 7 05:18:00 2006 +0000
+
+    cal-china-x.el: Release 0.31
+    
+    darcs-hash:20061207051830-e8fe6-5c5774d59724150bf77a2886f58b1633b4853947.gz
+
+commit 677309aed6b757c237ae50afd7691e6e298d9d08
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Dec 7 05:18:00 2006 +0000
+
+    cal-china-x.el: Fix `cal-china-x-chinese-date-string'.
+    
+    darcs-hash:20061207051814-e8fe6-c275be009751af7ad16026daafbbcd26e54d6484.gz
+
+commit 78852d57d0101cbda99888581c93527eaf058265
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Tue Dec 5 06:13:00 2006 +0000
+
+    cal-china-x.el: Fix `cal-china-x-get-zodiac'. Thanks zm
+    
+    <zm3345@gmail.com> for reporting this.
+    
+    darcs-hash:20061205061308-e8fe6-e041debb27030145a2fa7c1ed984c4ff32e79116.gz
+
+commit d736463cef19d670c159b8ea6dd4ed372dc0bf5e
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sun Dec 3 05:24:00 2006 +0000
+
+    wajig.el: Rebind `wajig-list-files' from `L' to `l'.
+    
+    darcs-hash:20061203052409-e8fe6-d8aa20ed2f8c5bc7e5071095d4c995694dd309b1.gz
+
+commit 5b4b1eeb4e84354fda1c85837c4a7571dfb82b10
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Nov 30 09:29:00 2006 +0000
+
+    wajig.el: Add `wajig-install-at-point'.
+    
+    darcs-hash:20061130092950-e8fe6-a576429fb55447a57039878064d04e365e0bb6b5.gz
+
+commit 47d16801fee416460588bcea5ef305b034873074
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Nov 11 17:26:00 2006 +0000
+
+    .xwl-emacs-standard.el: Turn off auto fill in minibuffer.
+    
+    darcs-hash:20061111172630-e8fe6-496de8688e1206263805420aa1cc57e0a24954fc.gz
+
+commit 15869b5699206c6e2ad7bcee2d229d798cdcbf40
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Nov 11 17:22:00 2006 +0000
+
+    .xwl-emacs-standard.el: Add box bindings.
+    
+    darcs-hash:20061111172235-e8fe6-c5b57f806f21ad37467adbd15edb8f24fb22946a.gz
+
+commit 22be0eeb734e32d8d50d13e4163be0b80cea3d80
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri Nov 10 06:43:00 2006 +0000
+
+    wajig.el: Don't run `wajig-update-cache' at startup.
+    
+    darcs-hash:20061110064329-e8fe6-028074b2731e323d6576ea33b11ae2f2a0a8c740.gz
+
+commit aebdb395f8bb0616cb0e6b2c17e9c3f1ef30be5e
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Nov 9 13:20:00 2006 +0000
+
+    .xwl-emacs-extral.el: Fix `emms-playlist-mode-hook' name.
+    
+    darcs-hash:20061109132032-e8fe6-6c0ae5ca0835700eb1e0b9c0a43fc193c299808e.gz
+
+commit 6ab0d50cc7cdc417d026027c0f0a95d8cc283612
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Nov 9 13:17:00 2006 +0000
+
+    .xwl-emacs-main.el: Minor updates.
+    
+    darcs-hash:20061109131745-e8fe6-e7df7815ca351a1db1c3d8d761391dd59273d576.gz
+
+commit d195fdab8829f36473f2958dda2f5835312fa092
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Nov 9 13:14:00 2006 +0000
+
+    .xwl-emacs.el: Use gmail server as default MTA; Release 2.13.
+    
+    darcs-hash:20061109131439-e8fe6-6d6f28045d048e6850071d58881b3e0331ab9929.gz
+
+commit a368b22f4c0a93077bd21243c0da542e4a8fbce9
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sun Nov 5 22:24:00 2006 +0000
+
+    wajig.el: Add docstring for `wajig-mode-map'.
+    
+    darcs-hash:20061105222408-e8fe6-42e6ce056984b72d5542f0a50d069db4c9b0ef0b.gz
+
+commit d65334f0a14b3e6c7200cf73d477cbfb57ae9cf7
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Nov 1 03:22:00 2006 +0000
+
+    wajig.el: Add more keywords; run `wajig-update-cache' at wajig startup.
+    
+    darcs-hash:20061101032250-e8fe6-b6eff7711adc617e6cd8c97ab4c97080562c079f.gz
+
+commit cc3a88fe87380b1748090123aaaaed49157f43f5
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Oct 5 11:59:00 2006 +0000
+
+    .xwl-emacs.el: EMMS & Gnus updates.
+    
+    darcs-hash:20061005115956-e8fe6-cfb00c9dcf824129a98d0e1236f6c0f268b9f6db.gz
+
+commit 262fd12f6d5e7d0d3091c2f20329f87e7f6ea227
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Mon Sep 25 13:16:00 2006 +0000
+
+    .xwl-emacs-main.el: Delete sending mail by google stuffs.
+    
+    darcs-hash:20060925131646-e8fe6-caf02ad254d810ad88a8624c08f8e6a62765f4c2.gz
+
+commit 6af3cfbbfae1266c8d273906db384d686bf2fcbd
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Mon Sep 25 13:15:00 2006 +0000
+
+    .xwl-emacs-main.el: Add .xwl-after-start-hook and erc.
+    
+    darcs-hash:20060925131500-e8fe6-1a4ee7cdaf06443dedd98cb8ae75388ff8d97028.gz
+
+commit d70cf060e22e1b6a61230641ff11e6c98dd559ef
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Mon Sep 25 13:12:00 2006 +0000
+
+    .xwl-emacs.el: Merge & split issue, Gnus updates.
+    
+    darcs-hash:20060925131253-e8fe6-4a26fd5ac05f4d60e536d2c68a813a6514b712ea.gz
+
+commit 59df408901cab15e85c0eafbd6e7b7eed9ad485f
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Sep 23 16:57:00 2006 +0000
+
+    dired-isearch.el: Restrict searchable places by examing `help-echo'
+    
+    property instead of `dired-filename', so as to work with remote dired
+    buffers. Release v0.3.
+    
+    darcs-hash:20060923165745-e8fe6-e56a02849a5740b50e5a69b8b72664968d03b5e7.gz
+
+commit dd3ae75c5fb060498f4d0ae5056368fe7ec635cf
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Sep 23 06:39:00 2006 +0000
+
+    wajig.el: Make `wajig-policy' require one argument by default.
+    
+    darcs-hash:20060923063911-e8fe6-71aff10ee7686d2495c7698dffe2ece41f49807b.gz
+
+commit 0d7489ba1384f2560cb8b3206b78fc3bfa0ef0e0
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sun Sep 17 18:48:00 2006 +0000
+
+    .xwl-emacs-extra.el: Set a different face for `xwl-holidays'.
+    
+    darcs-hash:20060917184809-e8fe6-dc1fa6ab5993e35b7f7e83c49feb047bafe77748.gz
+
+commit 9e77d40794f25e05a1af4907a424151c5237d4a8
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri Sep 15 17:40:00 2006 +0000
+
+    wajig.el: Cache `wajig-commands-string' and release 0.52.
+    
+    darcs-hash:20060915174021-e8fe6-0c0ff2aad0416362bb4d4f8fd8598dbefc4084f4.gz
+
+commit 3c03ddf0a0c0374afe3fbe196f37001b7e57c1f2
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri Sep 15 16:09:00 2006 +0000
+
+    .xwl-emacs-extra.el: Rename `.xwl-emacs-crucial.el' to
+    
+    `.xwl-emacs-extra.el'.
+    
+    darcs-hash:20060915160957-e8fe6-81c5d6f1d2f3234a981107dd8472223869d871b1.gz
+
+commit ca0251116d561ddc17afffb8ddd1d4062fa1ff99
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri Sep 15 15:54:00 2006 +0000
+
+    .xwl-emacs.el: Split parts into `.xwl-emacs-standard.el' and
+    
+    `.xwl-emacs-crucial.el'.
+    
+    darcs-hash:20060915155427-e8fe6-4fd5d5eee02dbc516419970da81e92c0be2807e3.gz
+
+commit 99059b82960863a65f4bc932f110b60ec6428a54
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri Sep 15 15:53:00 2006 +0000
+
+    .xwl-emacs-crucial.el: New file.
+    
+    darcs-hash:20060915155323-e8fe6-5f939af299666f7d3e6ae6cfb1a68ab35c24ec3f.gz
+
+commit dd9926aafe4d1a73111a6a7053d03c81e91543fc
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri Sep 15 15:53:00 2006 +0000
+
+    .xwl-emacs-standard.el: New file.
+    
+    darcs-hash:20060915155307-e8fe6-d7e41e3bb060cb29432f57af62a2dcbf5a0f21e3.gz
+
+commit 7ea93d0553bfea2d2d2e5862d304efb821528cd1
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Sep 13 15:17:00 2006 +0000
+
+    cal-china-x.el: Fix diary bug.
+    
+    darcs-hash:20060913151725-e8fe6-53cbc106255e9cb250a43beaba1f2983447bfe19.gz
+
+commit 06174db2a51e188df2c0acb3aa21bd2fd734b34c
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Tue Sep 12 16:32:00 2006 +0000
+
+    Add Gnus rss config.
+    
+    darcs-hash:20060912163247-e8fe6-fe98625c50e261da2dd1418d4b69e092140e26bf.gz
+
+commit 2c876b2888da4fd17401c4d393642a8671288e5f
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Sep 7 12:45:00 2006 +0000
+
+    wajig.el: Release 0.51
+    
+    darcs-hash:20060907124518-e8fe6-36094365f025694b8ec311e9c657c97313fcafba.gz
+
+commit a991438d99facac419bfb4d54317625c660c0ce8
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Mon Sep 4 15:28:00 2006 +0000
+
+    wajig.el: Add `wajig-update-cache'.
+    
+    darcs-hash:20060904152857-e8fe6-ee14b011f908c958c4f492dce6e09ec63aa2c092.gz
+
+commit 6698e0aae5a6c783755dc78095e301f5d3e81bf4
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Mon Sep 4 14:48:00 2006 +0000
+
+    wajig.el: Add caching support for `wajig-daemons'.
+    
+    darcs-hash:20060904144834-e8fe6-858892db0f5d029eb8823087485de5468c77645f.gz
+
+commit 2388ee4a134f0c2accbbc58275ef1303926916c2
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Mon Sep 4 14:42:00 2006 +0000
+
+    wajig.el: Add caching support & release 0.5.
+    
+    darcs-hash:20060904144223-e8fe6-81d75251da198f5c19234c42fa81c058ba44f14d.gz
+
+commit e8062e86497348a1b0feea09b24607b617ea8203
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Aug 31 13:04:00 2006 +0000
+
+    cal-china-x.el: Fix day for 7.7 festival.
+    
+    darcs-hash:20060831130445-e8fe6-a35cdb88f7264dd7272d2c3f2b7c02428bac68fe.gz
+
+commit 7d5c2feb0b85db806829c4016e2e8104ed35e603
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Aug 30 19:17:00 2006 +0000
+
+    cal-china-x.el: Fix typo.
+    
+    darcs-hash:20060830191746-e8fe6-ecba495a892038ee270e13ccb2319dac619e1d53.gz
+
+commit 06399d66a6965464856b407abd4a36000bb7cfcf
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Aug 30 19:09:00 2006 +0000
+
+    cal-china-x.el: Fix lunar year calcuation bug.
+    
+    darcs-hash:20060830190915-e8fe6-fcdd3e805164da85c02c2f4f170bc1a2833dab63.gz
+
+commit a44d86ff09411b27ea5f045c781baf0c230883cf
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Aug 30 18:54:00 2006 +0000
+
+    cal-china-x.el:
+    
+    - Fix `Run Nian' bug.
+    - Release v 0.2
+    
+    darcs-hash:20060830185426-e8fe6-fe4c54b5985f0fb3f3a4c899284022b0697d361b.gz
+
+commit 8b781ade45b72572f274df9c149992f045c73575
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Aug 30 18:47:00 2006 +0000
+
+    cal-china-x.el: Add `horoscope' and `zodiac' support.
+    
+    darcs-hash:20060830184720-e8fe6-d6a85e451eec0259da1f0873e7612f8e30464ee1.gz
+
+commit 7863a595aff94c8234b487ef35d0872d6247b699
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Aug 26 10:59:00 2006 +0000
+
+    .xwl-emacs.el: Remove `at-home?'.
+    
+    darcs-hash:20060826105940-e8fe6-2774ed0290a07cb0868d9d121651c6fc4ccf902d.gz
+
+commit 724f292aba37944ad24f91d54b60aa78e6fecf48
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Aug 24 13:26:00 2006 +0000
+
+    wajig.el: New keyword `Enhances'.
+    
+    darcs-hash:20060824132605-e8fe6-61acd6050076b5b8f8eaf58dcb1e18a76a283ea4.gz
+
+commit 3ec34b4da346d75b61451d990c2f8bf414ee124c
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Aug 23 16:13:00 2006 +0000
+
+    - Use wajig autoload way.
+    
+    - Remove dired-single.el
+    
+    - Add guile debugger elisp
+    
+    - Clean up some gnus settings
+    
+    darcs-hash:20060823161353-e8fe6-89405a0e76b6b884144b01db41674a7d94023cc5.gz
+
+commit e47573c0be115cfe15464b7169edfd3090fb6482
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Aug 23 16:11:00 2006 +0000
+
+    Note `autoload' usage in commentary, upgrade version to 0.44.
+    
+    darcs-hash:20060823161157-e8fe6-07ab0ee999207602d4feb24bd97d331d8bf6e2a0.gz
+
+commit 28204dc302cf55addf05d4c049c55a44b2f03774
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Aug 19 07:47:00 2006 +0000
+
+    dired-isearch.el: Initial setup.
+    
+    darcs-hash:20060819074731-e8fe6-64317ed795bc6487f13bdc6855c21dcd8a227aa6.gz
+
+commit 1522d67eab4bedde06e2e5b42e862ad82a3afe75
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Aug 17 17:50:00 2006 +0000
+
+    .xwl-emacs.el: Add highlight-tail.el, dired-isearch.el.
+    
+    darcs-hash:20060817175032-e8fe6-bec855116e0abf617bd7f883b872ae6c718369aa.gz
+
+commit f8b0f934ce4838d215a680f7952add8772e72829
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Aug 16 05:03:00 2006 +0000
+
+    .xwl-emacs.el: sql, gnus, dired-view and various stuffs.
+    
+    darcs-hash:20060816050344-e8fe6-5d4b4d2be1afc50d772c94667fdd3eb540442de1.gz
+
+commit c5eb6906d96220630469291b9a92c93d3bcac270
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sun Aug 13 10:25:00 2006 +0000
+
+    dired-view.el: Initial setup.
+    
+    darcs-hash:20060813102521-e8fe6-68c2de10e0552895866ee7db07fb7b23b8cb236f.gz
+
+commit bd1c8c7d58e1e900e004a32190be59c3c89563f9
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sun Aug 13 07:55:00 2006 +0000
+
+    less.el: Initial setup.
+    
+    darcs-hash:20060813075556-e8fe6-239898311a314bada6086ab8de4c40d853b67792.gz
+
+commit 6c1e1eb48f2c66b9425ef047593e2262be830342
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Jul 29 18:19:00 2006 +0000
+
+    .xwl-emacs-gnus.el: Initial file.
+    
+    darcs-hash:20060729181925-e8fe6-f20b29c6cc52707476b14a9a681f365fee3fae1d.gz
+
+commit f860b7875f1ed533ce2b350cac0ce6f5a2c133c3
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Jul 29 18:19:00 2006 +0000
+
+    .xwl-emacs-main.el: Initial file.
+    
+    darcs-hash:20060729181913-e8fe6-5227e1ccde58a0b3be87377367663591c6fe3f25.gz
+
+commit 80ee7653c1a7e8f52ccfc37739980f2e86357b70
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat Jul 29 18:18:00 2006 +0000
+
+    .xwl-emacs.el: Initial file. Use darcs to record changelogs since 2.11.
+    
+    Old Changlogs:
+    
+    ;; v 2.11 [2006/05/16 17:03:08] Split POST part into two separate
+    ;;        scripts, `~/.xwl-emacs-main.el' and `~/.xwl-emacs-gnus.el'.
+    
+    ;; v 2.10 [2006/01/18 13:45:23] Move config files like `.foo' from
+    ;;        `~/.emacs.d/.foo' back to default path `~/.foo'.
+    
+    ;; v 2.9 [2006/01/06 21:44:46] Change settings to accomedate zh_CN.UTF-8
+    ;;       locale.
+    
+    ;; v 2.8 [2005/09/06 00:52:20] Remove several deprecated parts to
+    ;;       `.deprecated.el'.
+    
+    ;; v 2.7 [2005/09/04 03:17:45] Added Deprecated part, removed Post
+    ;;       part.
+    
+    ;; v 2.6 [2005/08/01 23:44:35] Move from folding-mode back to
+    ;;       outline-mode. Wow, i didn't know outline-mode could be that
+    ;;       powerful before!
+    
+    ;; v 2.5 2005/05/03 11:30:33 Re-merge `light-weight.el' to
+    ;;       `.wx-emacs.el'.
+    
+    ;; v 2.4 2005/03/24 09:17:05 Create a separate `light-weight.el' , which
+    ;;       contains all the configs that can be used anywhere easily.
+    
+    ;; v 2.3 2005/02/05 14:22:35 Put `.gnus' into here.
+    
+    ;; v 2.2 2004/12/12 17:32:50 Rename .emacs to .xwl-emacs.el. Load it in
+    ;;       .emacs, the aim is to avoid the messy custom-set parts.
+    
+    ;; v 2.1 2004/12/01 21:24:26 Remove all the custom-set parts.
+    
+    ;; v 2.0 2004/10/23 18:03:35 Reorganize the structure
+    
+    darcs-hash:20060729181837-e8fe6-ec932328bf03890b92ece04a9a34aceb53d14ffa.gz
+
+commit ec0bfed00e793bbd06ac12db1b990ab8031ee815
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Jul 26 17:16:00 2006 +0000
+
+    Upgrade version to 0.43.
+    
+    darcs-hash:20060726171635-e8fe6-c9c59c236abfbb0eacfa9e6a590bf251f052ae86.gz
+
+commit 5690fd832fe4b4cc0fad5c17a45206eeebd82d4f
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Jul 26 17:11:00 2006 +0000
+
+    Add new highlighting keywords "SHA1" "SHA256".
+    
+    darcs-hash:20060726171136-e8fe6-897c7ee9c36b4dc60446028326c2ad2e773f3684.gz
+
+commit ac0d37d02b1b7787d5ddd62109ab0381ae46d612
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Jul 26 17:08:00 2006 +0000
+
+    Make `wajig-update-command-path-alist' return a proper value.
+    
+    darcs-hash:20060726170845-e8fe6-cfac3ddc38e91747f64c6880b0694194c7b92c2a.gz
+
+commit e0d842aa8229d3b4719afe0b0ed06629d8aa3101
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Jul 26 17:03:00 2006 +0000
+
+    Use sudo for editing sources.list.
+    
+    darcs-hash:20060726170336-e8fe6-fc0903546ad08cc86e680a4c0d84a4db190363b0.gz
+
+commit 1a867dd59b94815f9ebfc9c55a332b15ff306c74
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Tue Jul 4 16:13:00 2006 +0000
+
+    Add a completion table for `wajig-manually'.
+    
+    Add several network related functions.
+    
+    Add `wajig-run-frequent-commands'.
+    
+    darcs-hash:20060704161307-e8fe6-455bbbb902ede36eb6f117053cf1e8207020fb3d.gz
+
+commit 8516b3687604513f12bc32880573c197e909210b
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Sat May 27 07:14:00 2006 +0000
+
+    Added some more keywords for highlighting.
+    
+    darcs-hash:20060527071421-e8fe6-8992cf8848b3be4b8be7dab12290ae8cd6714a80.gz
+
+commit 3a6c189cbfa38b2ee6cabd64e26551c3c7708cb5
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri May 12 04:52:00 2006 +0000
+
+    Made `cal-china-x-birthday-from-chinese' interactive.
+    
+    Release v 0.11.
+    
+    darcs-hash:20060512045226-e8fe6-c5f1673ad7c025d5f4cc3b0854a365b5f0e5767c.gz
+
+commit dead267df4068a3b261dac18b847e595649e1890
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu May 11 10:03:00 2006 +0000
+
+    Initial file.
+    
+    This package is based on chinese-calendar.el written by Charles Wang
+    <charleswang@peoplemail.com.cn>. Major changes i've made including:
+    
+    - Reorgize code layout and modify some codes to be more clear
+    - Remove some unnecessary hooks and functions
+    - Apply Emacs package prefix naming style
+    - Add some new functions
+    
+    darcs-hash:20060511100351-e8fe6-3244e276ebc7dbd46b9f8aca1c9be5da0997eed3.gz
+
+commit ed97d8f197089acb210978ffdde011cb916d89bc
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu May 11 07:16:00 2006 +0000
+
+    Initial file.
+    
+    darcs-hash:20060511071623-e8fe6-617aa9a55ff585c8093e24a7e3771beefd4c5e66.gz
+
+commit d7a4734750f48ce8c521571b54f51e3d7d474a3a
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Tue May 2 03:14:00 2006 +0000
+
+    Don't erase buffer when `wajig process already exists' error occurs.
+    
+    darcs-hash:20060502031447-e8fe6-62e03a588ec5ad815c77b280865a80bc644787f2.gz
+
+commit 72dd27fc453d0fcad0f3dcadfa36fc467572e7cf
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Mar 1 07:00:00 2006 +0000
+
+    Remove `eval' things and use general style to define a new wajig
+    
+    command. Release 0.4.
+    
+    darcs-hash:20060301070011-e8fe6-abe28d549378ec6c9628b72b41dc694a316b43d1.gz
+
+commit 3769f26cbc3c0c1f19a2364b2a862c132adb7f03
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Thu Feb 23 16:29:00 2006 +0000
+
+    1. Distinguish between general wajig commands and those for controlling
+    
+       system services. (Mainly they differ in completing list.)
+    
+    2. Add output highlight support.
+    
+    3. Replace `delete-process' with `kill-process' to make `wajig-kill'
+       actually work.
+    
+    4. Upgrade version to 0.3. (Now we've accomplished most of the stuffs as
+       far as i can see.)
+    
+    darcs-hash:20060223162952-e8fe6-de3e7d2168648f94a64955074c117f37e80e4533.gz
+
+commit 21e9132ce94747ec2ca94cdab6c5118f2f46cfa6
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Wed Jan 25 10:52:00 2006 +0000
+
+    Make use of `inhibit-read-only'.
+    
+    darcs-hash:20060125105219-e8fe6-e34876e541cae1325fb969beb608a6060e7f7b62.gz
+
+commit 4452bd7f9262c9257bfed2a57381f23b4fb0dc1c
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Tue Jan 24 14:11:00 2006 +0000
+
+    Fix a function declaration sequence bug.
+    
+    darcs-hash:20060124141130-e8fe6-405e5ba106c6730df32c9c6fcf4b772defc0ac26.gz
+
+commit 279582c8b9f922721d80455bf92c6268422300c8
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Fri Jan 20 14:54:00 2006 +0000
+
+    1. Finish a complete interface for wajig commands, and is about to add
+    
+       more system administration operations.
+    
+    2. Add ido completion support for package names.
+    
+    darcs-hash:20060120145448-e8fe6-6625c5572adcba443546a156ea288338c64ab5ea.gz
+
+commit 26f80f0fbc4c42e2f6e06c66b15f4643e49b3e5d
+Author: william.xwl <william.xwl@gmail.com>
+Date:   Tue Jan 17 11:18:00 2006 +0000
+
+    Initial file.
+    
+    darcs-hash:20060117111802-e8fe6-922b9c57134342a37676f6192131b0a581b55e3b.gz
