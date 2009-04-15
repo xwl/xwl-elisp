@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.3a
+;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -41,8 +41,8 @@
 ;;     		  '("192.168.1.20" "\\`root\\'" "/ssh:%h:"))
 ;;          ))
 ;;
-;;     (require 'ga-install)
-;;     (setq ga-select-methods
+;;     (require 'ga)
+;;     (setq ga-backend-methods
 ;;           '((apt-get "ssh 192.168.1.20 sudo apt-get")
 ;;             (fink "sudo fink")))
 ;;
@@ -75,12 +75,17 @@
   :type 'string
   :group 'ga)
 
-(defcustom ga-select-methods '((apt-get "sudo apt-get")
-                                        (fink "sudo fink"))
+(defcustom ga-backend-methods '((apt-get "sudo apt-get")
+                               (fink "sudo fink"))
   "Package management tool lists.
 Each element is the essential command prefix string.  For
 example, \"ssh foo sudo apt-get\".  Then the command will execute
 as: \"$ ssh foo sudo apt-get ...\""
+  :type 'list
+  :group 'ga)
+
+(defcustom ga-backend-list '(apt-get fink)
+  "Supported backend list."
   :type 'list
   :group 'ga)
 
@@ -137,7 +142,7 @@ as: \"$ ssh foo sudo apt-get ...\""
     st)
   "Syntax table used while in `ga-mode'.")
 
-(define-derived-mode ga-mode nil "Generic Apt-get"
+(define-derived-mode ga-mode nil "Generic apt-get"
   "Major mode for generic apt alike interfaces for various package management tools.
 \\{ga-mode-map}"
   (set-syntax-table ga-mode-syntax-table)
@@ -149,7 +154,7 @@ as: \"$ ssh foo sudo apt-get ...\""
   (setq ga-buffer-name ga-buffer-name)
 
   (setq ga-backend
-        (let ((methods ga-select-methods)
+        (let ((methods ga-backend-methods)
               (i nil)
               (ret nil))
           (while methods
@@ -160,24 +165,24 @@ as: \"$ ssh foo sudo apt-get ...\""
                     methods nil)))
           ret))
 
+  (unless (memq ga-backend ga-backend-list)
+    (error "Backend %S is not supported" 'ga-backend))
+
+  ;; Load ga-BACKEND.el.
+  (require (intern (concat "ga-" (downcase (symbol-name ga-backend)))))
+
   (setq ga-font-lock-keywords
-        (intern (format "ga-%S-font-lock-keywords"
-                        ga-backend)))
+        (intern (format "ga-%S-font-lock-keywords" ga-backend)))
 
   (setq ga-sources-file
-        (eval
-         (intern (format "ga-%S-sources-file"
-                         ga-backend))))
+        (eval (intern (format "ga-%S-sources-file" ga-backend))))
 
-  ;; initial variables
   (if (file-readable-p ga-cache-filename)
       (load-file ga-cache-filename)
     (ga-update-cache))
 
   (setq ga-available-pkgs
-        (eval
-         (intern (format "ga-%S-available-pkgs"
-                         ga-backend))))
+        (eval (intern (format "ga-%S-available-pkgs" ga-backend))))
 
   (run-hooks 'ga-mode-hook)
   (ga-help))
@@ -192,7 +197,7 @@ as: \"$ ssh foo sudo apt-get ...\""
           (or method
               (ido-completing-read "ga: "
                                    (mapcar (lambda (i) (cadr i))
-                                           ga-select-methods))))
+                                           ga-backend-methods))))
          (ga-buffer-name
           (format "*Ga/%s*" ga-command)))
     (switch-to-buffer ga-buffer-name)
@@ -201,16 +206,6 @@ as: \"$ ssh foo sudo apt-get ...\""
 
 
 ;;; Interfaces
-(defun ga-find-backend-function (backend fun)
-  "Find ga-BACKEND-FUN."
-  (let ((f (intern (format "ga-%S-%S" backend fun))))
-    (if (fboundp f)
-        f
-      ;; Load ga-BACKEND.el if needed.
-      (require (intern (concat "ga-" (downcase (symbol-name backend)))))
-      (if (fboundp f)
-        f
-        (error "Sorry, %S is not implemented for %S" f backend)))))
 
 (defun ga-help ()
   "Help page for `ga-mode'."
@@ -303,7 +298,7 @@ Here is a brief list of the most useful commamnds:
   (interactive
    (list
     (ido-completing-read "Show: " ga-available-pkgs)))
-  (funcall (ga-find-backend-function ga-backend 'show)) pkg)
+  (funcall (ga-find-backend-function ga-backend 'show) pkg))
 
 (defun ga-show-at-point ()
   "Run `ga show' on current word(pkg name)."
@@ -329,7 +324,7 @@ Here is a brief list of the most useful commamnds:
   (funcall (ga-find-backend-function ga-backend 'clean)))
 
 
-;;; Root Command, Buffer, Process Management
+;;; Internal Functions, Buffer, Process Management
 
 (defvar ga-process nil)
 (make-variable-buffer-local 'ga-process)
@@ -341,8 +336,7 @@ Here is a brief list of the most useful commamnds:
   "Update ga cache saved in `ga-cache-filename'."
   (interactive)
   (message "Updating ga cache...")
-  (funcall (intern (format "ga-%S-update-available-pkgs"
-                           ga-backend)))
+  (funcall (ga-find-backend-function ga-backend 'update-available-pkgs))
   (let ((backend ga-backend)
         (pkgs ga-available-pkgs))
     (with-temp-buffer
@@ -436,12 +430,16 @@ For instance, \"sudo fink\" => \"sudo\""
       (set-process-filter ga-process 'ga-process-filter)
       (set-process-sentinel ga-process 'ga-process-sentinel))))
 
-
-;;; Utilities
-
-(defun ga-info-unsupported ()
-  (message "Requested operation is not yet supported for `%S' backend"
-           ga-backend))
+(defun ga-find-backend-function (backend fun)
+  "Find ga-BACKEND-FUN."
+  (let ((f (intern (format "ga-%S-%S" backend fun))))
+    (if (fboundp f)
+        f
+      ;; ;; Load ga-BACKEND.el if needed.
+      ;; (require (intern (concat "ga-" (downcase (symbol-name backend)))))
+      ;; (if (fboundp f)
+      ;;   f
+      (error "Sorry, %S is not implemented for %S" f backend))))
 
 
 ;;; Compatibility

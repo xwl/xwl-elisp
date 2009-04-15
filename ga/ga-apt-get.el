@@ -1,6 +1,6 @@
 ;;; ga-apt-get.el --- apt-get backend
 
-;; Copyright (C) 2008 William Xu
+;; Copyright (C) 2008, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 

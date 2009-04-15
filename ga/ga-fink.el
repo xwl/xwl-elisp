@@ -1,6 +1,6 @@
 ;;; ga-fink.el --- Fink Backend (Mac OS X)
 
-;; Copyright (C) 2008 William Xu
+;; Copyright (C) 2008, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 
