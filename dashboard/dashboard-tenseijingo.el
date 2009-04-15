@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+(require 'xwl-util)
 (require 'dashboard)
 
 (defvar dashboard-tenseijingo-upper-left-marker (make-marker))
@@ -50,7 +51,10 @@
   (let (content date)
     ;; (with-current-buffer "a"
     (with-temp-buffer
-      (shell-command (concat "w3m -dump " url) t)
+      (shell-command (format "w3m %s -dump %s"
+                             (mapconcat 'identity xwl-w3m-arguments " ")
+                             url)
+                     t)
       (goto-char (point-min))
       (re-search-forward "[0-9]\\{4\\}年[0-9]月[0-9]日" nil t 1)
       (setq date (delete-and-extract-region (line-beginning-position)
