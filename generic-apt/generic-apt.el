@@ -1,9 +1,9 @@
-;;; generic-apt.el --- Generic apt alike interfaces for various package management tools
+;;; ga.el --- Generic apt alike interfaces for various package management tools
 
-;; Copyright (C) 2008 William Xu
+;; Copyright (C) 2008, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.2a
+;; Version: 0.3a
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 ;; such as: apt-get(Debian GNU/Linux), yum(redhat/fedora), emerge(Gentoo
 ;; GNU/Linux), fink(Mac OS X), pkg-get(Solaris), etc.
 
-;; Put generic-apt files into your load-path first.  Then add something similar
+;; Put ga files into your load-path first.  Then add something similar
 ;; to the following example to your .emacs.  192.168.1.20 is a remote debian
 ;; machine, while localhost is a Mac OS X with fink installed.
 ;;
@@ -41,12 +41,12 @@
 ;;     		  '("192.168.1.20" "\\`root\\'" "/ssh:%h:"))
 ;;          ))
 ;;
-;;     (require 'generic-apt-install)
-;;     (setq generic-apt-select-methods
+;;     (require 'ga-install)
+;;     (setq ga-select-methods
 ;;           '((apt-get "ssh 192.168.1.20 sudo apt-get")
 ;;             (fink "sudo fink")))
 ;;
-;; Then type: `M-x generic-apt'.
+;; Then type: `M-x ga'.
 
 ;;; Code:
 
@@ -56,154 +56,164 @@
 
 ;;; Customizations
 
-(defgroup generic-apt nil
+(defgroup ga nil
   "Generic apt alike interfaces for various package management tools."
-  :group 'generic-apt)
+  :group 'ga)
 
-(defcustom generic-apt-mode-hook nil
-  "Normal hook run after entering `generic-apt-mode'."
+(defcustom ga-mode-hook nil
+  "Normal hook run after entering `ga-mode'."
   :type 'hook
-  :group 'generic-apt)
+  :group 'ga)
 
-;; (defcustom generic-apt-source-download-dir "~/download"
+;; (defcustom ga-source-download-dir "~/download"
 ;;   "Directory for saving source downloads."
 ;;   :type 'string
-;;   :group 'generic-apt)
+;;   :group 'ga)
 
-(defcustom generic-apt-cache-filename "~/.generic-apt-cache.el"
-  "Generic-Apt cache file."
+(defcustom ga-cache-filename "~/.ga-cache.el"
+  "Ga cache file."
   :type 'string
-  :group 'generic-apt)
+  :group 'ga)
 
-(defcustom generic-apt-select-methods '((apt-get "sudo apt-get")
+(defcustom ga-select-methods '((apt-get "sudo apt-get")
                                         (fink "sudo fink"))
   "Package management tool lists.
 Each element is the essential command prefix string.  For
 example, \"ssh foo sudo apt-get\".  Then the command will execute
 as: \"$ ssh foo sudo apt-get ...\""
   :type 'list
-  :group 'generic-apt)
+  :group 'ga)
 
-(defvar generic-apt-protocol nil)
-(make-variable-buffer-local 'generic-apt-protocol)
+(defvar ga-backend nil)
+(make-variable-buffer-local 'ga-backend)
 
-(defvar generic-apt-command "")
-(make-variable-buffer-local 'generic-apt-command)
+(defvar ga-command "")
+(make-variable-buffer-local 'ga-command)
 
-(defvar generic-apt-buffer-name "")
-(make-variable-buffer-local 'generic-apt-buffer-name)
+(defvar ga-buffer-name "")
+(make-variable-buffer-local 'ga-buffer-name)
 
-(defvar generic-apt-available-pkgs '())
-(make-variable-buffer-local 'generic-apt-available-pkgs)
+(defvar ga-available-pkgs '())
+(make-variable-buffer-local 'ga-available-pkgs)
 
-(defvar generic-apt-font-lock-keywords nil
-  "Keywords to highlight in generic-apt mode.")
-(make-variable-buffer-local 'generic-apt-font-lock-keywords)
+(defvar ga-font-lock-keywords nil
+  "Keywords to highlight in ga mode.")
+(make-variable-buffer-local 'ga-font-lock-keywords)
 
-(defvar generic-apt-sources-file ""
+(defvar ga-sources-file ""
   "Config file for the package management tool.")
-(make-variable-buffer-local 'generic-apt-sources-file)
+(make-variable-buffer-local 'ga-sources-file)
 
 
-;;; Generic-Apt Mode
+;;; Ga Mode
 
-(defvar generic-apt-mode-map
+(defvar ga-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; Already defined for all protocols.
-    (define-key map "h" 'generic-apt-help)
-    (define-key map "I" 'generic-apt-install-at-point)
-    (define-key map "" 'generic-apt-show-at-point)
+    ;; Already defined for all backends.
+    (define-key map "h" 'ga-help)
+    (define-key map "I" 'ga-install-at-point)
+    (define-key map "" 'ga-show-at-point)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
-    (define-key map "K" 'generic-apt-kill)
-    (define-key map "E" 'generic-apt-edit-sources)
+    (define-key map "K" 'ga-kill)
+    (define-key map "E" 'ga-edit-sources)
 
-    ;; RFC for each protocol.
-    (define-key map "u" 'generic-apt-update)
-    (define-key map "s" 'generic-apt-search-by-name)
-    (define-key map "S" 'generic-apt-search)
-    (define-key map "o" 'generic-apt-show)
-    (define-key map "i" 'generic-apt-install)
-    (define-key map "l" 'generic-apt-listfiles)
-    (define-key map "U" 'generic-apt-upgrade)
-    (define-key map "C" 'generic-apt-clean)
-    (define-key map "R" 'generic-apt-remove)
+    ;; RFC for each backend.
+    (define-key map "u" 'ga-update)
+    (define-key map "s" 'ga-search-by-name)
+    (define-key map "S" 'ga-search)
+    (define-key map "o" 'ga-show)
+    (define-key map "i" 'ga-install)
+    (define-key map "l" 'ga-listfiles)
+    (define-key map "U" 'ga-upgrade)
+    (define-key map "C" 'ga-clean)
+    (define-key map "R" 'ga-remove)
     map)
-  "Keymap for `generic-apt-mode'.")
+  "Keymap for `ga-mode'.")
 
-(defvar generic-apt-mode-syntax-table
+(defvar ga-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?- "w" st)
     st)
-  "Syntax table used while in `generic-apt-mode'.")
+  "Syntax table used while in `ga-mode'.")
 
-(define-derived-mode generic-apt-mode nil "Generic-Apt"
+(define-derived-mode ga-mode nil "Generic Apt-get"
   "Major mode for generic apt alike interfaces for various package management tools.
-\\{generic-apt-mode-map}"
-  (set-syntax-table generic-apt-mode-syntax-table)
-  (setq font-lock-defaults '(generic-apt-font-lock-keywords))
+\\{ga-mode-map}"
+  (set-syntax-table ga-mode-syntax-table)
+  (setq font-lock-defaults '(ga-font-lock-keywords))
   (setq buffer-read-only t)
 
   ;; Take special care with these two!
-  (setq generic-apt-command generic-apt-command)
-  (setq generic-apt-buffer-name generic-apt-buffer-name)
+  (setq ga-command ga-command)
+  (setq ga-buffer-name ga-buffer-name)
 
-  (setq generic-apt-protocol
-        (let ((methods generic-apt-select-methods)
+  (setq ga-backend
+        (let ((methods ga-select-methods)
               (i nil)
               (ret nil))
           (while methods
             (setq i (car methods)
                   methods (cdr methods))
-            (when (string= generic-apt-command (cadr i))
+            (when (string= ga-command (cadr i))
               (setq ret (car i)
                     methods nil)))
           ret))
 
-  (setq generic-apt-font-lock-keywords
-        (intern (format "generic-apt-%S-font-lock-keywords"
-                        generic-apt-protocol)))
+  (setq ga-font-lock-keywords
+        (intern (format "ga-%S-font-lock-keywords"
+                        ga-backend)))
 
-  (setq generic-apt-sources-file
+  (setq ga-sources-file
         (eval
-         (intern (format "generic-apt-%S-sources-file"
-                         generic-apt-protocol))))
+         (intern (format "ga-%S-sources-file"
+                         ga-backend))))
 
   ;; initial variables
-  (if (file-readable-p generic-apt-cache-filename)
-      (load-file generic-apt-cache-filename)
-    (generic-apt-update-cache))
+  (if (file-readable-p ga-cache-filename)
+      (load-file ga-cache-filename)
+    (ga-update-cache))
 
-  (setq generic-apt-available-pkgs
+  (setq ga-available-pkgs
         (eval
-         (intern (format "generic-apt-%S-available-pkgs"
-                         generic-apt-protocol))))
+         (intern (format "ga-%S-available-pkgs"
+                         ga-backend))))
 
-  (run-hooks 'generic-apt-mode-hook)
-  (generic-apt-help))
+  (run-hooks 'ga-mode-hook)
+  (ga-help))
 
 ;;;###autoload
-(defun generic-apt (&optional method)
-  "Create or switch to a generic-apt buffer."
+(defun ga (&optional method)
+  "Create or switch to a ga buffer."
   (interactive)
   ;; Wrap around them so that even when current buffer is another
-  ;; generic-apt buffer, we won't mess with its local variables.
-  (let* ((generic-apt-command
+  ;; ga buffer, we won't mess with its local variables.
+  (let* ((ga-command
           (or method
-              (ido-completing-read "generic-apt: "
+              (ido-completing-read "ga: "
                                    (mapcar (lambda (i) (cadr i))
-                                           generic-apt-select-methods))))
-         (generic-apt-buffer-name
-          (format "*Generic-Apt/%s*" generic-apt-command)))
-    (switch-to-buffer generic-apt-buffer-name)
-    (unless (eq major-mode 'generic-apt-mode)
-      (generic-apt-mode))))
+                                           ga-select-methods))))
+         (ga-buffer-name
+          (format "*Ga/%s*" ga-command)))
+    (switch-to-buffer ga-buffer-name)
+    (unless (eq major-mode 'ga-mode)
+      (ga-mode))))
 
 
 ;;; Interfaces
+(defun ga-find-backend-function (backend fun)
+  "Find ga-BACKEND-FUN."
+  (let ((f (intern (format "ga-%S-%S" backend fun))))
+    (if (fboundp f)
+        f
+      ;; Load ga-BACKEND.el if needed.
+      (require (intern (concat "ga-" (downcase (symbol-name backend)))))
+      (if (fboundp f)
+        f
+        (error "Sorry, %S is not implemented for %S" f backend)))))
 
-(defun generic-apt-help ()
-  "Help page for `generic-apt-mode'."
+(defun ga-help ()
+  "Help page for `ga-mode'."
   (interactive)
   (let ((inhibit-read-only t))
     (erase-buffer)
@@ -227,11 +237,11 @@ Here is a brief list of the most useful commamnds:
 ")
     (message "For a list of all available commands, press `F1 m'.")))
 
-(defun generic-apt-edit-sources ()
+(defun ga-edit-sources ()
   "Edit /etc/apt/sources.list using sudo, with `tramp' when necessary."
   (interactive)
-  (let ((f generic-apt-sources-file))
-    (if (string-match "^ssh" generic-apt-command)
+  (let ((f ga-sources-file))
+    (if (string-match "^ssh" ga-command)
         (let ((hostname "")
               (proxies tramp-default-proxies-alist)
               (i '()))
@@ -239,137 +249,133 @@ Here is a brief list of the most useful commamnds:
             (setq i (car proxies)
                   proxies (cdr proxies))
             (when (string-match (regexp-opt (list (car i)))
-                                generic-apt-command)
+                                ga-command)
               (setq hostname (car i)
                     f (format "/ssh:%s:%s" hostname f))
               (setq proxies nil)))
           (find-file f))
       (find-file (concat "/sudo::" f)))))
 
-(defun generic-apt-search (pkg)
+(defun ga-search (pkg)
   "Search PKG by package name."
   (interactive "sSearch: ")
-  (funcall (intern (format "generic-apt-%S-search" generic-apt-protocol))
-           pkg))
+  (funcall (ga-find-backend-function ga-backend 'search) pkg))
 
-(defun generic-apt-search-by-name (pkg)
+(defun ga-search-by-name (pkg)
   "Search PKG by package name, `-n'."
   (interactive "sSearch(by name): ")
-  (funcall (intern (format "generic-apt-%S-search-by-name" generic-apt-protocol))
-           pkg))
+  (funcall (ga-find-backend-function ga-backend 'search-by-name) pkg))
 
-(defun generic-apt-update ()
+(defun ga-update ()
   "Update package database cache."
   (interactive)
-  (funcall (intern (format "generic-apt-%S-update" generic-apt-protocol))))
+  (funcall (ga-find-backend-function ga-backend 'update)))
 
-(defun generic-apt-install (pkg)
+(defun ga-install (pkg)
   "Install PKG."
   (interactive
    (list
-    (ido-completing-read "Install: " generic-apt-available-pkgs)))
-  (funcall (intern (format "generic-apt-%S-install" generic-apt-protocol))
-           pkg))
+    (ido-completing-read "Install: " ga-available-pkgs)))
+  (funcall (ga-find-backend-function ga-backend 'install) pkg))
 
-(defun generic-apt-install-at-point ()
+(defun ga-install-at-point ()
   "Install package at point."
   (interactive)
-  (funcall (intern (format "generic-apt-%s-install" generic-apt-protocol))
+  (funcall (ga-find-backend-function ga-backend 'install-at-point)
            (current-word)))
 
-(defun generic-apt-upgrade (pkg)
+(defun ga-upgrade (pkg)
   "Upgrade PKG."
   (interactive
    (list
-    (ido-completing-read "Upgrade: " generic-apt-available-pkgs)))
-  (funcall (intern (format "generic-apt-%S-upgrade" generic-apt-protocol)) pkg))
+    (ido-completing-read "Upgrade: " ga-available-pkgs)))
+  (funcall (ga-find-backend-function ga-backend 'upgrade) pkg))
 
-(defun generic-apt-remove (pkg)
+(defun ga-remove (pkg)
   "Remove PKG."
   (interactive
    (list
-    (ido-completing-read "Remove: " generic-apt-available-pkgs)))
-  (funcall (intern (format "generic-apt-%S-remove" generic-apt-protocol)) pkg))
+    (ido-completing-read "Remove: " ga-available-pkgs)))
+  (funcall (ga-find-backend-function ga-backend 'remove) pkg))
 
-(defun generic-apt-show (pkg)
+(defun ga-show (pkg)
   "Describe PKG."
   (interactive
    (list
-    (ido-completing-read "Show: " generic-apt-available-pkgs)))
-  (funcall (intern (format "generic-apt-%S-show" generic-apt-protocol)) pkg))
+    (ido-completing-read "Show: " ga-available-pkgs)))
+  (funcall (ga-find-backend-function ga-backend 'show)) pkg)
 
-(defun generic-apt-show-at-point ()
-  "Run `generic-apt show' on current word(pkg name)."
+(defun ga-show-at-point ()
+  "Run `ga show' on current word(pkg name)."
   (interactive)
-  (funcall (intern (format "generic-apt-%s-show" generic-apt-protocol))
+  (funcall (ga-find-backend-function ga-backend 'show-at-point)
            (current-word)))
 
-(defun generic-apt-upgrade-all ()
+(defun ga-upgrade-all ()
   "Upgrade all installed packages."
   (interactive)
-  (funcall  (intern (format "generic-apt-%S-upgrade-all" generic-apt-protocol))))
+  (funcall (ga-find-backend-function ga-backend 'upgrade-all)))
 
-(defun generic-apt-listfiles (pkg)
+(defun ga-listfiles (pkg)
   "List files installed by PKG."
   (interactive
    (list
-    (ido-completing-read "Listfiles: " generic-apt-available-pkgs)))
-  (funcall (intern (format "generic-apt-%S-listfiles" generic-apt-protocol))
-           pkg))
+    (ido-completing-read "Listfiles: " ga-available-pkgs)))
+  (funcall (ga-find-backend-function ga-backend 'listfiles) pkg))
 
-(defun generic-apt-clean ()
+(defun ga-clean ()
   "Clean cache."
   (interactive)
-  (funcall (intern (format "generic-apt-%S-clean" generic-apt-protocol))))
+  (funcall (ga-find-backend-function ga-backend 'clean)))
 
 
 ;;; Root Command, Buffer, Process Management
 
-(defvar generic-apt-process nil)
-(make-variable-buffer-local 'generic-apt-process)
+(defvar ga-process nil)
+(make-variable-buffer-local 'ga-process)
 
-(defvar generic-apt-running nil)
-(make-variable-buffer-local 'generic-apt-running)
+(defvar ga-running nil)
+(make-variable-buffer-local 'ga-running)
 
-(defun generic-apt-update-cache ()
-  "Update generic-apt cache saved in `generic-apt-cache-filename'."
+(defun ga-update-cache ()
+  "Update ga cache saved in `ga-cache-filename'."
   (interactive)
-  (message "Updating generic-apt cache...")
-  (funcall (intern (format "generic-apt-%S-update-available-pkgs"
-                           generic-apt-protocol)))
-  (let ((protocol generic-apt-protocol)
-        (pkgs generic-apt-available-pkgs))
+  (message "Updating ga cache...")
+  (funcall (intern (format "ga-%S-update-available-pkgs"
+                           ga-backend)))
+  (let ((backend ga-backend)
+        (pkgs ga-available-pkgs))
     (with-temp-buffer
-      (if (and (not (string= generic-apt-cache-filename ""))
-               (file-readable-p generic-apt-cache-filename))
-          (insert-file-contents generic-apt-cache-filename)
-        (insert ";;; automatically generated by generic-apt, edit with care!!\n\n"))
+      (if (and (not (string= ga-cache-filename ""))
+               (file-readable-p ga-cache-filename))
+          (insert-file-contents ga-cache-filename)
+        (insert ";;; automatically generated by ga, edit with care!!\n\n"))
       (goto-char (point-min))
-      (let ((str-name (format "generic-apt-%S-available-pkgs" protocol)))
+      (let ((str-name (format "ga-%S-available-pkgs" backend)))
         (if (re-search-forward (format "(setq %s" str-name) nil t 1)
             (progn
               (backward-up-list)
               (kill-sexp))
           (goto-char (point-max)))
         (insert (format "(setq %s '%S)\n\n" str-name pkgs)))
-      (write-region (point-min) (point-max) generic-apt-cache-filename))
-    (message "Updating generic-apt cache...done")))
+      (write-region (point-min) (point-max) ga-cache-filename))
+    (message "Updating ga cache...done")))
 
-(defun generic-apt-process-sentinel (process event)
-  "Set buffer read-only after a generic-apt command finishes."
+(defun ga-process-sentinel (process event)
+  "Set buffer read-only after a ga command finishes."
   (with-current-buffer (process-buffer process)
     (save-excursion
-      (setq generic-apt-running nil)
+      (setq ga-running nil)
       (let ((inhibit-read-only t))
         (cond
          ((eq (process-status process) 'exit)
           (goto-char (point-max))
           (insert "------------- done --------------\n"))
          ((eq (process-status process) 'signal)
-          (message "generic-apt process killed")))))))
+          (message "ga process killed")))))))
 
-(defun generic-apt-process-filter (process output)
-  "Filter generic-apt command outputs."
+(defun ga-process-filter (process output)
+  "Filter ga command outputs."
   (with-current-buffer (process-buffer process)
     (let ((moving (= (point) (process-mark process)))
 	  (inhibit-read-only t)
@@ -380,7 +386,7 @@ Here is a brief list of the most useful commamnds:
               (replace-regexp-in-string "\r" "\n" output))
 	;; make percentage output nicer
 ;;         (cond ((string-match percentage-match output)
-;;                (message "generic-apt: %s" output))
+;;                (message "ga: %s" output))
 ;;               ((string-match "^\\ +$\\|^\n$" output)
 ;;                nil)
 ;;               (t
@@ -390,63 +396,63 @@ Here is a brief list of the most useful commamnds:
 	(set-marker (process-mark process) (point)))
       (and moving (goto-char (process-mark process))))))
 
-(defun generic-apt-kill ()
-  "Kill generic-apt process."
+(defun ga-kill ()
+  "Kill ga process."
   (interactive)
-  (when generic-apt-process
-    (unless (eq (process-status generic-apt-process) 'exit)
-      (delete-process generic-apt-process))
-    (setq generic-apt-running nil)))
+  (when ga-process
+    (unless (eq (process-status ga-process) 'exit)
+      (delete-process ga-process))
+    (setq ga-running nil)))
 
-(defun generic-apt-run-command (args)
-  (generic-apt-run-1 (append (split-string generic-apt-command " ") args)))
+(defun ga-run-command (args)
+  (ga-run-1 (append (split-string ga-command " ") args)))
 
-(defun generic-apt-run-command-to-string (args-string)
-  (shell-command-to-string (concat generic-apt-command " " args-string)))
+(defun ga-run-command-to-string (args-string)
+  (shell-command-to-string (concat ga-command " " args-string)))
 
-(defun generic-apt-run-other-command (other-cmd-and-args)
-  (generic-apt-run-1
-   (append (split-string (generic-apt-extract-prefix)) other-cmd-and-args)))
+(defun ga-run-other-command (other-cmd-and-args)
+  (ga-run-1
+   (append (split-string (ga-extract-prefix)) other-cmd-and-args)))
 
-(defun generic-apt-run-other-command-to-string (other-cmd-and-args-string)
+(defun ga-run-other-command-to-string (other-cmd-and-args-string)
   (shell-command-to-string
-   (concat (generic-apt-extract-prefix) " " other-cmd-and-args-string)))
+   (concat (ga-extract-prefix) " " other-cmd-and-args-string)))
 
-(defun generic-apt-extract-prefix ()
-  "Extract prefix from `generic-apt-command'.
+(defun ga-extract-prefix ()
+  "Extract prefix from `ga-command'.
 
 For instance, \"sudo fink\" => \"sudo\""
-  (replace-regexp-in-string " ?[^ ]+$" "" generic-apt-command))
+  (replace-regexp-in-string " ?[^ ]+$" "" ga-command))
 
-(defun generic-apt-run-1 (full-command-and-args)
+(defun ga-run-1 (full-command-and-args)
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (if generic-apt-running
-        (error "Generic-Apt process already exists")
-      (setq generic-apt-running t)
-      (setq generic-apt-process
-            (apply 'start-process "generic-apt" generic-apt-buffer-name
+    (if ga-running
+        (error "Ga process already exists")
+      (setq ga-running t)
+      (setq ga-process
+            (apply 'start-process "ga" ga-buffer-name
                    full-command-and-args))
-      (set-process-filter generic-apt-process 'generic-apt-process-filter)
-      (set-process-sentinel generic-apt-process 'generic-apt-process-sentinel))))
+      (set-process-filter ga-process 'ga-process-filter)
+      (set-process-sentinel ga-process 'ga-process-sentinel))))
 
 
 ;;; Utilities
 
-(defun generic-apt-info-unsupported ()
+(defun ga-info-unsupported ()
   (message "Requested operation is not yet supported for `%S' backend"
-           generic-apt-protocol))
+           ga-backend))
 
 
 ;;; Compatibility
 
-;; (defalias 'generic-apt-completing-read
+;; (defalias 'ga-completing-read
 ;;   (if (and (fboundp 'ido-completing-read)
 ;; 	   ido-mode)
 ;;       'ido-completing-read		; added in Emacs 22
 ;;     'completing-read))
 
 
-(provide 'generic-apt)
+(provide 'ga)
 
-;;; generic-apt.el ends here
+;;; ga.el ends here

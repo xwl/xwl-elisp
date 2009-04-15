@@ -1,4 +1,4 @@
-;;; generic-apt-fink.el --- Fink Backend (Mac OS X)
+;;; ga-fink.el --- Fink Backend (Mac OS X)
 
 ;; Copyright (C) 2008 William Xu
 
@@ -21,61 +21,61 @@
 
 ;;; Code:
 
-(require 'generic-apt)
+(require 'ga)
 
 ;; Variables
-(defvar generic-apt-fink-font-lock-keywords
+(defvar ga-fink-font-lock-keywords
   '(("^\n\\([a-zA-Z0-9].*: \\)\\(.*\\)"
      (1 font-lock-keyword-face nil t)
      (2 font-lock-function-name-face nil t))
     ("Web site:\\|Maintainer:"
      (0 font-lock-keyword-face t t))))
 
-(defvar generic-apt-fink-available-pkgs '())
+(defvar ga-fink-available-pkgs '())
 
-(defvar generic-apt-fink-sources-file "/sw/etc/fink.conf")
+(defvar ga-fink-sources-file "/sw/etc/fink.conf")
 
 ;; Interfaces
-(defun generic-apt-fink-update ()
-  (generic-apt-run-command (list "selfupdate")))
+(defun ga-fink-update ()
+  (ga-run-command (list "selfupdate")))
 
-(defun generic-apt-fink-search-by-name (pkg)
-  (generic-apt-run-command (list "list" pkg)))
+(defun ga-fink-search-by-name (pkg)
+  (ga-run-command (list "list" pkg)))
 
-(defun generic-apt-fink-search (pkg)
-  (generic-apt-run-command (list "apropos" pkg)))
+(defun ga-fink-search (pkg)
+  (ga-run-command (list "apropos" pkg)))
 
-(defun generic-apt-fink-show (pkg)
-  (generic-apt-run-command (list "describe" pkg)))
+(defun ga-fink-show (pkg)
+  (ga-run-command (list "describe" pkg)))
 
-(defun generic-apt-fink-install (pkg)
-  (generic-apt-run-command (list "--yes" "install" pkg)))
+(defun ga-fink-install (pkg)
+  (ga-run-command (list "--yes" "install" pkg)))
 
-(defun generic-apt-fink-listfiles (pkg)
-  (generic-apt-run-other-command (list "dpkg" "--listfiles" pkg)))
+(defun ga-fink-listfiles (pkg)
+  (ga-run-other-command (list "dpkg" "--listfiles" pkg)))
 
-(defun generic-apt-fink-upgrade (pkg)
-  (generic-apt-run-command (list "--yes" "update" pkg)))
+(defun ga-fink-upgrade (pkg)
+  (ga-run-command (list "--yes" "update" pkg)))
 
-(defun generic-apt-clean ()
-  (generic-apt-run-command (list "cleanup")))
+(defun ga-clean ()
+  (ga-run-command (list "cleanup")))
 
-(defun generic-apt-fink-remove (pkg)
-  (generic-apt-run-command (list "--yes" "remove" pkg)))
+(defun ga-fink-remove (pkg)
+  (ga-run-command (list "--yes" "remove" pkg)))
 
 ;; Misc
 
-(defun generic-apt-fink-update-available-pkgs ()
-  (setq generic-apt-available-pkgs
+(defun ga-fink-update-available-pkgs ()
+  (setq ga-available-pkgs
         (split-string
-         (generic-apt-run-command-to-string
+         (ga-run-command-to-string
           ;; FIXME: Why doesn't "sed 's/.\{4\}'"  work?
           "list | sed 's/....//' | awk '{print $1}'"))))
 
-;; (defun generic-apt-fink-upgrade-all ()
-;;   (generic-apt-run-command (list "update-all")))
+;; (defun ga-fink-upgrade-all ()
+;;   (ga-run-command (list "update-all")))
 
 
-(provide 'generic-apt-fink)
+(provide 'ga-fink)
 
-;;; generic-apt-fink.el ends here
+;;; ga-fink.el ends here
