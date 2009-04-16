@@ -76,7 +76,7 @@
   :group 'ga)
 
 (defcustom ga-backend-methods '((apt-get "sudo apt-get")
-                               (fink "sudo fink"))
+                                (fink "sudo fink"))
   "Package management tool lists.
 Each element is the essential command prefix string.  For
 example, \"ssh foo sudo apt-get\".  Then the command will execute
