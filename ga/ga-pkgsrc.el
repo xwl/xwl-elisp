@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ga)
+(require 'cl)
 
 (defcustom ga-pkgsrc-dir ""
   "pkgsrc source directory."
