@@ -42,8 +42,6 @@
        "\\):")
      (0 font-lock-keyword-face t t))))
 
-(defvar ga-apt-get-available-pkgs '())
-
 (defvar ga-apt-get-sources-file "/etc/apt/sources.list")
 
 ;; Interfaces
@@ -78,8 +76,13 @@
 
 (defun ga-apt-get-update-available-pkgs ()
   (setq ga-available-pkgs
-        (split-string
-         (ga-run-other-command-to-string "apt-cache pkgnames"))))
+        (cons
+         (list 'apt-get 
+               (split-string
+                (split-string
+                 (ga-run-other-command-to-string "apt-cache pkgnames"))))
+         (remove-if (lambda (i) (eq (car i) 'apt-get))
+                    ga-available-pkgs))))
 
 (provide 'ga-apt-get)
 

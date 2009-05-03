@@ -31,8 +31,6 @@
     ("Web site:\\|Maintainer:"
      (0 font-lock-keyword-face t t))))
 
-(defvar ga-fink-available-pkgs '())
-
 (defvar ga-fink-sources-file "/sw/etc/fink.conf")
 
 ;; Interfaces
@@ -67,10 +65,14 @@
 
 (defun ga-fink-update-available-pkgs ()
   (setq ga-available-pkgs
-        (split-string
-         (ga-run-command-to-string
-          ;; FIXME: Why doesn't "sed 's/.\{4\}'"  work?
-          "list | sed 's/....//' | awk '{print $1}'"))))
+        (cons
+         (list 'fink 
+               (split-string
+                (ga-run-command-to-string
+                 ;; FIXME: Why doesn't "sed 's/.\{4\}'"  work?
+                 "list | sed 's/....//' | awk '{print $1}'")))
+         (remove-if (lambda (i) (eq (car i) 'fink))
+                    ga-available-pkgs))))
 
 ;; (defun ga-fink-upgrade-all ()
 ;;   (ga-run-command (list "update-all")))

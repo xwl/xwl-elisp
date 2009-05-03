@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.3
+;; Version: 0.4
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -51,8 +51,7 @@
 ;;; Code:
 
 (require 'tramp)
-(eval-when-compile
-  (require 'cl))
+(require 'cl)
 
 ;;; Customizations
 
@@ -75,30 +74,36 @@
   :type 'string
   :group 'ga)
 
-(defcustom ga-backend-methods '((apt-get "sudo apt-get")
-                                (fink "sudo fink"))
-  "Package management tool lists.
-Each element is the essential command prefix string.  For
-example, \"ssh foo sudo apt-get\".  Then the command will execute
-as: \"$ ssh foo sudo apt-get ...\""
+(defcustom ga-backend-methods '()
+  "A list of backend methods.
+Each member is consist of two elements, first is the backend
+symbol, second is the core command prefix string.  e.g.,
+
+  '((apt-get \"sudo apt-get\")
+    (fink \"ssh foo.org sudo fink\"))"
   :type 'list
   :group 'ga)
 
-(defcustom ga-backend-list '(apt-get fink)
-  "Supported backend list."
+(defcustom ga-backend-list '(apt-get fink pkgsrc)
+  "Supported backends."
   :type 'list
   :group 'ga)
 
 (defvar ga-backend nil)
 (make-variable-buffer-local 'ga-backend)
 
-(defvar ga-command "")
-(make-variable-buffer-local 'ga-command)
+(defvar ga-method "")
+(make-variable-buffer-local 'ga-method)
 
 (defvar ga-buffer-name "")
 (make-variable-buffer-local 'ga-buffer-name)
 
-(defvar ga-available-pkgs '())
+(defvar ga-available-pkgs '()
+  "e.g., ((fink (...)) (pkgsrc (...)))")
+(make-variable-buffer-local 'ga-available-pkgs)
+
+(defvar ga-cache-list '()
+  "Similar to `ga-available-pkgs', just some extra caches.")
 (make-variable-buffer-local 'ga-available-pkgs)
 
 (defvar ga-font-lock-keywords nil
@@ -142,31 +147,20 @@ as: \"$ ssh foo sudo apt-get ...\""
     st)
   "Syntax table used while in `ga-mode'.")
 
-(define-derived-mode ga-mode nil "Generic apt-get"
+(define-derived-mode ga-mode nil "Generic-apt"
   "Major mode for generic apt alike interfaces for various package management tools.
 \\{ga-mode-map}"
   (set-syntax-table ga-mode-syntax-table)
   (setq font-lock-defaults '(ga-font-lock-keywords))
   (setq buffer-read-only t)
 
-  ;; Take special care with these two!
-  (setq ga-command ga-command)
+  ;; Take special care with these local variables.
+  (setq ga-method ga-method)
   (setq ga-buffer-name ga-buffer-name)
-
-  (setq ga-backend
-        (let ((methods ga-backend-methods)
-              (i nil)
-              (ret nil))
-          (while methods
-            (setq i (car methods)
-                  methods (cdr methods))
-            (when (string= ga-command (cadr i))
-              (setq ret (car i)
-                    methods nil)))
-          ret))
+  (setq ga-backend ga-backend)
 
   (unless (memq ga-backend ga-backend-list)
-    (error "Backend %S is not supported" 'ga-backend))
+    (error "Backend %S is not supported" ga-backend))
 
   ;; Load ga-BACKEND.el.
   (require (intern (concat "ga-" (downcase (symbol-name ga-backend)))))
@@ -181,28 +175,35 @@ as: \"$ ssh foo sudo apt-get ...\""
       (load-file ga-cache-filename)
     (ga-update-cache))
 
-  (setq ga-available-pkgs
-        (eval (intern (format "ga-%S-available-pkgs" ga-backend))))
-
   (run-hooks 'ga-mode-hook)
   (ga-help))
 
 ;;;###autoload
-(defun ga (&optional method)
+(defun ga (&optional backend)
   "Create or switch to a ga buffer."
-  (interactive)
+  (interactive
+   (list 
+    (ido-completing-read "ga: " (mapcar (lambda (b) (symbol-name b))
+                                        ga-backend-list))))
   ;; Wrap around them so that even when current buffer is another
   ;; ga buffer, we won't mess with its local variables.
-  (let* ((ga-command
-          (or method
-              (ido-completing-read "ga: "
-                                   (mapcar (lambda (i) (cadr i))
-                                           ga-backend-methods))))
-         (ga-buffer-name
-          (format "*Ga/%s*" ga-command)))
+  (let ((ga-buffer-name (format "*Ga/%s*" backend))
+        (ga-backend (intern backend))
+        (ga-method (ga-lookup-method (intern backend))))
     (switch-to-buffer ga-buffer-name)
     (unless (eq major-mode 'ga-mode)
       (ga-mode))))
+
+(defun ga-lookup-method (backend)
+  (let ((methods ga-backend-methods)
+        m ret)
+    (while methods
+      (setq m (car methods)
+            methods (cdr methods))
+      (when (eq backend (car m))
+        (setq ret (cadr m)
+              methods nil)))
+    ret))
 
 
 ;;; Interfaces
@@ -236,7 +237,7 @@ Here is a brief list of the most useful commamnds:
   "Edit /etc/apt/sources.list using sudo, with `tramp' when necessary."
   (interactive)
   (let ((f ga-sources-file))
-    (if (string-match "^ssh" ga-command)
+    (if (string-match "^ssh" ga-method)
         (let ((hostname "")
               (proxies tramp-default-proxies-alist)
               (i '()))
@@ -244,7 +245,7 @@ Here is a brief list of the most useful commamnds:
             (setq i (car proxies)
                   proxies (cdr proxies))
             (when (string-match (regexp-opt (list (car i)))
-                                ga-command)
+                                ga-method)
               (setq hostname (car i)
                     f (format "/ssh:%s:%s" hostname f))
               (setq proxies nil)))
@@ -270,7 +271,8 @@ Here is a brief list of the most useful commamnds:
   "Install PKG."
   (interactive
    (list
-    (ido-completing-read "Install: " ga-available-pkgs)))
+    (ido-completing-read "Install: " 
+                         (cadr (assoc ga-backend ga-available-pkgs)))))
   (funcall (ga-find-backend-function ga-backend 'install) pkg))
 
 (defun ga-install-at-point ()
@@ -283,21 +285,24 @@ Here is a brief list of the most useful commamnds:
   "Upgrade PKG."
   (interactive
    (list
-    (ido-completing-read "Upgrade: " ga-available-pkgs)))
+    (ido-completing-read "Upgrade: " 
+                         (cadr (assoc ga-backend ga-available-pkgs)))))
   (funcall (ga-find-backend-function ga-backend 'upgrade) pkg))
 
 (defun ga-remove (pkg)
   "Remove PKG."
   (interactive
    (list
-    (ido-completing-read "Remove: " ga-available-pkgs)))
+    (ido-completing-read "Remove: " 
+                         (cadr (assoc ga-backend ga-available-pkgs)))))
   (funcall (ga-find-backend-function ga-backend 'remove) pkg))
 
 (defun ga-show (pkg)
   "Describe PKG."
   (interactive
    (list
-    (ido-completing-read "Show: " ga-available-pkgs)))
+    (ido-completing-read "Show: " 
+                         (cadr (assoc ga-backend ga-available-pkgs)))))
   (funcall (ga-find-backend-function ga-backend 'show) pkg))
 
 (defun ga-show-at-point ()
@@ -315,7 +320,8 @@ Here is a brief list of the most useful commamnds:
   "List files installed by PKG."
   (interactive
    (list
-    (ido-completing-read "Listfiles: " ga-available-pkgs)))
+    (ido-completing-read "Listfiles: " 
+                         (cadr (assoc ga-backend ga-available-pkgs)))))
   (funcall (ga-find-backend-function ga-backend 'listfiles) pkg))
 
 (defun ga-clean ()
@@ -337,23 +343,15 @@ Here is a brief list of the most useful commamnds:
   (interactive)
   (message "Updating ga cache...")
   (funcall (ga-find-backend-function ga-backend 'update-available-pkgs))
-  (let ((backend ga-backend)
-        (pkgs ga-available-pkgs))
+  ;; Let around local variable
+  (let ((available-pkgs ga-available-pkgs)
+        (cache-list ga-cache-list))
     (with-temp-buffer
-      (if (and (not (string= ga-cache-filename ""))
-               (file-readable-p ga-cache-filename))
-          (insert-file-contents ga-cache-filename)
-        (insert ";;; automatically generated by ga, edit with care!!\n\n"))
-      (goto-char (point-min))
-      (let ((str-name (format "ga-%S-available-pkgs" backend)))
-        (if (re-search-forward (format "(setq %s" str-name) nil t 1)
-            (progn
-              (backward-up-list)
-              (kill-sexp))
-          (goto-char (point-max)))
-        (insert (format "(setq %s '%S)\n\n" str-name pkgs)))
-      (write-region (point-min) (point-max) ga-cache-filename))
-    (message "Updating ga cache...done")))
+      (insert ";;; automatically generated by ga, do not edit!!\n\n")
+      (insert (format "(setq ga-available-pkgs '%S)\n\n" available-pkgs))
+      (insert (format "(setq ga-cache-list '%S)\n\n" cache-list))
+      (write-region (point-min) (point-max) ga-cache-filename)))
+  (message "Updating ga cache...done"))
 
 (defun ga-process-sentinel (process event)
   "Set buffer read-only after a ga command finishes."
@@ -399,10 +397,10 @@ Here is a brief list of the most useful commamnds:
     (setq ga-running nil)))
 
 (defun ga-run-command (args)
-  (ga-run-1 (append (split-string ga-command " ") args)))
+  (ga-run-1 (append (split-string ga-method " ") args)))
 
 (defun ga-run-command-to-string (args-string)
-  (shell-command-to-string (concat ga-command " " args-string)))
+  (shell-command-to-string (concat ga-method " " args-string)))
 
 (defun ga-run-other-command (other-cmd-and-args)
   (ga-run-1
@@ -413,12 +411,14 @@ Here is a brief list of the most useful commamnds:
    (concat (ga-extract-prefix) " " other-cmd-and-args-string)))
 
 (defun ga-extract-prefix ()
-  "Extract prefix from `ga-command'.
+  "Extract prefix from `ga-method'.
 
 For instance, \"sudo fink\" => \"sudo\""
-  (replace-regexp-in-string " ?[^ ]+$" "" ga-command))
+  (replace-regexp-in-string " ?[^ ]+$" "" ga-method))
 
 (defun ga-run-1 (full-command-and-args)
+  (setq full-command-and-args
+        (remove-if (lambda (i) (string= i "")) full-command-and-args))
   (let ((inhibit-read-only t))
     (erase-buffer)
     (if ga-running
