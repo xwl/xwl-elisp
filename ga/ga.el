@@ -183,8 +183,11 @@ symbol, second is the core command prefix string.  e.g.,
   "Create or switch to a ga buffer."
   (interactive
    (list 
-    (ido-completing-read "ga: " (mapcar (lambda (b) (symbol-name b))
-                                        ga-backend-list))))
+    (ido-completing-read "ga: " 
+                         (mapcar (lambda (b) (symbol-name b))
+                                 (if (null ga-backend-methods)
+                                     ga-backend-list
+                                   (mapcar 'car ga-backend-methods))))))
   ;; Wrap around them so that even when current buffer is another
   ;; ga buffer, we won't mess with its local variables.
   (with-temp-buffer
