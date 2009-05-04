@@ -187,12 +187,13 @@ symbol, second is the core command prefix string.  e.g.,
                                         ga-backend-list))))
   ;; Wrap around them so that even when current buffer is another
   ;; ga buffer, we won't mess with its local variables.
-  (let ((ga-buffer-name (format "*Ga/%s*" backend))
-        (ga-backend (intern backend))
-        (ga-method (ga-lookup-method (intern backend))))
-    (switch-to-buffer ga-buffer-name)
-    (unless (eq major-mode 'ga-mode)
-      (ga-mode))))
+  (with-temp-buffer
+    (let ((ga-buffer-name (format "*Ga/%s*" backend))
+          (ga-backend (intern backend))
+          (ga-method (ga-lookup-method (intern backend))))
+      (switch-to-buffer ga-buffer-name)
+      (unless (eq major-mode 'ga-mode)
+        (ga-mode)))))
 
 (defun ga-lookup-method (backend)
   (let ((methods ga-backend-methods)
