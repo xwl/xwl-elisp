@@ -70,8 +70,7 @@
          (shell-command-to-string cmd)))
       (goto-char (point-max))
       (delete-blank-lines)
-      (insert "------------- done --------------\n"))))
-
+      (insert "\n------------- done --------------\n"))))
 
 (defun ga-pkgsrc-install (pkg)
   (let ((default-directory (concat (ga-pkgsrc-pkg-dir pkg) "/")))
@@ -135,6 +134,17 @@
         (setq ret d)
         (setq pkg-dir-list nil)))
     (concat ga-pkgsrc-dir "/" ret)))
+
+(defun ga-pkgsrc-jump (pkg)
+  "Jump to corresponding dired buffer for PKG config directory."
+  (interactive
+   (list
+    (ido-completing-read "Jump to: " 
+                         (cadr (assoc ga-backend ga-available-pkgs)))))
+  (dired (ga-pkgsrc-pkg-dir pkg)))
+
+(add-hook 'ga-pkgsrc-hook (lambda ()
+                            (local-set-key (kbd "C-x C-j") 'ga-pkgsrc-jump)))
 
 (provide 'ga-pkgsrc)
 

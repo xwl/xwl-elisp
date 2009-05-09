@@ -163,7 +163,7 @@ symbol, second is the core command prefix string.  e.g.,
     (error "Backend %S is not supported" ga-backend))
 
   ;; Load ga-BACKEND.el.
-  (require (intern (concat "ga-" (downcase (symbol-name ga-backend)))))
+  (require (intern (format "ga-%S" ga-backend)))
 
   (setq ga-font-lock-keywords
         (intern (format "ga-%S-font-lock-keywords" ga-backend)))
@@ -176,6 +176,8 @@ symbol, second is the core command prefix string.  e.g.,
     (ga-update-cache))
 
   (run-hooks 'ga-mode-hook)
+  (run-hooks (intern (format "ga-%S-hook" ga-backend)))
+
   (ga-help))
 
 ;;;###autoload
