@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun url-html-decode-buffer (&optional buffer)
   "Decode html BUFFER(default is current buffer).
 Usually used in buffer retrieved by `url-retrieve'. If no charset info
