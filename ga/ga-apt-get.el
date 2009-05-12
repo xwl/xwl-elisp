@@ -51,7 +51,7 @@
 (defun ga-apt-get-search-by-name (pkg)
   (ga-run-other-command (list "apt-cache" "search" "-n" pkg)))
 
-(defun ga-apt-get-search-by-name (pkg)
+(defun ga-apt-get-search (pkg)
   (ga-run-other-command (list "apt-cache" "search" pkg)))
 
 (defun ga-apt-get-show (pkg)
