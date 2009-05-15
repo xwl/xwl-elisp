@@ -1,8 +1,9 @@
-;;; generic-apt-install.el --- install generic-apt extension
+;;; scheme-extensions.el --- Some scheme extensions for Emacs
 
-;; Copyright (C) 2008 William Xu
+;; Copyright (C) 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
+;; Version: 0.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,12 +20,26 @@
 ;; Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
 ;; MA 02110-1301, USA.
 
+;;; Commentary:
+
+;; Put this file into your load-path and the following into your
+;; ~/.emacs:
+;;           (require 'scheme-extensions)
+
+;; FIXME: elisp doesn't support tail recursive, does it?
+
 ;;; Code:
 
-(require 'generic-apt)
-(require 'generic-apt-apt-get)
-(require 'generic-apt-fink)
+(defun se-flatmap (procedure sequence)
+  "map and append. e.g., map: '((a b) (c)) => flatmap: '(a b c)."
+  (se-accumulate 'append '() (mapcar procedure sequence)))
 
-(provide 'generic-apt-install)
+(defun se-accumulate (op initial sequence)
+  (if (null sequence)
+      initial
+    (funcall op (car sequence)
+             (se-accumulate op initial (cdr sequence)))))
 
-;;; generic-apt-install.el ends here
+(provide 'scheme-extensions)
+
+;;; scheme-extensions.el ends here

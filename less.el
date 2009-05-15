@@ -1,9 +1,9 @@
 ;;; less.el --- less style view mode
 
-;; Copyright (C) 2005, 2007 William Xu
+;; Copyright (C) 2005, 2007, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.2
+;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -43,8 +43,8 @@
 With less-minor-mode enabled, you could use `less' like keys to view files.
 \\{less-minor-mode-map}."
   nil " Less"
-  '(("j" . less-scroll-up-one-line)
-    ("k" . less-scroll-down-one-line)
+  '(("j" . less-scroll-up-line)
+    ("k" . less-scroll-down-line)
     ("f" . scroll-up)
     ("b" . scroll-down)
     ("g" . beginning-of-buffer)
@@ -54,16 +54,19 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
     ("e" . less-quit))
     (set (make-local-variable 'buffer-read-only) less-minor-mode))
 
-(defun less-scroll-up-one-line ()
+;;;###autoload
+(defun less-scroll-up-line ()
   "Scroll up one line."
   (interactive)
   (scroll-up 1))
 
-(defun less-scroll-down-one-line ()
+;;;###autoload
+(defun less-scroll-down-line ()
   "Scroll down one line."
   (interactive)
   (scroll-down 1))
 
+;;;###autoload
 (defun less-quit ()
   "Quit `less-minor-mode'."
   (interactive)
