@@ -19,6 +19,11 @@
 ;; Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
 ;; MA 02110-1301, USA.
 
+;;; Commentary
+
+;; This relies on apt-cyg from:
+;;   http://code.google.com/p/apt-cyg/
+
 ;;; Code:
 
 (require 'ga)
@@ -69,7 +74,7 @@
         (cons
          (list 'apt-cyg
                (split-string
-                ;; TODO
+                ;; FIXME: Doesn't work when calling with start-process? 
                 ;; (ga-run-other-command-to-string
                 (shell-command-to-string
                  (format "grep @ '%s' | sed 's/@ //'" (ga-apt-cyg-get-setup-path)))))
