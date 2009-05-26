@@ -1,4 +1,4 @@
-;;; ga-pkgsrc.el --- pkgsrc backend
+;;; ga-pkgsrc.el --- pkgsrc backend (*nix)
 
 ;; Copyright (C) 2009 William Xu
 
@@ -68,9 +68,7 @@
        ;; Only show filename in output.
        (let ((default-directory (concat ga-pkgsrc-dir "/packages/All/")))
          (shell-command-to-string cmd)))
-      (goto-char (point-max))
-      (delete-blank-lines)
-      (insert "\n------------- done --------------\n"))))
+      (ga-insert-end-string))))
 
 (defun ga-pkgsrc-install (pkg)
   (let ((default-directory (concat (ga-pkgsrc-pkg-dir pkg) "/")))
@@ -88,7 +86,7 @@
 (defun ga-pkgsrc-remove (pkg)
   (ga-run-command (list "pkg_delete" pkg)))
 
-;; ;; Misc
+;; Misc
 
 (defun ga-pkgsrc-update-available-pkgs ()
   (setq ga-cache-list
