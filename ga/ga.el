@@ -74,7 +74,10 @@
   :type 'string
   :group 'ga)
 
-(defcustom ga-backend-methods '()
+(defcustom ga-backend-methods '((apt-get "sudo apt-get")
+                                (fink "sudo fink")
+                                (pkgsrc "sudo")
+                                (apt-cyg "apt-cyg"))
   "A list of backend methods.
 Each member is consist of two elements, first is the backend
 symbol, second is the core command prefix string.  e.g.,
@@ -84,7 +87,7 @@ symbol, second is the core command prefix string.  e.g.,
   :type 'list
   :group 'ga)
 
-(defcustom ga-backend-list '(apt-get fink pkgsrc)
+(defcustom ga-backend-list '(apt-get fink pkgsrc apt-cyg)
   "Supported backends."
   :type 'list
   :group 'ga)
@@ -187,9 +190,7 @@ symbol, second is the core command prefix string.  e.g.,
    (list 
     (ido-completing-read "ga: " 
                          (mapcar (lambda (b) (symbol-name b))
-                                 (if (null ga-backend-methods)
-                                     ga-backend-list
-                                   (mapcar 'car ga-backend-methods))))))
+                                 (mapcar 'car ga-backend-methods)))))
   ;; Wrap around them so that even when current buffer is another
   ;; ga buffer, we won't mess with its local variables.
   (with-temp-buffer
@@ -271,7 +272,8 @@ Here is a brief list of the most useful commamnds:
 (defun ga-update ()
   "Update package database cache."
   (interactive)
-  (funcall (ga-find-backend-function ga-backend 'update)))
+  (funcall (ga-find-backend-function ga-backend 'update))
+  (ga-update-cache))
 
 (defun ga-install (pkg)
   "Install PKG."
@@ -367,8 +369,7 @@ Here is a brief list of the most useful commamnds:
       (let ((inhibit-read-only t))
         (cond
          ((eq (process-status process) 'exit)
-          (goto-char (point-max))
-          (insert "------------- done --------------\n"))
+          (ga-insert-end-string))
          ((eq (process-status process) 'signal)
           (message "ga process killed")))))))
 
@@ -399,8 +400,8 @@ Here is a brief list of the most useful commamnds:
   (interactive)
   (when ga-process
     (unless (eq (process-status ga-process) 'exit)
-      (delete-process ga-process))
-    (setq ga-running nil)))
+      (delete-process ga-process)))
+  (setq ga-running nil))
 
 (defun ga-run-command (args)
   (ga-run-1 (append (split-string ga-method " ") args)))
@@ -431,8 +432,9 @@ For instance, \"sudo fink\" => \"sudo\""
         (error "Ga process already exists")
       (setq ga-running t)
       (setq ga-process
-            (apply 'start-process "ga" ga-buffer-name
-                   full-command-and-args))
+            (apply 'start-process-shell-command "ga" ga-buffer-name full-command-and-args)
+            ;; (apply 'start-process "ga" ga-buffer-name full-command-and-args)
+            )
       (set-process-filter ga-process 'ga-process-filter)
       (set-process-sentinel ga-process 'ga-process-sentinel))))
 
@@ -446,6 +448,12 @@ For instance, \"sudo fink\" => \"sudo\""
       ;; (if (fboundp f)
       ;;   f
       (error "Sorry, %S is not implemented for %S" f backend))))
+
+(defun ga-insert-end-string () 
+  (goto-char (point-max))
+  (delete-blank-lines)
+  (insert "\n------------- done --------------\n"))
+
 
 
 ;;; Compatibility

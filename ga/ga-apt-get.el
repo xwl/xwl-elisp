@@ -1,4 +1,4 @@
-;;; ga-apt-get.el --- apt-get backend
+;;; ga-apt-get.el --- apt-get backend (Debian GNU/Linux)
 
 ;; Copyright (C) 2008, 2009 William Xu
 
