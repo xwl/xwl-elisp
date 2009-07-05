@@ -65,7 +65,7 @@
 ;;   (ga-run-other-command (list "cleanup")))
 
 (defun ga-apt-cyg-remove (pkg)
-  (ga-run-other-command (list "remove" pkg)))
+  (ga-run-command (list "remove" pkg)))
 
 ;; Misc
 
