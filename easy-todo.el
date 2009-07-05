@@ -1,6 +1,6 @@
 ;;; easy-todo.el --- Manage your todos in an extremely easy way!
 
-;; Copyright (C) 2007, 2008 William Xu
+;; Copyright (C) 2007, 2008, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.4a
@@ -28,7 +28,7 @@
 ;; different status of todo items) upon `text-mode'.
 
 ;; It supports four different prefix flags, namely, "^> "(ongoing),
-;; "^- "(todo), "^| "(interrupted), "^o "(done). Here's a screenshot:
+;; "^- "(todo), "^| "(unfinished), "^o "(done). Here's a screenshot:
 ;;
 ;; ,----
 ;; | > (work) Check compress() function
@@ -60,8 +60,8 @@
   :type 'string
   :group 'easy-todo)
 
-(defcustom easy-todo-interrupted-regexp "^| "
-  "Prefix for interrupted items."
+(defcustom easy-todo-unfinished-regexp "^| "
+  "Prefix for unfinished items."
   :type 'string
   :group 'easy-todo)
 
@@ -89,11 +89,11 @@
 
 ;; (defvar easy-todo-todo-face 'easy-todo-todo-face)
 
-;; (defface easy-todo-interrupted-face '((t (:bold t :foreground "yellow")))
-;;   "Face for `easy-todo-interrupted-regexp'."
+;; (defface easy-todo-unfinished-face '((t (:bold t :foreground "yellow")))
+;;   "Face for `easy-todo-unfinished-regexp'."
 ;;   :group 'easy-todo-faces)
 
-;; (defvar easy-todo-interrupted-face 'easy-todo-interrupted-face)
+;; (defvar easy-todo-unfinished-face 'easy-todo-unfinished-face)
 
 ;; (defface easy-todo-done-face '((t (:bold t :foreground "purple")))
 ;;   "Face for `easy-todo-done-regexp'."
@@ -102,7 +102,7 @@
 ;; (defvar easy-todo-done-face 'easy-todo-done-face)
 
 
-;;; Interfaces
+;;; easy-todo-mode
 
 ;;;###autoload
 (define-derived-mode easy-todo-mode text-mode "Easy-Todo"
@@ -114,7 +114,7 @@
 (defvar easy-todo-regexp-face-alist
   `((,easy-todo-ongoing-regexp     . ,font-lock-constant-face) ; magenta
     (,easy-todo-todo-regexp        . ,font-lock-doc-face)      ; green
-    (,easy-todo-interrupted-regexp . ,font-lock-variable-name-face) ; yellow
+    (,easy-todo-unfinished-regexp . ,font-lock-variable-name-face) ; yellow
     (,easy-todo-done-regexp        . ,font-lock-function-name-face))) ; blue
 
 (defvar easy-todo-regexps (mapcar 'car easy-todo-regexp-face-alist))
@@ -129,12 +129,14 @@
 
 (define-key easy-todo-mode-map (kbd "C-c C-o") 'easy-todo-item-ongoing)
 (define-key easy-todo-mode-map (kbd "C-c C-t") 'easy-todo-item-todo)
-(define-key easy-todo-mode-map (kbd "C-c C-u") 'easy-todo-item-interrupted)
+(define-key easy-todo-mode-map (kbd "C-c C-u") 'easy-todo-item-unfinished)
 (define-key easy-todo-mode-map (kbd "C-c C-d") 'easy-todo-item-done)
 
 (define-key easy-todo-mode-map (kbd "C-c C-b") 'easy-todo-sort-buffer)
 (define-key easy-todo-mode-map (kbd "C-c C-r") 'easy-todo-sort-region)
 (define-key easy-todo-mode-map (kbd "C-c C-k") 'easy-todo-kill-item)
+
+;;; Functions
 
 (defun easy-todo-item-ongoing ()
   "Switch item into ongoing status."
@@ -146,18 +148,15 @@
   (interactive)
   (easy-todo-item-switch easy-todo-todo-regexp))
 
-(defun easy-todo-item-interrupted ()
-  "Switch item into interrupted status."
+(defun easy-todo-item-unfinished ()
+  "Switch item into unfinished status."
   (interactive)
-  (easy-todo-item-switch easy-todo-interrupted-regexp))
+  (easy-todo-item-switch easy-todo-unfinished-regexp))
 
 (defun easy-todo-item-done ()
   "Switch item into done status."
   (interactive)
   (easy-todo-item-switch easy-todo-done-regexp))
-
-
-;;; Low Level Functions
 
 (defun easy-todo-item-switch (regexp)
   "Switch item into status matched by REGEX.
@@ -220,5 +219,9 @@ BEG and END are points."
 
 
 (provide 'easy-todo)
+
+;;; Local Variables: ***
+;;; mode: emacs-lisp ***
+;;; End: ***
 
 ;;; easy-todo.el ends here
