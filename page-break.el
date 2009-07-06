@@ -9,7 +9,9 @@
                    (make-display-table))))
     (aset table ?\^L
           (let ((face-offset (lsh (face-id page-break-face) 19)))
-            (vconcat (mapcar (lambda (c) (+ face-offset c))
+            (vconcat (mapcar (lambda (c) ;; (+ face-offset c)
+                               c
+                               )
 			     (make-string (1- (window-width window))
 					  page-break-string-char)))))
     table))
