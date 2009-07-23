@@ -79,8 +79,7 @@
         (cons
          (list 'apt-get 
                (split-string
-                (split-string
-                 (ga-run-other-command-to-string "apt-cache pkgnames"))))
+                (ga-run-other-command-to-string "apt-cache pkgnames")))
          (remove-if (lambda (i) (eq (car i) 'apt-get))
                     ga-available-pkgs))))
 
