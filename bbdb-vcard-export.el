@@ -231,6 +231,7 @@
      (concat output-dir
 	     (bbdb-vcard-export-vcard-name-from-record record)))))
 
+;;;###autoload
 (defun bbdb-vcard-export-update-all (output-dir coding-system)
   "Update the vcard Contacts directory from the bbdb database"
   (interactive "DDirectory to update: \nZCoding system: ")
