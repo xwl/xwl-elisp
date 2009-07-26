@@ -19,6 +19,17 @@
 ;; Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
 ;; MA 02110-1301, USA.
 
+;;; Commentary:
+
+;; sample /etc/apt/apt.conf setup:
+
+;;    APT {
+;;      Get {
+;;        Assume-Yes "true";
+;;        Fix-Broken "true";
+;;      };
+;;    };
+
 ;;; Code:
 
 (require 'ga)
@@ -79,8 +90,7 @@
         (cons
          (list 'apt-get 
                (split-string
-                (split-string
-                 (ga-run-other-command-to-string "apt-cache pkgnames"))))
+                (ga-run-other-command-to-string "apt-cache pkgnames")))
          (remove-if (lambda (i) (eq (car i) 'apt-get))
                     ga-available-pkgs))))
 
