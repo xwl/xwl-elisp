@@ -35,10 +35,25 @@
   (se-accumulate 'append '() (mapcar procedure sequence)))
 
 (defun se-accumulate (op initial sequence)
+  "OP takes two arguments: element and partial-sum."
   (if (null sequence)
       initial
     (funcall op (car sequence)
              (se-accumulate op initial (cdr sequence)))))
+
+(defun se-find-first (predicate sequence)
+  "Find first element of SEQUENCE that satifies PREDICATE."
+  (let ((ret nil)
+        (s sequence)
+        i)
+    (while s
+      (setq i (car s)
+            s (cdr s))
+      (when (funcall predicate i)
+        (setq ret i
+              s nil)))
+    ret))
+
 
 (provide 'scheme-extensions)
 
