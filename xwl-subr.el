@@ -1,4 +1,4 @@
-;;; scheme-extensions.el --- Some scheme extensions for Emacs
+;;; xwl-subr.el --- Some scheme extensions for Emacs
 
 ;; Copyright (C) 2009 William Xu
 
@@ -24,22 +24,49 @@
 
 ;; Put this file into your load-path and the following into your
 ;; ~/.emacs:
-;;           (require 'scheme-extensions)
+;;           (require 'xwl-subr)
 
 ;; FIXME: elisp doesn't support tail recursive, does it?
 
 ;;; Code:
 
-(defun se-flatmap (procedure sequence)
+(defun xs-flatmap (procedure sequence)
   "map and append. e.g., map: '((a b) (c)) => flatmap: '(a b c)."
-  (se-accumulate 'append '() (mapcar procedure sequence)))
+  (xs-accumulate 'append '() (mapcar procedure sequence)))
 
-(defun se-accumulate (op initial sequence)
+(defun xs-accumulate (op initial sequence)
   (if (null sequence)
       initial
     (funcall op (car sequence)
-             (se-accumulate op initial (cdr sequence)))))
+             (xs-accumulate op initial (cdr sequence)))))
 
-(provide 'scheme-extensions)
+;; ;; These two are useful for customizing, so that the result is not affected even
+;; ;; being evaled for multiple times. 
+;; (defun xs-uniq-prepend (&rest sequences)
+;;   (let ((r (nreverse sequences)))
+;;     (unless (symbolp (car r))
+;;       (error "Last element should be a symbol"))
+;;     (mapc (lambda (path) (add-to-list (car r) path))
+;;           (xs-flatmap 'identity (cdr r)))
+;;     (symbol-value (car r))))
 
-;;; scheme-extensions.el ends here
+;; (defun xs-uniq-append (&rest sequences)
+;;   (let ((r (nreverse sequences)))
+;;     (unless (symbolp (car r))
+;;       (error "Last element should be a symbol"))
+;;     (mapc (lambda (path) (add-to-list (car r) path t))
+;;           (xs-flatmap 'identity (cdr r)))
+;;     (symbol-value (car r))))
+
+(defun xs-find-first (predicate sequence)
+  (cond ((null sequence)
+         nil)
+        ((funcall predicate (car sequence))
+         (car sequence))
+        (t
+         (xs-find-first predicate (cdr sequence)))))
+
+
+(provide 'xwl-subr)
+
+;;; xwl-subr.el ends here
