@@ -1,6 +1,6 @@
-;;; url-html.el --- Tools for dealing with html pages
+;;; url-extra.el --- Extra url http/html related utilities
 
-;; Copyright (C) 2008 William Xu
+;; Copyright (C) 2008, 2009 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
@@ -22,8 +22,7 @@
 
 ;;; Code:
 
-;;;###autoload
-(defun url-html-decode-buffer (&optional buffer)
+(defun url-extra-html-decode-buffer (&optional buffer)
   "Decode html BUFFER(default is current buffer).
 Usually used in buffer retrieved by `url-retrieve'. If no charset info
 is specified in html tag, default is 'utf-8."
@@ -39,7 +38,50 @@ is specified in html tag, default is 'utf-8."
       (set-buffer-multibyte t)
       (decode-coding-region (point-min) (point-max) coding))))
 
+(defun url-extra-http-encode-string (str content-type)
+  "URL encode STR using CONTENT-TYPE as the coding system."
+  (apply 'concat
+	 (mapcar (lambda (c)
+		   (if (or (and (>= c ?a) (<= c ?z))
+			   (and (>= c ?A) (<= c ?Z))
+			   (and (>= c ?0) (<= c ?9)))
+		       (string c)
+		       (format "%%%02x" c)))
+		 (encode-coding-string str content-type))))
 
-(provide 'url-html)
+(defun url-extra-http-encode-string-without-escape (str content-type)
+  "Similar to `url-extra-http-encode-string' but treat \"\\\" as regular
+character."
+  (let ((back-slash (format "%%%02x" ?\\)))
+    (replace-regexp-in-string 
+     back-slash 
+     (concat back-slash back-slash)
+     (url-extra-http-encode-string str content-type))))
 
-;;; url-html.el ends here
+(defun url-extra-http-post (url data &optional charset)
+  "Retrieve URL synchronously with `url-retrieve-synchronously'.
+
+DATA is an alist, e.g., '((field-name . \"value\")).
+CHARSET defaults to 'utf-8."
+  (or charset (setq charset 'utf-8))
+  (let ((url-request-method "POST")
+        (url-request-data 
+         (mapconcat 
+          'identity 
+          (mapcar (lambda (field)
+                    (concat (symbol-name (car field))
+                            "="
+                            (url-extra-http-encode-string-without-escape 
+                             (cdr field) charset)))
+                  data)
+          "&"))
+        (url-mime-charset-string (symbol-name charset))
+        (url-request-extra-headers 
+         `(("Content-Type" . ,(concat
+                               "application/x-www-form-urlencoded;charset="
+                               (symbol-name charset))))))
+    (url-retrieve-synchronously url)))
+
+
+(provide 'url-extra)
+;;; url-extra.el ends here
