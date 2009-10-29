@@ -23,15 +23,11 @@
 
 ;;; Commentary:
 
-;; This is a mostly rewritten based on ideas from Seiji Zenitani
-;; <zenitani@mac.com>'s `smart-compile.el'. Besides compile action, i've
-;; add a run action, and maybe more in the future.
+;; Perform actions(compile, run) based on buffer properties, such as major
+;; mode, filename or any lisp expressions.  e.g., 
 
-;; Let me illustrate it by an example. Suppose you are editing a file
-;; named `foo.c'. To compile it, `M-x buffer-action-compile', it will run
-;; a shell command similar to `gcc -o foo foo.c -O2'; to run the
-;; executable binary `foo' , `M-x buffer-action-run', it will run a shell
-;; command similar to `./foo'. Sounds neat, right?
+;;   foo.c: M-x buffer-action-compile => "gcc -o foo foo.c -O2"
+;;          M-x buffer-action-run => "./foo
 
 ;; What kind of shell commands or lisp expressions to call for each
 ;; action(compile/run) is configurable through `buffer-action-table'.
@@ -41,7 +37,14 @@
 ;;       (autoload 'buffer-action-compile "buffer-action")
 ;;       (autoload 'buffer-action-run "buffer-action")
 
-;; TODO
+;;; History
+
+;; This is a mostly rewritten based on ideas from Seiji Zenitani
+;; <zenitani@mac.com>'s `smart-compile.el'. Besides compile action, i've add a
+;; run action, and also extend buffer-action-table to accept more formats when
+;; configuring a match.
+
+;;; TODO
 
 ;; - Recognize Makefile in a directory, so don't bother me when calling
 ;;   the compile command from different file buffers, which all belongs
