@@ -74,7 +74,7 @@
 ;;   "Use emacs's url lib."
 ;;   (when (eq :error (car status))
 ;;     (error "dashboard-tenseijingo-callback: %S" status))
-;;   (url-html-decode-buffer)
+;;   (url-extra-html-decode-buffer)
 ;;   (switch-to-buffer (current-buffer))
 ;;   (goto-char (point-min))
 ;;   (let ((date "")

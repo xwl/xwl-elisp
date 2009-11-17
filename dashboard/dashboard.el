@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(require 'url-html)
+(require 'url-extra)
 
 ;;; Customizations And Interfaces
 
