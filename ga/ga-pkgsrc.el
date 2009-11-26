@@ -80,7 +80,7 @@
 ;; (defun ga-pkgsrc-upgrade (pkg)
 ;;   (ga-run-command (list "--yes" "update" pkg)))
 
-;; (defun ga-clean ()
+;; (defun ga-pkgsrc-clean ()
 ;;   (ga-run-command (list "cleanup")))
 
 (defun ga-pkgsrc-remove (pkg)

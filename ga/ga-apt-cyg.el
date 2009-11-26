@@ -61,7 +61,7 @@
 ;; (defun ga-apt-cyg-upgrade (pkg)
 ;;   (ga-run-other-command (list "--yes" "update" pkg)))
 
-;; (defun ga-clean ()
+;; (defun ga-apt-cyg-clean ()
 ;;   (ga-run-other-command (list "cleanup")))
 
 (defun ga-apt-cyg-remove (pkg)

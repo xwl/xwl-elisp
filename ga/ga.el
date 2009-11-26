@@ -77,7 +77,8 @@
 (defcustom ga-backend-methods '((apt-get "sudo apt-get")
                                 (fink "sudo fink")
                                 (pkgsrc "sudo")
-                                (apt-cyg "sh apt-cyg"))
+                                (apt-cyg "sh apt-cyg")
+                                (yum "sudo yum"))
   "A list of backend methods.
 Each member is consist of two elements, first is the backend
 symbol, second is the core command prefix string.  e.g.,
@@ -87,7 +88,7 @@ symbol, second is the core command prefix string.  e.g.,
   :type 'list
   :group 'ga)
 
-(defcustom ga-backend-list '(apt-get fink pkgsrc apt-cyg)
+(defcustom ga-backend-list '(apt-get fink pkgsrc apt-cyg yum)
   "Supported backends."
   :type 'list
   :group 'ga)

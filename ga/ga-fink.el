@@ -55,7 +55,7 @@
 (defun ga-fink-upgrade (pkg)
   (ga-run-command (list "--yes" "update" pkg)))
 
-(defun ga-clean ()
+(defun ga-fink-clean ()
   (ga-run-command (list "cleanup")))
 
 (defun ga-fink-remove (pkg)
