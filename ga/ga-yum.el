@@ -36,8 +36,8 @@
 (defun ga-yum-update ()
   (ga-run-other-command (list "echo" "Running rpm -qa...")))
 
-(defun ga-yum-search-by-name (pkg)
-  (ga-yum-search pkg))
+;; (defun ga-yum-search-by-name (pkg)
+;;   (ga-yum-search pkg))
 
 (defun ga-yum-search (pkg)
   (ga-run-command (list "search" pkg)))
