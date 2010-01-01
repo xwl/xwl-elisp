@@ -1,9 +1,9 @@
 ;;; less.el --- less style view mode
 
-;; Copyright (C) 2005, 2007, 2009 William Xu
+;; Copyright (C) 2005, 2007, 2009, 2010 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 0.3
+;; Version: 0.4
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,6 +35,11 @@
 ;; keys in major mode.
 
 ;;; Code:
+
+(defcustom auto-less-exclude-regexp ""
+  "Do not turn on `auto-less-minor-mode' for matched files."
+  :type 'string
+  :group 'convenience)
 
 ;;;###autoload
 (define-minor-mode less-minor-mode
@@ -74,9 +79,11 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
 
 ;;;###autoload
 (defun auto-less-minor-mode ()
-  "Auto enter `less-minor-mode' when visiting read-only files. You can
-add this to `find-file-hooks'."
-  (unless (file-writable-p buffer-file-name)
+  "Turn on `less-minor-mode' for files not matching `auto-less-exclude-regexp'.
+
+This is a useful hook to add to `find-file-hook'."
+  (unless (and (not (string= auto-less-exclude-regexp ""))
+               (string-match auto-less-exclude-regexp buffer-file-name))
     (less-minor-mode 1)))
 
 ;;;###autoload
