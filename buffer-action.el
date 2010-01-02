@@ -205,12 +205,11 @@ more. If you want to edit it again, please add C-u prefix."
 
 ;;; Utilities
 
-(defun buffer-action-replace (any)
-  "If ANY is a string, update it by `buffer-action-replace-table', else
-return ANY unchanged."
-  (let ((ret any))
-    (when (stringp any)
-      (dolist (el buffer-action-replace-table ret)
+(defun buffer-action-replace (fmt)
+  "Format FMT by looking at `buffer-action-replace-table'."
+  (let ((ret fmt))
+    (dolist (el buffer-action-replace-table ret)
+      (let ((case-fold-search nil))
         (setq ret (replace-regexp-in-string
                    (car el) (funcall (cadr el)) ret))))
     ret))
