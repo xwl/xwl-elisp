@@ -159,15 +159,16 @@ edit it again, please add C-u prefix."
           (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
         (setq buffer-action-compile-action "qmake "))
        (t
-        (setq buffer-action-compile-action
-              (buffer-action-replace (nth 1 row)))))
-      (if (stringp buffer-action-compile-action)
-          (progn
-            ;; First time run will be interactive.
-            (setq compile-command buffer-action-compile-action)
-            (call-interactively 'compile)
-            (setq buffer-action-compile-action compile-command))
-        (funcall buffer-action-compile-action)))
+        (setq buffer-action-compile-action (nth 1 row))
+        (if (stringp buffer-action-compile-action)
+            (progn
+              ;; First time run will be interactive.
+              (setq buffer-action-compile-action
+                    (buffer-action-replace buffer-action-compile-action))
+              (setq compile-command buffer-action-compile-action)
+              (call-interactively 'compile)
+              (setq buffer-action-compile-action compile-command))
+          (funcall buffer-action-compile-action)))))
      ;; 3. Just compile
      ((stringp buffer-action-compile-action)
       (compile buffer-action-compile-action))
@@ -184,19 +185,19 @@ more. If you want to edit it again, please add C-u prefix."
   (interactive)
   (cond
    ((or current-prefix-arg (not buffer-action-run-action))
-    (let ((run (buffer-action-replace (nth 3 (buffer-action-match)))))
-      (if (stringp run)
-          ;; FIXME: I'm unable to avoid using the obsolete INITIAL-CONTENTS
-          ;; parameter, since I'd like the default line inserted and editable at
-          ;; the same time.
-          (progn
-            (setq buffer-action-run-action
-                  (read-from-minibuffer
-                   ;; "Run-action $ " nil nil t nil (concat run " ")))
-                   "Run-action $ " (concat run " ")))
-            (buffer-action-shell-command buffer-action-run-action))
-        (setq buffer-action-run-action run)
-        (funcall buffer-action-run-action))))
+    (setq buffer-action-run-action (nth 3 (buffer-action-match)))
+    (if (stringp buffer-action-run-action)
+        ;; FIXME: I'm unable to avoid using the obsolete INITIAL-CONTENTS
+        ;; parameter, since I'd like the default line inserted and editable at
+        ;; the same time.
+        (progn
+          (setq buffer-action-run-action
+                (read-from-minibuffer
+                 ;; "Run-action $ " nil nil t nil (concat run " ")))
+                 "Run-action $ "
+                 (concat (buffer-action-replace buffer-action-run-action) " ")))
+          (buffer-action-shell-command buffer-action-run-action))
+      (funcall buffer-action-run-action)))
    ((stringp buffer-action-run-action)
     (buffer-action-shell-command buffer-action-run-action))
    (t
@@ -208,7 +209,7 @@ more. If you want to edit it again, please add C-u prefix."
 (defun buffer-action-replace (fmt)
   "Format FMT by looking at `buffer-action-replace-table'."
   (let ((ret fmt))
-    (dolist (el buffer-action-replace-table ret)
+    (dolist (el buffer-action-replace-table)
       (let ((case-fold-search nil))
         (setq ret (replace-regexp-in-string
                    (car el) (funcall (cadr el)) ret))))
