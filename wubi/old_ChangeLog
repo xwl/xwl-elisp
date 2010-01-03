@@ -1,0 +1,20 @@
+Fri Jul  6 16:59:01 JST 2007  William Xu <william.xwl@gmail.com>
+  * wubi.el: Add `quail-insert-as-is'. And with RET, abort current wubi
+  translation, insert ascii characters directory. Thanks to Du Jingwu
+  <zslevin@gmail.com>.
+
+Wed May  9 13:46:31 JST 2007  William Xu <william.xwl@gmail.com>
+  * wubi-rules-b5.el: Initial commit.
+
+Wed May  9 13:46:21 JST 2007  William Xu <william.xwl@gmail.com>
+  * wubi-b5.el: Initial commit.
+
+Sat Mar 17 21:52:07 JST 2007  William Xu <william.xwl@gmail.com>
+  * wubi-rules.el: Update copyright notice.
+
+Sat Mar 17 21:51:10 JST 2007  William Xu <william.xwl@gmail.com>
+  * wubi.el: Rename `wubi-ascii-quanjiao-banjiao-alist' to `
+  wubi-ascii-quanjiao-banjiao-table' and Update Copyright notice.
+
+Sat Mar  3 02:02:43 JST 2007  William Xu <william.xwl@gmail.com>
+  * Initial commit.
