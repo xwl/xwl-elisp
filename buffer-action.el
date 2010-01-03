@@ -1,6 +1,6 @@
 ;;; buffer-action.el --- Perform actions(compile/run, etc) in buffer based on mode/filename
 
-;; Copyright (C) 2005, 2007, 2008, 2009 William Xu
+;; Copyright (C) 2005, 2007, 2008, 2009, 2010 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 3.3
