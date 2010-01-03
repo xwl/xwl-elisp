@@ -57,7 +57,7 @@
 
 ;;; Code:
 
-(require 'url-html)
+(require 'url-extra)
 
 ;;; Customizations
 
@@ -281,7 +281,7 @@ as `move-beginning-of-line'."
     (error "cwit-receive-callback: %S" status))
   (let ((entries '())
         entry last-entry)
-    (url-html-decode-buffer)
+    (url-extra-html-decode-buffer)
     (goto-char (point-min))
     (while (and (setq entry (cwit-parse-entry))
                 (> (car entry) cwit-last-entry-index))
