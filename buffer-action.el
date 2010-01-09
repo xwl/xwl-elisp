@@ -83,7 +83,7 @@ end).
     (java-mode "javac %n" "%n.class" "java %n")
     (makefile-mode "make" nil nil)
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
-    ("\\.php$" nil nil "php %f")
+    ("\\.php$" nil t "php %f")
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
     (texinfo-mode (lambda ()
                     (save-excursion
@@ -102,18 +102,19 @@ end).
                        (byte-compile-file (buffer-action-replace "%f")))
                      "%n.elc"
                      eval-buffer)
-    ("\\.info$" nil nil (lambda () (info (buffer-file-name))))
+    ("\\.info$" nil t (lambda () (info (buffer-file-name))))
     ("\\.dot$" "dot -Tjpg %f -o %n.jpg" "%n.png" "qiv %f &"))
   "Each element in the table has the form:
 
     '(MATCHER COMPILER-ACTION BIN RUN-ACTION)
 
-MATCHER is either a filename, major mode, or predicative
+MATCHER could be a filename, major mode, or predicative
 thunk(functions with zero arguments).
 
-BIN is usually a filename(string), nil, or thunk that returns a
-string.  It is usually created by COMPILER-ACTION when necessary,
-and will be executed by RUN-ACTION.
+BIN could be a filename, predicative thunk, t, nil.  This is used
+for deciding whether a recompilation is necessary.  When it is a
+filename, it will be used to compare with MATCHER, where
+appropriate.
 
 COMPILER-ACTION, RUN-ACTION is either a shell command or thunk.
 
@@ -145,7 +146,9 @@ edit it again, please add C-u prefix."
     (cond
      ;; 1. No need to recompile
      ((and (not current-prefix-arg) latest)
-      (message "`%s' is already latest" latest))
+      (if (stringp latest)
+          (message "`%s' is already latest" latest)
+        (message "Everything up-to-date")))
      ;; 2. Setup compile command
      ((or current-prefix-arg (not buffer-action-compile-action))
       (cond
@@ -257,15 +260,18 @@ whose window will be deleted automatically."
 
 Check whether BIN is up to date.  Return filename for BIN when up
 to date."
-  (if (null bin)
-      "Object"                          ; When no BIN is created, like texinfo.
-    (let ((f (buffer-action-replace (if (functionp bin)
-                                        (funcall bin)
-                                      bin))))
-      (when (and (stringp f)
-                 (file-exists-p f)
-                 (file-newer-than-file-p f (buffer-file-name)))
-        f))))
+  (cond ((stringp bin)
+         (let ((f (buffer-action-replace (if (functionp bin)
+                                             (funcall bin)
+                                           bin))))
+           (when (and (stringp f)
+                      (file-exists-p f)
+                      (file-newer-than-file-p f (buffer-file-name)))
+             f)))
+        ((functionp bin)
+         (funcall bin))
+        (t
+         bin)))
 
 
 (provide 'buffer-action)
