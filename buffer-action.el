@@ -84,6 +84,7 @@ end).
     (makefile-mode "make" nil nil)
     ("\\.pl$" "perl -cw %f" nil "perl -s %f")
     ("\\.php$" nil t "php %f")
+    ("\\.py$" nil t "python %f")
     ("\\.tex$" "latex %f" "%n.dvi" "xdvi %n.dvi &")
     (texinfo-mode (lambda ()
                     (save-excursion
@@ -149,29 +150,17 @@ edit it again, please add C-u prefix."
       (if (stringp latest)
           (message "`%s' is already latest" latest)
         (message "Everything up-to-date")))
-     ;; 2. Setup compile command
+     ;; 2. Compile for the first time, will be interactive
      ((or current-prefix-arg (not buffer-action-compile-action))
-      (cond
-       ((and (or (file-exists-p "Makefile") (file-exists-p "makefile"))
-             (y-or-n-p "Found Makefile, try 'make'? "))
-        (setq buffer-action-compile-action "make "))
-       ((and (file-exists-p "build.xml") ; ant
-             (y-or-n-p "Found build.xml, try 'ant'? "))
-        (setq buffer-action-compile-action "ant "))
-       ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
-          (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
-        (setq buffer-action-compile-action "qmake "))
-       (t
-        (setq buffer-action-compile-action (nth 1 row))
-        (if (stringp buffer-action-compile-action)
-            (progn
-              ;; First time run will be interactive.
-              (setq buffer-action-compile-action
-                    (buffer-action-replace buffer-action-compile-action))
-              (setq compile-command buffer-action-compile-action)
-              (call-interactively 'compile)
-              (setq buffer-action-compile-action compile-command))
-          (funcall buffer-action-compile-action)))))
+      (buffer-action-compile-setup row)
+      (if (stringp buffer-action-compile-action)
+          (progn
+            (setq buffer-action-compile-action
+                  (buffer-action-replace buffer-action-compile-action))
+            (setq compile-command buffer-action-compile-action)
+            (call-interactively 'compile)
+            (setq buffer-action-compile-action compile-command))
+        (funcall buffer-action-compile-action)))
      ;; 3. Just compile
      ((stringp buffer-action-compile-action)
       (compile buffer-action-compile-action))
@@ -272,6 +261,22 @@ to date."
          (funcall bin))
         (t
          bin)))
+
+(defun buffer-action-compile-setup (row)
+  "Setup correct compiler action.
+ROW is matched one in `buffer-action-table'."
+  (cond
+   ((and (or (file-exists-p "Makefile") (file-exists-p "makefile"))
+         (y-or-n-p "Found Makefile, try 'make'? "))
+    (setq buffer-action-compile-action "make "))
+   ((and (file-exists-p "build.xml")    ; ant
+         (y-or-n-p "Found build.xml, try 'ant'? "))
+    (setq buffer-action-compile-action "ant "))
+   ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
+      (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
+    (setq buffer-action-compile-action "qmake "))
+   (t
+    (setq buffer-action-compile-action (nth 1 row)))))
 
 
 (provide 'buffer-action)
