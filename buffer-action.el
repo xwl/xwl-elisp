@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; Perform actions(compile, run) based on buffer properties, such as major
-;; mode, filename or any lisp expressions.  e.g., 
+;; mode, filename or any lisp expressions.  e.g.,
 
 ;;   foo.c: M-x buffer-action-compile => "gcc -o foo foo.c -O2"
 ;;          M-x buffer-action-run => "./foo
@@ -96,7 +96,7 @@ end).
                   "%n.info"
                   (lambda ()
                     (Info-revert-find-node
-                     (replace-regexp-in-string 
+                     (replace-regexp-in-string
                       "\\.texinfo*$" ".info" (buffer-action-replace "%F"))
                      (makeinfo-current-node))))
     (emacs-lisp-mode (lambda ()
@@ -223,8 +223,8 @@ more. If you want to edit it again, please add C-u prefix."
                         (and (symbolp matcher)
                              (eq matcher major-mode))
                         ;; Most major-mode are both a symbol and function...
-                        (and (functionp matcher) 
-                             (not (symbolp matcher)) 
+                        (and (functionp matcher)
+                             (not (symbolp matcher))
                              (funcall matcher)))
                 (setq table nil)
                 (setq ret row))))
@@ -249,18 +249,20 @@ whose window will be deleted automatically."
 
 Check whether BIN is up to date.  Return filename for BIN when up
 to date."
-  (cond ((stringp bin)
-         (let ((f (buffer-action-replace (if (functionp bin)
-                                             (funcall bin)
-                                           bin))))
-           (when (and (stringp f)
-                      (file-exists-p f)
-                      (file-newer-than-file-p f (buffer-file-name)))
-             f)))
-        ((functionp bin)
-         (funcall bin))
+  (cond ((functionp bin)
+         (let ((s (funcall bin)))
+           (if (stringp s)
+               (buffer-action-file-newer-than-file-p s)
+             s)))
+        ((stringp bin)
+         (buffer-action-file-newer-than-file-p s))
         (t
          bin)))
+
+(defun buffer-action-file-newer-than-file-p (target-file)
+  (when (and (file-exists-p target-file)
+             (file-newer-than-file-p target-file (buffer-file-name)))
+    target-file))
 
 (defun buffer-action-compile-setup (row)
   "Setup correct compiler action.
