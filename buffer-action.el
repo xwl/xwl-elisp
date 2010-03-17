@@ -3,7 +3,7 @@
 ;; Copyright (C) 2005, 2007, 2008, 2009, 2010 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 3.3
+;; Version: 3.4a
 ;; Url: http://xwl.appspot.com/ref/buffer-action.el
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -255,7 +255,7 @@ to date."
                (buffer-action-file-newer-than-file-p s)
              s)))
         ((stringp bin)
-         (buffer-action-file-newer-than-file-p s))
+         (buffer-action-file-newer-than-file-p bin))
         (t
          bin)))
 
