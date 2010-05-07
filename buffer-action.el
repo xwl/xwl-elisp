@@ -27,7 +27,7 @@
 ;; mode, filename or any lisp expressions.  e.g.,
 
 ;;   foo.c: M-x buffer-action-compile => "gcc -o foo foo.c -O2"
-;;          M-x buffer-action-run => "./foo
+;;          M-x buffer-action-run => "./foo"
 
 ;; What kind of shell commands or lisp expressions to call for each
 ;; action(compile/run) is configurable through `buffer-action-table'.
@@ -51,6 +51,8 @@
 ;;   to the same directory.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 ;;; Customizations
 
@@ -235,6 +237,7 @@ more. If you want to edit it again, please add C-u prefix."
   "Run shell CMD.
 When CMD ends with a `&', run it asynchronously using a unique output buffer,
 whose window will be deleted automatically."
+  (setq cmd (buffer-action-replace cmd))
   (when (fboundp 'convert-standard-filename)
     (setq cmd (convert-standard-filename cmd)))
   (if (string-match "&\\ *$" cmd)
@@ -267,19 +270,18 @@ to date."
 (defun buffer-action-compile-setup (row)
   "Setup correct compiler action.
 ROW is matched one in `buffer-action-table'."
-  (cond
-   ((and (or (file-exists-p "Makefile") (file-exists-p "makefile"))
-         (y-or-n-p "Found Makefile, try 'make'? "))
-    (setq buffer-action-compile-action "make "))
-   ((and (file-exists-p "build.xml")    ; ant
-         (y-or-n-p "Found build.xml, try 'ant'? "))
-    (setq buffer-action-compile-action "ant "))
-   ((let ((pro (car (directory-files "." nil "\\.pro$")))) ; qmake
-      (and pro (y-or-n-p (format "Found %s, try 'qmake'? " pro))))
-    (setq buffer-action-compile-action "qmake "))
-   (t
-    (setq buffer-action-compile-action (nth 1 row)))))
-
+  (let ((cmd
+         (some
+          (lambda (el)
+            (let ((f (find-if 'file-exists-p (car el))))
+              (when f (concat (cadr el) " " f))))
+          `((("Makefile" "makefile" "../Makefile" "../makefile") "make -C")
+            (("build.xml") "ant")
+            (,(directory-files "." nil "\\.pro$") "qmake")
+            (("bld.inf" "../group/bld.inf") "sbs -c winscw_udeb -b")))))
+    (if (and cmd (y-or-n-p (format "Run like this? `%s' " cmd)))
+        (setq buffer-action-compile-action (concat cmd " "))
+      (setq buffer-action-compile-action (nth 1 row)))))
 
 (provide 'buffer-action)
 
