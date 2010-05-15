@@ -7,7 +7,7 @@
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -36,9 +36,20 @@
 
 ;;; Code:
 
-(defcustom auto-less-exclude-regexp ""
-  "Do not turn on `auto-less-minor-mode' for matched files."
+(defcustom auto-less-exclude-regexp (regexp-opt
+                                     '("*Org Agenda*" "*code-conversion-work*"))
+  "Do not turn on `auto-less-minor-mode' for matched files and buffers."
   :type 'string
+  :group 'convenience)
+
+(defcustom auto-less-exclude-modes '(shell-mode term-mode comint-mode)
+  "Do not turn on `auto-less-minor-mode' for these major modes."
+  :type 'list
+  :group 'convenience)
+
+;;;###autoload
+(define-global-minor-mode global-less-minor-mode
+  less-minor-mode auto-less-minor-mode
   :group 'convenience)
 
 ;;;###autoload
@@ -82,8 +93,12 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
   "Turn on `less-minor-mode' for files not matching `auto-less-exclude-regexp'.
 
 This is a useful hook to add to `find-file-hook'."
-  (unless (and (not (string= auto-less-exclude-regexp ""))
-               (string-match auto-less-exclude-regexp buffer-file-name))
+  (unless (or (and (not (string= auto-less-exclude-regexp ""))
+                   (string-match auto-less-exclude-regexp
+                                 (or buffer-file-name (buffer-name))))
+              (memq major-mode auto-less-exclude-modes)
+              (minibufferp (current-buffer))
+              (buffer-modified-p))
     (less-minor-mode 1)))
 
 ;;;###autoload
