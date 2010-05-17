@@ -23,6 +23,8 @@
 
 ;; Ref: http://www.tekken.com.cn/m/money.html
 
+(eval-when-compile (require 'cl))
+
 (defgroup salary nil
   "Calculate how much we get in our pocket, taxes, insurances we paid..."
   :prefix "salary-"
