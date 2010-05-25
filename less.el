@@ -57,7 +57,7 @@
   "Toggle less-minor-mode.
 
 With less-minor-mode enabled, you could use `less' like keys to view files.
-\\{less-minor-mode-map}."
+\\{less-minor-mode-map}"
   nil " Less"
   '(("j" . less-scroll-up-line)
     ("k" . less-scroll-down-line)
@@ -97,8 +97,8 @@ This is a useful hook to add to `find-file-hook'."
                    (string-match auto-less-exclude-regexp
                                  (or buffer-file-name (buffer-name))))
               (memq major-mode auto-less-exclude-modes)
-              (minibufferp (current-buffer))
-              (buffer-modified-p))
+              (minibufferp)
+              (not (if buffer-file-name (file-exists-p buffer-file-name) t)))
     (less-minor-mode 1)))
 
 ;;;###autoload
