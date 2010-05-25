@@ -1,6 +1,6 @@
 ;;; url-extra.el --- Extra url http/html related utilities
 
-;; Copyright (C) 2008, 2009 William Xu
+;; Copyright (C) 2008, 2009, 2010 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.2
@@ -53,8 +53,8 @@ is specified in html tag, default is 'utf-8."
   "Similar to `url-extra-http-encode-string' but treat \"\\\" as regular
 character."
   (let ((back-slash (format "%%%02x" ?\\)))
-    (replace-regexp-in-string 
-     back-slash 
+    (replace-regexp-in-string
+     back-slash
      (concat back-slash back-slash)
      (url-extra-http-encode-string str content-type))))
 
@@ -65,18 +65,18 @@ DATA is an alist, e.g., '((field-name . \"value\")).
 CHARSET defaults to 'utf-8."
   (or charset (setq charset 'utf-8))
   (let ((url-request-method "POST")
-        (url-request-data 
-         (mapconcat 
-          'identity 
+        (url-request-data
+         (mapconcat
+          'identity
           (mapcar (lambda (field)
                     (concat (symbol-name (car field))
                             "="
-                            (url-extra-http-encode-string-without-escape 
+                            (url-extra-http-encode-string
                              (cdr field) charset)))
                   data)
           "&"))
         (url-mime-charset-string (symbol-name charset))
-        (url-request-extra-headers 
+        (url-request-extra-headers
          `(("Content-Type" . ,(concat
                                "application/x-www-form-urlencoded;charset="
                                (symbol-name charset))))))
