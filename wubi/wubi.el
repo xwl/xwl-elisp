@@ -1,14 +1,12 @@
 ;;; wubi.el --- chinese-wubi input method in Emacs -*- coding: utf-8; -*-
 
-;; Copyright (C) 2005, 2007 William Xu
+;; Copyright (C) 2005, 2007, 2010 William Xu
 
 ;; Authors: William Xu <william.xwl@gmail.com>
 
-;; Last updated: 2007/03/17 20:50:35
-
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -29,7 +27,6 @@
 ;; (require 'wubi)
 ;; (register-input-method
 ;;  "chinese-wubi" "Chinese" 'quail-use-package "wubi" "wubi")
-;; (wubi-load-local-phrases)
 ;; (setq default-input-method "chinese-wubi")
 
 ;;; History
@@ -49,33 +46,50 @@
   :type 'string
   :group 'wubi)
 
-(quail-define-package "chinese-wubi" "Chinese" "五笔字型"
- '((121 . "言y")
-   (120 . "纟x")
-   (119 . "人w")
-   (118 . "女v")
-   (117 . "立u")
-   (116 . "禾t")
-   (115 . "木s")
-   (114 . "白r")
-   (113 . "金r")
-   (112 . "之p")
-   (111 . "火o")
-   (110 . "已n")
-   (109 . "山m")
-   (108 . "田l")
-   (107 . "口k")
-   (106 . "日j")
-   (105 . "水i")
-   (104 . "目h")
-   (103 . "王g")
-   (102 . "土f")
-   (101 . "月e")
-   (100 . "大d")
-   (99  . "又c")
-   (98  . "子b")
-   (97  . "工a")
-)"汉字输入∷五笔字型∷
+(defcustom wubi-quanjiao-p t
+  "Use quanjiao(全角) or banjiao(半角) for chinese punctuations."
+  :type 'boolean
+  :group 'wubi)
+
+(defcustom wubi-traditional-p nil
+  "Non-nil value will input traditional chinese characters.
+
+Note: this variable should be set before loading wubi, or it won't work
+properly."
+  :type 'boolean
+  :group 'wubi)
+
+(defvar wubi-table (make-char-table 'wubi-table nil))
+
+(defun wubi-quail-define-package ()
+  (quail-define-package
+   "chinese-wubi" "Chinese" (if wubi-traditional-p "五筆字型" "五笔字型")
+   '((121 . "言y")
+     (120 . "纟x")
+     (119 . "人w")
+     (118 . "女v")
+     (117 . "立u")
+     (116 . "禾t")
+     (115 . "木s")
+     (114 . "白r")
+     (113 . "金r")
+     (112 . "之p")
+     (111 . "火o")
+     (110 . "已n")
+     (109 . "山m")
+     (108 . "田l")
+     (107 . "口k")
+     (106 . "日j")
+     (105 . "水i")
+     (104 . "目h")
+     (103 . "王g")
+     (102 . "土f")
+     (101 . "月e")
+     (100 . "大d")
+     (99  . "又c")
+     (98  . "子b")
+     (97  . "工a")
+     )"汉字输入∷五笔字型∷
 Created by Dai Yuwen. daiyuwen@freeshell.org
 
 	五笔字型汉字编码方案
@@ -150,37 +164,25 @@ Created by Dai Yuwen. daiyuwen@freeshell.org
   C 又巴马 丢矢矣
   X 慈母无心弓和匕 幼无力
 "
- '(("" . quail-delete-last-char)
-   (" " . quail-select-current)
-;;    ("." . quail-next-translation)
-;;    (">" . quail-next-translation)
-;;    ("," . quail-prev-translation)
-;;    ("<" . quail-prev-translation)
-   )
-  nil nil nil nil)
+   '(("" . quail-delete-last-char)
+     (" " . quail-select-current)
+     ;;    ("." . quail-next-translation)
+     ;;    (">" . quail-next-translation)
+     ;;    ("," . quail-prev-translation)
+     ;;    ("<" . quail-prev-translation)
+     ))
 
-(put 'wubi-table 'char-table-extra-slots 0)
+  (put 'wubi-table 'char-table-extra-slots 0))
 
-(defvar wubi-table (make-char-table 'wubi-table nil))
-
-;; standard phrases
-(load "wubi-rules.el")
-
-;; local phrases
 (defun wubi-load-local-phrases ()
   "Load phrases from `wubi-phrases-file'."
   (interactive)
-  (load wubi-phrases-file)
-  (mapc (lambda (rule)
-	  (quail-defrule-internal
-	   (car rule) (cadr rule) (quail-map) t))
-	wubi-local-phrases))
-
-
-;;; Quanjiao(全角)/Banjiao(半角) symbols
-
-(defvar wubi-quanjiaop t
-  "Whether in quanjiao mode or not.")
+  (when (file-exists-p wubi-phrases-file)
+    (load wubi-phrases-file)
+    (mapc (lambda (rule)
+            (quail-defrule-internal
+             (car rule) (cadr rule) (quail-map) t))
+          wubi-local-phrases)))
 
 (defvar wubi-ascii-quanjiao-banjiao-table
       '(("/" (["、"]) (["/"]))
@@ -206,8 +208,8 @@ Created by Dai Yuwen. daiyuwen@freeshell.org
 (defun wubi-toggle-quanjiao-banjiao ()
   "Toggle quanjiao(全角)/banjiao(半角)."
   (interactive)
-  (setq wubi-quanjiaop (not wubi-quanjiaop))
-  (if wubi-quanjiaop
+  (setq wubi-quanjiao-p (not wubi-quanjiao-p))
+  (if wubi-quanjiao-p
       (message "进入全角标点模式")
     (message "进入半角标点模式"))
   (mapc
@@ -215,13 +217,35 @@ Created by Dai Yuwen. daiyuwen@freeshell.org
      ;; redefine rules
      (quail-defrule-internal
       (car ascii-quajiao-banjiao)
-      (if wubi-quanjiaop
+      (if wubi-quanjiao-p
 	  (cadr ascii-quajiao-banjiao)
 	(caddr ascii-quajiao-banjiao))
       (quail-map))
      ;; install new keys
      (quail-lookup-key (car ascii-quajiao-banjiao)))
    wubi-ascii-quanjiao-banjiao-table))
+
+(defun wubi-toggle-simplified-or-traditional (&optional arg)
+  "Toggle inputting simplified or traditional characters.
+With prefix argument ARG, input traditional characters if ARG is
+positive, otherwise simplified. "
+  (interactive "P")
+  (if arg
+      (setq wubi-traditional-p (> (prefix-numeric-value arg) 0))
+    (setq wubi-traditional-p (not wubi-traditional-p)))
+  ;; Refresh mode line indicator.
+  (wubi-quail-define-package)
+  (when current-input-method
+    (toggle-input-method)
+    (toggle-input-method))
+  ;; Load standard phrases
+  (if wubi-traditional-p
+      (load "wubi-rules-traditional")
+    (load "wubi-rules"))
+  (wubi-load-local-phrases))
+
+;; setup
+(wubi-toggle-simplified-or-traditional wubi-traditional-p)
 
 (provide 'wubi)
 
