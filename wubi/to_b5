@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# convert wubi sources to big encoding, using traditional chinese.
-
-autob5 -i utf8 < wubi.el >  wubi-b5.el
-autob5 -i utf8 < wubi-rules.el >  wubi-rules-b5.el
-sed -i s/utf-8/big5/ wubi-b5.el wubi-rules-b5.el

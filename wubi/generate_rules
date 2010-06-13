@@ -1,0 +1,101 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 wubi.txt"
+    exit 1
+fi
+
+wubi_txt=$1
+
+cat > wubi-rules.el <<EOF
+;;; wubi-rules.el --- wubi rules defined for quail -*- coding: utf-8 -*-
+
+;; Copyright (C) 2010 William Xu
+
+;; Author: William Xu <william.xwl@gmail.com>
+
+;; Generated from \`$wubi_txt' exported by QQ Wubi.
+
+;;; Code:
+
+(quail-define-rules
+EOF
+
+iconv -f utf-16 -t utf-8 $wubi_txt | grep ^[a-z] \
+| sed -e 's///'         \
+    -e 's/ /" "/g'        \
+    -e 's/^/("/'          \
+    -e 's/\(..$\)/\1"])/' \
+    -e 's/ / [/'          \
+    >> wubi-rules.el
+
+cat >> wubi-rules.el <<EOF
+)
+
+(defconst chinese-symbols
+  "、 。 · ˉ ˇ ¨ 〃 々 — ～ ‖ … ‘ ’ “ ” 〔 〕 〈 〉 《 》
+「 」 『 』 〖 〗 【 】 ± × ÷ ∶ ∧ ∨ ∑ ∏ ∪ ∩ ∈ ∷ √ ⊥ ∥
+∠ ⌒ ⊙ ∫ ∮ ≡ ≌ ≈ ∽ ∝ ≠ ≮ ≯ ≤ ≥ ∞ ∵ ∴ ♂ ♀
+° ′ ″ ℃ ＄ ¤ ￠ ￡ ‰ § № ☆ ★ ○ ● ◎ ◇ ◆ □ ■ △ ▲ ※
+→ ← ↑ ↓ 〓
+
+
+⒈ ⒉ ⒊ ⒋ ⒌ ⒍ ⒎ ⒏ ⒐ ⒑ ⒒ ⒓ ⒔ ⒕ ⒖ ⒗ ⒘ ⒙ ⒚ ⒛ ⑴ ⑵ ⑶
+⑷ ⑸ ⑹ ⑺ ⑻ ⑼ ⑽ ⑾ ⑿ ⒀ ⒁ ⒂ ⒃ ⒄ ⒅ ⒆ ⒇ ① ② ③ ④ ⑤ ⑥
+⑦ ⑧ ⑨ ⑩   ㈠ ㈡ ㈢ ㈣ ㈤ ㈥ ㈦ ㈧ ㈨ ㈩   Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ
+Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ Ⅺ Ⅻ
+
+
+！ ＂ ＃ ￥ ％ ＆ ＇ （ ） ＊ ＋ ， － ． ／ ０ １ ２ ３ ４ ５ ６ ７
+８ ９ ： ； ＜ ＝ ＞ ？ ＠ Ａ Ｂ Ｃ Ｄ Ｅ Ｆ Ｇ Ｈ Ｉ Ｊ Ｋ Ｌ Ｍ Ｎ
+Ｏ Ｐ Ｑ Ｒ Ｓ Ｔ Ｕ Ｖ Ｗ Ｘ Ｙ Ｚ ［ ＼ ］ ＾ ＿ ｀ ａ ｂ ｃ ｄ ｅ
+ｆ ｇ ｈ ｉ ｊ ｋ ｌ ｍ ｎ ｏ ｐ ｑ ｒ ｓ ｔ ｕ ｖ ｗ ｘ ｙ ｚ ｛ ｜
+｝ ￣
+
+
+ぁ あ ぃ い ぅ う ぇ え ぉ お か が き ぎ く ぐ け げ こ ご さ ざ し
+じ す ず せ ぜ そ ぞ た だ ち ぢ っ つ づ て で と ど な に ぬ ね の
+は ば ぱ ひ び ぴ ふ ぶ ぷ へ べ ぺ ほ ぼ ぽ ま み む め も ゃ や ゅ
+ゆ ょ よ ら り る れ ろ ゎ わ ゐ ゑ を ん
+
+
+ァ ア ィ イ ゥ ウ ェ エ ォ オ カ ガ キ ギ ク グ ケ ゲ コ ゴ サ ザ シ
+ジ ス ズ セ ゼ ソ ゾ タ ダ チ ヂ ッ ツ ヅ テ デ ト ド ナ ニ ヌ ネ ノ
+ハ バ パ ヒ ビ ピ フ ブ プ ヘ ベ ペ ホ ボ ポ マ ミ ム メ モ ャ ヤ ュ
+ユ ョ ヨ ラ リ ル レ ロ ヮ ワ ヰ ヱ ヲ ン ヴ ヵ ヶ
+
+
+Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ
+Ω         α β γ δ ε ζ η θ ι κ λ μ ν ξ
+ο π ρ σ τ υ φ χ ψ ω
+
+
+А Б В Г Д Е Ё Ж З И Й К Л М Н О П Р С Т У Ф Х
+Ц Ч Ш Щ Ъ Ы Ь Э Ю Я
+  а б в г д е ё ж з и й к л м н о п р с т у
+ф х ц ч ш щ ъ ы ь э ю я
+
+
+ā á ǎ à ē é ě è ī í ǐ ì ō ó ǒ ò ū ú ǔ ù ǖ ǘ ǚ
+ǜ ü ê ɑ  ń ň  ɡ     ㄅ ㄆ ㄇ ㄈ ㄉ ㄊ ㄋ ㄌ ㄍ
+ㄎ ㄏ ㄐ ㄑ ㄒ ㄓ ㄔ ㄕ ㄖ ㄗ ㄘ ㄙ ㄚ ㄛ ㄜ ㄝ ㄞ ㄟ ㄠ ㄡ ㄢ ㄣ ㄤ
+ㄥ ㄦ ㄧ ㄨ ㄩ
+
+
+─ ━ │ ┃ ┄ ┅ ┆ ┇ ┈ ┉ ┊ ┋ ┌ ┍ ┎ ┏ ┐ ┑ ┒ ┓ └ ┕ ┖
+┗ ┘ ┙ ┚ ┛ ├ ┝ ┞ ┟ ┠ ┡ ┢ ┣ ┤ ┥ ┦ ┧ ┨ ┩ ┪ ┫ ┬ ┭
+┮ ┯ ┰ ┱ ┲ ┳ ┴ ┵ ┶ ┷ ┸ ┹ ┺ ┻ ┼ ┽ ┾ ┿ ╀ ╁ ╂ ╃ ╄
+╅ ╆ ╇ ╈ ╉ ╊ ╋ ")
+
+;;; wubi-rules.el ends here
+EOF
+
+
+# Convert a big5 or traditional version.
+
+autob5 -i utf8 < wubi-rules.el >  wubi-rules-traditional.el
+
+# `sed -i'' on mac is a bid weird.
+sed -i .sed_tmp s/utf-8/big5/ wubi-rules-traditional.el
+sed -i .sed_tmp s/wubi-rules.el/wubi-rules-traditional.el/ wubi-rules-traditional.el
+rm  wubi-rules-traditional.el.sed_tmp
