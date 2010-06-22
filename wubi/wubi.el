@@ -47,7 +47,10 @@
   :group 'wubi)
 
 (defcustom wubi-quanjiao-p t
-  "Use quanjiao(全角) or banjiao(半角) for chinese punctuations."
+  "Use quanjiao(全角) or banjiao(半角) for chinese punctuations.
+
+Note: this variable should be set before loading wubi, or it won't work
+properly."
   :type 'boolean
   :group 'wubi)
 
@@ -205,10 +208,14 @@ Created by Dai Yuwen. daiyuwen@freeshell.org
 	("-" (["-" "—"]) (["-"])))
       "ascii, quanjiao, banjiao table.")
 
-(defun wubi-toggle-quanjiao-banjiao ()
-  "Toggle quanjiao(全角)/banjiao(半角)."
-  (interactive)
-  (setq wubi-quanjiao-p (not wubi-quanjiao-p))
+(defun wubi-toggle-quanjiao-banjiao (&optional arg)
+  "Toggle quanjiao(全角)/banjiao(半角).
+
+With prefix argument ARG, use quanjiao if ARG is positive, otherwise banjiao."
+  (interactive "P")
+  (if arg
+      (setq wubi-quanjiao-p (> (prefix-numeric-value arg) 0))
+    (setq wubi-quanjiao-p (not wubi-quanjiao-p)))
   (if wubi-quanjiao-p
       (message "进入全角标点模式")
     (message "进入半角标点模式"))
@@ -246,6 +253,7 @@ positive, otherwise simplified. "
 
 ;; setup
 (wubi-toggle-simplified-or-traditional wubi-traditional-p)
+(wubi-toggle-quanjiao-banjiao wubi-quanjiao-p)
 
 (provide 'wubi)
 
