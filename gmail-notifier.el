@@ -32,6 +32,7 @@
 
 (require 'xml)
 (require 'gnus-util)
+(eval-when-compile (require 'cl))
 
 (defgroup gmail-notifier nil
   "Gmail notifier."
