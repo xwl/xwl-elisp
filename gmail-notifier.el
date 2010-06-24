@@ -200,8 +200,8 @@ Note: you are suggested to kill process buffer at the end of CALLBACK. "
    (lambda (entry)
      (let ((s (format "%s - %s, %s, %s"
                       (cadr (assoc 'author entry))
-                      (let ((summary (cadr (assoc 'summary entry))))
-                        (substring summary 0 (min (length summary) 20)))
+                      (let ((title (cadr (assoc 'title entry))))
+                        (substring title 0 (min (length title) 20)))
                       (let ((summary (cadr (assoc 'summary entry))))
                         (substring summary 0 (min (length summary) 20)))
                       (gnus-user-date (cadr (assoc 'date entry))))))
