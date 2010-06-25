@@ -29,12 +29,15 @@
 ;;   (setq gmail-notifier-username "william.xwl"
 ;;         gmail-notifier-password "******")
 ;;   (gmail-notifier-start)
+;;
+;; You may also store account and password in `~/.authinfo'.
 
 ;;; Code:
 
 (require 'xml)
 (require 'gnus-util)
 (eval-when-compile (require 'cl))
+(require 'auth-source)
 
 (defgroup gmail-notifier nil
   "Gmail notifier."
@@ -57,7 +60,7 @@
   :group 'gmail-notifier)
 
 (defcustom gmail-notifier-new-mails-hook nil
-  "Hooks to run when new mails arrives."
+  "Hooks to run when new mails arrive."
   :type 'list
   :group 'gmail-notifier)
 
@@ -115,12 +118,21 @@ static char * gmail_xpm[] = {
 ;;;###autoload
 (defun gmail-notifier-start ()
   (interactive)
-  (unless gmail-notifier-username
-    (setq gmail-notifier-username (read-string "Gmail username: ")))
-  (unless gmail-notifier-password
-    (setq gmail-notifier-password (read-passwd "Gmail password: ")))
+  (let ((host "smtp.gmail.com")
+        (protocol "587"))
+    (unless gmail-notifier-username
+      (setq gmail-notifier-username
+            (or (auth-source-user-or-password "login" host protocol)
+                (read-string "Gmail username: "))))
+
+    (unless gmail-notifier-password
+      (setq gmail-notifier-password
+            (or (auth-source-user-or-password "password" host protocol)
+                (read-passwd "Gmail password: ")))))
+
   (add-to-list 'global-mode-string
                '(:eval (gmail-notifier-make-unread-string)) t)
+
   (setq gmail-notifier-timer
         (run-with-timer 0
                         gmail-notifier-timer-interval
