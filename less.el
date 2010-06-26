@@ -36,13 +36,21 @@
 
 ;;; Code:
 
-(defcustom auto-less-exclude-regexp (regexp-opt
-                                     '("*Org Agenda*" "*code-conversion-work*"))
+(defcustom auto-less-exclude-regexp
+  (regexp-opt
+   '("*Org Agenda*" "*code-conversion-work*" " *Compiler Input*"
+
+     "*nntpd*" " *gnus work*" " *gnus article copy*"
+     " *extract address components*" " *canonical address*"
+     "*followup to" "*mail*"))
   "Do not turn on `auto-less-minor-mode' for matched files and buffers."
   :type 'string
   :group 'convenience)
 
-(defcustom auto-less-exclude-modes '(shell-mode term-mode comint-mode)
+(defcustom auto-less-exclude-modes
+  '(shell-mode term-mode comint-mode twittering-edit-mode calendar-mode
+               log-edit-mode gnus-summary-mode gnus-group-mode message-mode
+               dired-mode ibuffer-mode apropos-mode completion-list-mode)
   "Do not turn on `auto-less-minor-mode' for these major modes."
   :type 'list
   :group 'convenience)
