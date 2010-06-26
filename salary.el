@@ -3,6 +3,8 @@
 ;; Copyright (C) 2010  William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
+;; Version: 0.1
+;; Url: http://github.com/xwl/xwl-elisp/blob/master/salary.el
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
