@@ -224,7 +224,7 @@ Note: you are suggested to kill process buffer at the end of CALLBACK. "
        ;;                                   uri ,(cadr (assoc 'link entry)))
        ;;                      s)
        s))
-   gmail-notifier-unread-entriesq
+   gmail-notifier-unread-entries
    "\n"))
 
 (provide 'gmail-notifier)
