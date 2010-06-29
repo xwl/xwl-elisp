@@ -158,9 +158,9 @@ static char * gmail_xpm[] = {
   (setq gmail-notifier-unread-entries
         (mapcar
          (lambda (entry)
-           `((author ,(caddr (assoc 'name (assoc 'author entry))))
-             (title ,(caddr (assoc 'title entry)))
-             (summary ,(caddr (assoc 'summary entry)))
+           `((author ,(or (caddr (assoc 'name (assoc 'author entry))) ""))
+             (title ,(or (caddr (assoc 'title entry)) ""))
+             (summary ,(or (caddr (assoc 'summary entry)) ""))
              (link ,(cdr (assoc 'href (cadr (assoc 'link entry)))))
              (date ,(caddr (assoc 'issued entry)))))
          (remove-if-not
@@ -224,7 +224,7 @@ Note: you are suggested to kill process buffer at the end of CALLBACK. "
        ;;                                   uri ,(cadr (assoc 'link entry)))
        ;;                      s)
        s))
-   gmail-notifier-unread-entries
+   gmail-notifier-unread-entriesq
    "\n"))
 
 (provide 'gmail-notifier)
