@@ -106,7 +106,7 @@ static char * gmail_xpm[] = {
 \"                \",
 \"                \"};
 "))
-  "Image for twitter logo.")
+  "Image for gmail logo.")
 
 (defconst gmail-notifier-logo
   (if gmail-notifier-logo-image
