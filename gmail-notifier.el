@@ -136,7 +136,7 @@ static char * gmail_xpm[] = {
   (setq gmail-notifier-timer
         (run-with-timer 0
                         gmail-notifier-timer-interval
-                        'gmail-notifier-get-unread)))
+                        'gmail-notifier-check)))
 
 (defun gmail-notifier-stop ()
   (interactive)
@@ -146,32 +146,41 @@ static char * gmail_xpm[] = {
 	(remove '(:eval (gmail-notifier-make-unread-string))
 		global-mode-string)))
 
-(defun gmail-notifier-get-unread ()
+(defun gmail-notifier-check ()
+  "Check unread gmail now."
+  (interactive)
   (gmail-notifier-shell-command-asynchronously-with-callback
-   (format "%s -s --user \"%s:%s\" https://mail.google.com/mail/feed/atom"
+   (format "%s --include -s --user \"%s:%s\" https://mail.google.com/mail/feed/atom"
            gmail-notifier-curl-command
            gmail-notifier-username
            gmail-notifier-password)
    'gmail-notifier-callback))
 
 (defun gmail-notifier-callback ()
-  (setq gmail-notifier-unread-entries
-        (mapcar
-         (lambda (entry)
-           `((author ,(or (caddr (assoc 'name (assoc 'author entry))) ""))
-             (title ,(or (caddr (assoc 'title entry)) ""))
-             (summary ,(or (caddr (assoc 'summary entry)) ""))
-             (link ,(cdr (assoc 'href (cadr (assoc 'link entry)))))
-             (date ,(caddr (assoc 'issued entry)))))
-         (remove-if-not
-          (lambda (tag)
-            (and (consp tag) (eq (car tag) 'entry)))
-          (car (xml-parse-region (point-min) (point-max))))))
-  (unless (null gmail-notifier-unread-entries)
-    (run-hooks 'gmail-notifier-new-mails-hook))
-  (gmail-notifier-make-unread-string)
-  (force-mode-line-update)
-  (kill-buffer))
+  (let* ((header-info
+          (gmail-notifier-make-header-info-alist
+           (gmail-notifier-get-response-header (current-buffer))))
+         (status-line (cdr (assq 'status-line header-info)))
+         (status-code (cdr (assq 'status-code header-info))))
+    (unless (string= status-code "200")
+      (error "(gmail-notifier): %s" status-line))
+    (setq gmail-notifier-unread-entries
+          (mapcar
+           (lambda (entry)
+             `((author ,(or (caddr (assoc 'name (assoc 'author entry))) ""))
+               (title ,(or (caddr (assoc 'title entry)) ""))
+               (summary ,(or (caddr (assoc 'summary entry)) ""))
+               (link ,(cdr (assoc 'href (cadr (assoc 'link entry)))))
+               (date ,(caddr (assoc 'issued entry)))))
+           (remove-if-not
+            (lambda (tag)
+              (and (consp tag) (eq (car tag) 'entry)))
+            (car (xml-parse-region (point-min) (point-max))))))
+    (unless (null gmail-notifier-unread-entries)
+      (run-hooks 'gmail-notifier-new-mails-hook))
+    (gmail-notifier-make-unread-string)
+    (force-mode-line-update)
+    (kill-buffer)))
 
 (defun gmail-notifier-make-unread-string ()
   (if (null gmail-notifier-unread-entries)
@@ -207,7 +216,7 @@ Note: you are suggested to kill process buffer at the end of CALLBACK. "
                   (err (process-exit-status process)))
               (if (zerop err)
                   (funcall ,callback)
-                (error "`%s' failed: %d" ,cmd err)))))))))
+                (error "(gmail-notifier) curl failed: %d" err)))))))))
 
 (defun gmail-notifier-make-preview-string ()
   (mapconcat
@@ -226,6 +235,41 @@ Note: you are suggested to kill process buffer at the end of CALLBACK. "
        s))
    gmail-notifier-unread-entries
    "\n"))
+
+;; copied from twittering-mode
+(defun gmail-notifier-get-response-header (buffer)
+  "Extract HTTP response header from HTTP response.
+BUFFER may be a buffer or the name of an existing buffer which contains the HTTP response."
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (if (search-forward-regexp "\r?\n\r?\n" nil t)
+	  (buffer-substring (point-min) (match-end 0))
+	nil))))
+
+;; copied from twittering-mode
+(defun gmail-notifier-make-header-info-alist (header-str)
+  "Make HTTP header alist from HEADER-STR.
+The alist consists of pairs of field-name and field-value, such as
+'((\"Content-Type\" . \"application/xml\; charset=utf-8\")
+  (\"Content-Length\" . \"2075\"))."
+  (let* ((lines (split-string header-str "\r?\n"))
+         (status-line (car lines))
+         (header-lines (cdr lines)))
+    (when (string-match
+	   "^\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*\\)$"
+	   status-line)
+      (append `((status-line . ,status-line)
+		(http-version . ,(match-string 1 status-line))
+		(status-code . ,(match-string 2 status-line))
+		(reason-phrase . ,(match-string 3 status-line)))
+	      (remove nil
+		      (mapcar
+		       (lambda (line)
+			 (when (string-match "^\\([^: ]*\\): *\\(.*\\)$" line)
+			   (cons (match-string 1 line) (match-string 2 line))))
+		       header-lines))))))
+
 
 (provide 'gmail-notifier)
 ;;; gmail-notifier.el ends here
