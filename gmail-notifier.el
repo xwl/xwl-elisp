@@ -191,7 +191,8 @@ static char * gmail_xpm[] = {
       (define-key map (vector 'mode-line 'mouse-2)
         `(lambda (e)
            (interactive "e")
-           (browse-url ,url)))
+           (browse-url ,url)
+           (setq gmail-notifier-unread-entries nil)))
       (add-text-properties 0 (length s)
                            `(local-map ,map mouse-face mode-line-highlight
                                        uri ,url help-echo
