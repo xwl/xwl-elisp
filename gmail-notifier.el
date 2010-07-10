@@ -222,7 +222,7 @@ Note: you are suggested to kill process buffer at the end of CALLBACK. "
 (defun gmail-notifier-make-preview-string ()
   (mapconcat
    (lambda (entry)
-     (let ((s (format "%s - %s, %s, %s"
+     (let ((s (format "%s - %s - %s, %s"
                       (cadr (assoc 'author entry))
                       (let ((title (cadr (assoc 'title entry))))
                         (substring title 0 (min (length title) 20)))
