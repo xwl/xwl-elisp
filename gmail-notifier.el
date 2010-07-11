@@ -30,7 +30,7 @@
 ;;         gmail-notifier-password "******")
 ;;   (gmail-notifier-start)
 ;;
-;; You may also store account and password in `~/.authinfo'.
+;; You may also store account and password in `~/.authinfo.gpg'.
 
 ;;; Code:
 
@@ -67,6 +67,16 @@
 (defcustom gmail-notifier-timer-interval 300
   "Interval(in seconds) for checking gmail."
   :type 'number
+  :group 'gmail-notifier)
+
+(defcustom gmail-notifier-host "imap.gmail.com"
+  "Gmail host."
+  :type 'string
+  :group 'gmail-notifier)
+
+(defcustom gmail-notifier-protocol "587"
+  "Protocol name or number, as string."
+  :type 'string
   :group 'gmail-notifier)
 
 ;; Entry format:
@@ -118,17 +128,17 @@ static char * gmail_xpm[] = {
 ;;;###autoload
 (defun gmail-notifier-start ()
   (interactive)
-  (let ((host "smtp.gmail.com")
-        (protocol "587"))
-    (unless gmail-notifier-username
-      (setq gmail-notifier-username
-            (or (auth-source-user-or-password "login" host protocol)
-                (read-string "Gmail username: "))))
+  (unless gmail-notifier-username
+    (setq gmail-notifier-username
+          (or (auth-source-user-or-password
+               "login"  gmail-notifier-host gmail-notifier-protocol)
+              (read-string "Gmail username: "))))
 
-    (unless gmail-notifier-password
-      (setq gmail-notifier-password
-            (or (auth-source-user-or-password "password" host protocol)
-                (read-passwd "Gmail password: ")))))
+  (unless gmail-notifier-password
+    (setq gmail-notifier-password
+          (or (auth-source-user-or-password
+               "password" gmail-notifier-host gmail-notifier-protocol)
+              (read-passwd "Gmail password: "))))
 
   (add-to-list 'global-mode-string
                '(:eval (gmail-notifier-make-unread-string)) t)
