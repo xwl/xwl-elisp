@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Keywords: mail
-;; Version: 0.2
+;; Version: 0.2.1
 ;; Url: http://github.com/xwl/xwl-elisp/blob/master/gmail-notifier.el
 
 ;; This program is free software; you can redistribute it and/or modify
