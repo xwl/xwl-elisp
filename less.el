@@ -50,7 +50,8 @@
 (defcustom auto-less-exclude-modes
   '(shell-mode term-mode comint-mode twittering-edit-mode calendar-mode
                log-edit-mode gnus-summary-mode gnus-group-mode message-mode
-               dired-mode ibuffer-mode apropos-mode completion-list-mode)
+               dired-mode ibuffer-mode apropos-mode completion-list-mode
+               ediff-mode)
   "Do not turn on `auto-less-minor-mode' for these major modes."
   :type 'list
   :group 'convenience)
@@ -71,12 +72,12 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
     ("k" . less-scroll-down-line)
     ("f" . scroll-up)
     ("b" . scroll-down)
-    ("g" . beginning-of-buffer)
-    ("G" . end-of-buffer)
+    ("g" . less-beginning-of-buffer)
+    ("G" . less-end-of-buffer)
     (" " . scroll-up)
     ("" . scroll-down)
     ("e" . less-quit))
-    (set (make-local-variable 'buffer-read-only) less-minor-mode))
+  (set (make-local-variable 'buffer-read-only) less-minor-mode))
 
 ;;;###autoload
 (defun less-scroll-up-line ()
@@ -89,6 +90,16 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
   "Scroll down one line."
   (interactive)
   (scroll-down 1))
+
+;;;###autoload
+(defun less-beginning-of-buffer ()
+  (interactive)
+  (goto-char (point-min)))
+
+;;;###autoload
+(defun less-end-of-buffer ()
+  (interactive)
+  (goto-char (point-max)))
 
 ;;;###autoload
 (defun less-quit ()
