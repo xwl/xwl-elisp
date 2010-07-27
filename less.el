@@ -42,7 +42,7 @@
 
      "*nntpd*" " *gnus work*" " *gnus article copy*"
      " *extract address components*" " *canonical address*"
-     "*followup to" "*mail*"))
+     "*followup to" "*mail"))
   "Do not turn on `auto-less-minor-mode' for matched files and buffers."
   :type 'string
   :group 'convenience)
