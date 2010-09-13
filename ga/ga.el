@@ -78,7 +78,8 @@
                                 (fink "sudo fink")
                                 (pkgsrc "sudo")
                                 (apt-cyg "sh apt-cyg")
-                                (yum "sudo yum"))
+                                (yum "sudo yum")
+                                (chicken "chicken-install"))
   "A list of backend methods.
 Each member is consist of two elements, first is the backend
 symbol, second is the core command prefix string.  e.g.,
@@ -88,7 +89,7 @@ symbol, second is the core command prefix string.  e.g.,
   :type 'list
   :group 'ga)
 
-(defcustom ga-backend-list '(apt-get fink pkgsrc apt-cyg yum)
+(defcustom ga-backend-list '(apt-get fink pkgsrc apt-cyg yum chicken)
   "Supported backends."
   :type 'list
   :group 'ga)
