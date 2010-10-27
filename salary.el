@@ -32,8 +32,11 @@
   :prefix "salary-"
   :group 'applications)
 
-(defcustom salary-average 3726
-  " 北京人均工资: 3322 RMB (2008-2009), 3726 RMB (2009+)"
+(defcustom salary-average 4037
+  "北京人均工资:
+  3322 RMB (2008)
+  3726 RMB (2009)
+  4037 RMB (2010)"
   :group 'salary)
 
 (defcustom salary-tax-base 2000
