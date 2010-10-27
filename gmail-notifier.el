@@ -167,9 +167,9 @@ static char * gmail_xpm[] = {
    'gmail-notifier-callback))
 
 (defun gmail-notifier-callback ()
-  (let* ((header-info
-          (gmail-notifier-make-header-info-alist
-           (gmail-notifier-get-response-header (current-buffer))))
+  (let* ((header-str (gmail-notifier-get-response-header (current-buffer)))
+         (header-info (and header-str
+                           (gmail-notifier-make-header-info-alist header-str)))
          (status-line (cdr (assq 'status-line header-info)))
          (status-code (cdr (assq 'status-code header-info))))
     (unless (string= status-code "200")
