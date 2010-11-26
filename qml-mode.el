@@ -41,10 +41,12 @@
 (defvar qml-font-lock-keywords
   `(("/\\*.*\\*/\\|//.*"                ; comment
      (0 font-lock-comment-face t t))
-    ("\\<\\([A-Z][a-zA-Z0-9]*\\)\\>" ; Elements
+    ("\\<\\(true\\|false\\|[A-Z][a-zA-Z0-9]*\\.[A-Z][a-zA-Z0-9]*\\)\\>" ; constants
+     (0 font-lock-constant-face))
+    ("\\<\\([A-Z][a-zA-Z0-9]*\\)\\>"    ; Elements
      (1 font-lock-function-name-face nil t)
      (2 font-lock-function-name-face nil t))
-    (,qml-keywords                      ; keywords
+    (,(concat qml-keywords "\\|\\<parent\\>") ; keywords
      (0 font-lock-keyword-face nil t))
     ("\\<\\([a-z][a-zA-Z.]*\\|property .+\\):\\|\\<\\(anchors\\|font\\)\\>" ; property
      (1 font-lock-variable-name-face nil t)
