@@ -1,6 +1,6 @@
 ;;; ga.el --- Generic apt alike interfaces for various package management tools
 
-;; Copyright (C) 2008, 2009, 2010 William Xu
+;; Copyright (C) 2008, 2009, 2010, 2011 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.6
@@ -75,10 +75,10 @@
   :group 'ga)
 
 (defcustom ga-backend-methods '((apt-get "sudo apt-get")
-                                (fink "sudo fink")
-                                (pkgsrc "sudo")
+                                (fink    "sudo fink")
+                                (pkgsrc  "sudo")
                                 (apt-cyg "sh apt-cyg")
-                                (yum "sudo yum")
+                                (yum     "sudo yum")
                                 (chicken "chicken-install"))
   "A list of backend methods.
 Each member is consist of two elements, first is the backend
@@ -380,24 +380,43 @@ Here is a brief list of the most useful commamnds:
 (defun ga-process-filter (process output)
   "Filter ga command outputs."
   (with-current-buffer (process-buffer process)
-    (let ((moving (= (point) (process-mark process)))
-	  (inhibit-read-only t)
-	  (percentage-match "[0-9]\\{1,3\\}%"))
-      (save-excursion
-	(goto-char (process-mark process))
-	(setq output
-              (replace-regexp-in-string "\r" "\n" output))
-	;; make percentage output nicer
-;;         (cond ((string-match percentage-match output)
-;;                (message "ga: %s" output))
-;;               ((string-match "^\\ +$\\|^\n$" output)
-;;                nil)
-;;               (t
-;;                (forward-line 0)
-;; ;;                (insert output)))
-        (insert output)
-	(set-marker (process-mark process) (point)))
-      (and moving (goto-char (process-mark process))))))
+    (save-excursion
+      (let ((inhibit-read-only t)
+            ;; wget, curl
+            (progress-regex "[0-9]\\{1,3\\}%\\|[0-9]:[0-9][0-9]:[0-9][0-9]"))
+
+        (setq output (replace-regexp-in-string "\r" "\n" output))
+
+        ;; zip multiple progress line
+        (when (string-match progress-regex output)
+          (with-temp-buffer
+            (insert output)
+
+            (goto-char (point-min))
+            (delete-blank-lines)
+
+            (let (beg end)
+              (goto-char (point-max))
+              (when (re-search-backward progress-regex nil t 2)
+                (goto-char (point-max))
+                (re-search-backward progress-regex nil t 1)
+                (setq end (line-beginning-position))
+
+                (goto-char (point-min))
+                (re-search-forward progress-regex nil t 1)
+                (setq beg (line-beginning-position))
+
+                (delete-region beg end)))
+            (setq output (buffer-string)))
+
+          ;; delete old progress line
+          (goto-char (point-max))
+          (forward-line -1)
+          (when (re-search-forward progress-regex nil t 1)
+            (delete-region (line-beginning-position) (point-max))))
+
+        (goto-char (point-max))
+        (insert output)))))
 
 (defun ga-kill ()
   "Kill ga process."
