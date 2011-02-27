@@ -1,6 +1,6 @@
 ;;; wubi.el --- chinese-wubi input method in Emacs -*- coding: utf-8; -*-
 
-;; Copyright (C) 2005, 2007, 2010 William Xu
+;; Copyright (C) 2005, 2007, 2010, 2011 William Xu
 
 ;; Authors: William Xu <william.xwl@gmail.com>
 
@@ -46,7 +46,7 @@
   :type 'string
   :group 'wubi)
 
-(defcustom wubi-quanjiao-p t
+(defcustom wubi-quanjiao-p 1
   "Use quanjiao(全角) or banjiao(半角) for chinese punctuations.
 
 Note: this variable should be set before loading wubi, or it won't work
@@ -54,7 +54,7 @@ properly."
   :type 'boolean
   :group 'wubi)
 
-(defcustom wubi-traditional-p nil
+(defcustom wubi-traditional-p -1
   "Non-nil value will input traditional chinese characters.
 
 Note: this variable should be set before loading wubi, or it won't work
@@ -210,8 +210,7 @@ Created by Dai Yuwen. daiyuwen@freeshell.org
 
 (defun wubi-toggle-quanjiao-banjiao (&optional arg)
   "Toggle quanjiao(全角)/banjiao(半角).
-
-With prefix argument ARG, use quanjiao if ARG is positive, otherwise banjiao."
+Unequivocally use quanjiao for positive ARG; banjiao for negative ARG."
   (interactive "P")
   (if arg
       (setq wubi-quanjiao-p (> (prefix-numeric-value arg) 0))
@@ -225,8 +224,8 @@ With prefix argument ARG, use quanjiao if ARG is positive, otherwise banjiao."
      (quail-defrule-internal
       (car ascii-quajiao-banjiao)
       (if wubi-quanjiao-p
-	  (cadr ascii-quajiao-banjiao)
-	(caddr ascii-quajiao-banjiao))
+          (cadr ascii-quajiao-banjiao)
+        (caddr ascii-quajiao-banjiao))
       (quail-map))
      ;; install new keys
      (quail-lookup-key (car ascii-quajiao-banjiao)))
@@ -234,8 +233,8 @@ With prefix argument ARG, use quanjiao if ARG is positive, otherwise banjiao."
 
 (defun wubi-toggle-simplified-or-traditional (&optional arg)
   "Toggle inputting simplified or traditional characters.
-With prefix argument ARG, input traditional characters if ARG is
-positive, otherwise simplified. "
+Unequivocally use traditional characters for positive ARG; simplified characters
+for negative ARG."
   (interactive "P")
   (if arg
       (setq wubi-traditional-p (> (prefix-numeric-value arg) 0))
