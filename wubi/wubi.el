@@ -46,21 +46,13 @@
   :type 'string
   :group 'wubi)
 
-(defcustom wubi-quanjiao-p 1
+(defvar wubi-quanjiao-p 1
   "Use quanjiao(全角) or banjiao(半角) for chinese punctuations.
+Don't set this directly, use `wubi-toggle-quanjiao-banjiao' instead.")
 
-Note: this variable should be set before loading wubi, or it won't work
-properly."
-  :type 'boolean
-  :group 'wubi)
-
-(defcustom wubi-traditional-p -1
+(defvar wubi-traditional-p -1
   "Non-nil value will input traditional chinese characters.
-
-Note: this variable should be set before loading wubi, or it won't work
-properly."
-  :type 'boolean
-  :group 'wubi)
+Don't set this directly, use `wubi-toggle-simplified-or-traditional' instead.")
 
 (defvar wubi-table (make-char-table 'wubi-table nil))
 
