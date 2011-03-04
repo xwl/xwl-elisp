@@ -1,6 +1,6 @@
 ;;; less.el --- less style view mode
 
-;; Copyright (C) 2005, 2007, 2009, 2010 William Xu
+;; Copyright (C) 2005, 2007, 2009, 2010, 2011 William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.4
@@ -83,23 +83,31 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
 (defun less-scroll-up-line ()
   "Scroll up one line."
   (interactive)
-  (scroll-up 1))
+  (if (eq major-mode 'image-mode)
+      (image-next-line 1)
+    (scroll-up 1)))
 
 ;;;###autoload
 (defun less-scroll-down-line ()
   "Scroll down one line."
   (interactive)
-  (scroll-down 1))
+  (if (eq major-mode 'image-mode)
+      (image-previous-line 1)
+    (scroll-down 1)))
 
 ;;;###autoload
 (defun less-beginning-of-buffer ()
   (interactive)
-  (goto-char (point-min)))
+  (if (eq major-mode 'image-mode)
+      (image-bob)
+    (goto-char (point-min))))
 
 ;;;###autoload
 (defun less-end-of-buffer ()
   (interactive)
-  (goto-char (point-max)))
+  (if (eq major-mode 'image-mode)
+      (image-eob)
+    (goto-char (point-max))))
 
 ;;;###autoload
 (defun less-quit ()
