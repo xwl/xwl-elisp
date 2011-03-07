@@ -1,6 +1,6 @@
 ;;; gmail-notifier.el --- Notify unread gmail on mode line
 
-;; Copyright (C) 2010  William Xu
+;; Copyright (C) 2010, 2011  William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Keywords: mail
@@ -125,6 +125,24 @@ static char * gmail_xpm[] = {
 
 (defvar gmail-notifier-timer nil)
 
+(defvar gmail-notifier-interactively-check? nil)
+
+(defmacro gmail-notifier-shell-command-asynchronously-with-callback (cmd callback)
+  "Run CMD asynchronously and apply CALLBACK in the output buffer.
+Note: you are suggested to kill process buffer at the end of CALLBACK. "
+  `(let* ((buf (generate-new-buffer (concat "*" (replace-regexp-in-string " .*" "" ,cmd) "*")))
+          (p (start-process-shell-command ,cmd buf ,cmd)))
+     (set-process-sentinel
+      p
+      (lambda (process event)
+        (with-current-buffer (process-buffer process)
+          (when (eq (process-status process) 'exit)
+            (let ((inhibit-read-only t)
+                  (err (process-exit-status process)))
+              (if (zerop err)
+                  (funcall ,callback)
+                (error "(gmail-notifier) curl failed: %d" err)))))))))
+
 ;;;###autoload
 (defun gmail-notifier-start ()
   (interactive)
@@ -156,9 +174,11 @@ static char * gmail_xpm[] = {
 	(remove '(:eval (gmail-notifier-make-unread-string))
 		global-mode-string)))
 
-(defun gmail-notifier-check ()
+(defun gmail-notifier-check (&optional called-manually)
   "Check unread gmail now."
-  (interactive)
+  (interactive "P")
+  (setq gmail-notifier-interactively-check?
+        (called-interactively-p 'interactive))
   (gmail-notifier-shell-command-asynchronously-with-callback
    (format "%s --include -s --user \"%s:%s\" https://mail.google.com/mail/feed/atom"
            gmail-notifier-curl-command
@@ -194,15 +214,20 @@ static char * gmail_xpm[] = {
 
 (defun gmail-notifier-make-unread-string ()
   (if (null gmail-notifier-unread-entries)
-      ""
-    (let ((s (format "(%d) " (length gmail-notifier-unread-entries)))
+      (prog1
+          ""
+        (when gmail-notifier-interactively-check?
+          (message "No new gmails")
+          (setq gmail-notifier-interactively-check? nil)))
+    (let* ((s (format "(%d) " (length gmail-notifier-unread-entries)))
           (map (make-sparse-keymap))
-          (url "https://mail.google.com"))
-      (define-key map (vector 'mode-line 'mouse-2)
-        `(lambda (e)
-           (interactive "e")
-           (browse-url ,url)
-           (setq gmail-notifier-unread-entries nil)))
+          (url "https://mail.google.com")
+          (visit `(lambda (e)
+                    (interactive "e")
+                    (browse-url ,url)
+                    (setq gmail-notifier-unread-entries nil))))
+      (define-key map (vector 'mode-line 'mouse-1) visit)
+      (define-key map (vector 'mode-line 'mouse-2) visit)
       (add-text-properties 0 (length s)
                            `(local-map ,map mouse-face mode-line-highlight
                                        uri ,url help-echo
@@ -212,22 +237,7 @@ static char * gmail_xpm[] = {
                            s)
       (concat " " gmail-notifier-logo s))))
 
-(defmacro gmail-notifier-shell-command-asynchronously-with-callback (cmd
-                                                                     callback)
-  "Run CMD asynchronously and apply CALLBACK in the output buffer.
-Note: you are suggested to kill process buffer at the end of CALLBACK. "
-  `(let* ((buf (generate-new-buffer (concat "*" (replace-regexp-in-string " .*" "" ,cmd) "*")))
-          (p (start-process-shell-command ,cmd buf ,cmd)))
-     (set-process-sentinel
-      p
-      (lambda (process event)
-        (with-current-buffer (process-buffer process)
-          (when (eq (process-status  process) 'exit)
-            (let ((inhibit-read-only t)
-                  (err (process-exit-status process)))
-              (if (zerop err)
-                  (funcall ,callback)
-                (error "(gmail-notifier) curl failed: %d" err)))))))))
+
 
 (defun gmail-notifier-make-preview-string ()
   (mapconcat
