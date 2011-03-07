@@ -180,7 +180,7 @@ Created by Dai Yuwen. daiyuwen@freeshell.org
           wubi-local-phrases)))
 
 (defvar wubi-ascii-quanjiao-banjiao-table
-      '(("/" (["、"]) (["/"]))
+  '(("/" (["、"]) (["/"]))
 	("," (["，"]) ([","]))
 	("." (["。"]) (["."]))
 	("*" (["·"]) (["*"]))
@@ -198,7 +198,7 @@ Created by Dai Yuwen. daiyuwen@freeshell.org
 	("]" (["]" "】" "〗"]) (["]"]))
 	("\\" (["…"]) (["\\"]))
 	("-" (["-" "—"]) (["-"])))
-      "ascii, quanjiao, banjiao table.")
+  "ascii, quanjiao, banjiao table.")
 
 (defun wubi-toggle-quanjiao-banjiao (&optional arg)
   "Toggle quanjiao(全角)/banjiao(半角).
