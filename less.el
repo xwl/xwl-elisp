@@ -107,7 +107,9 @@ With less-minor-mode enabled, you could use `less' like keys to view files.
   (interactive)
   (if (eq major-mode 'image-mode)
       (image-eob)
-    (goto-char (point-max))))
+    (goto-char (point-max))
+    ;; Similar to `end-of-buffer'.
+    (recenter -3)))
 
 ;;;###autoload
 (defun less-quit ()
