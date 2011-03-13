@@ -39,6 +39,7 @@
 (defcustom auto-less-exclude-regexp
   (regexp-opt
    '("*Org Agenda*" "*code-conversion-work*" " *Compiler Input*"
+     " *Echo Area"
 
      "*nntpd*" " *gnus work*" " *gnus article copy*"
      " *extract address components*" " *canonical address*"
