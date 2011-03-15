@@ -74,7 +74,7 @@
   :type 'string
   :group 'gmail-notifier)
 
-(defcustom gmail-notifier-protocol "587"
+(defcustom gmail-notifier-protocol "993"
   "Protocol name or number, as string."
   :type 'string
   :group 'gmail-notifier)
