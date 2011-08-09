@@ -1,6 +1,6 @@
 ;;; salary.el --- Calculate how much we get in our pocket
 
-;; Copyright (C) 2010  William Xu
+;; Copyright (C) 2010, 2011  William Xu
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 0.1
@@ -33,32 +33,32 @@
   :group 'applications)
 
 (defcustom salary-average 4037
-  "±±¾©ÈË¾ù¹¤×Ê:
+  "åŒ—äº¬äººå‡å·¥èµ„:
   3322 RMB (2008)
   3726 RMB (2009)
   4037 RMB (2010)"
   :group 'salary)
 
-(defcustom salary-tax-base 2000
-  "¸öË°ÆğÕ÷µã."
+(defcustom salary-tax-base 3500
+  "ä¸ªç¨èµ·å¾ç‚¹."
   :group 'salary)
 
 (defcustom salary-pension-insurance-rate 0.08
-  "ÑøÀÏ±£ÏÕ°Ù·Ö±È¡£"
+  "å…»è€ä¿é™©ç™¾åˆ†æ¯”ã€‚"
   :group 'salary)
 
 (defcustom salary-medical-insurance-rate 0.02
-  "Ò½ÁÆ±£ÏÕ°Ù·Ö±È(Ã¿Äê4ÔÂ¸üĞÂ)£¬ÁíÓĞ¶îÍâ 3 ¿éÇ® `salary-medical-insurance-extra'¡£"
+  "åŒ»ç–—ä¿é™©ç™¾åˆ†æ¯”(æ¯å¹´4æœˆæ›´æ–°)ï¼Œå¦æœ‰é¢å¤– 3 å—é’± `salary-medical-insurance-extra'ã€‚"
   :group 'salary)
 
 (defconst salary-medical-insurance-extra 3)
 
 (defcustom salary-unemployment-insurance-rate 0.005
-  "Ê§Òµ±£ÏÕ°Ù·Ö±È¡£"
+  "å¤±ä¸šä¿é™©ç™¾åˆ†æ¯”ã€‚"
   :group 'salary)
 
 (defcustom salary-housing-fund-rate 0.12
-  "¹«»ı½ğ°Ù·Ö±È(Ã¿Äê7ÔÂ¸üĞÂ)¡£"
+  "å…¬ç§¯é‡‘ç™¾åˆ†æ¯”(æ¯å¹´7æœˆæ›´æ–°)ã€‚"
   :group 'salary)
 
 (defun salary-insurances (salary)
@@ -76,27 +76,38 @@
           (mapcar* 'cons
                    (append
                     (mapcar* (lambda (fmt value) (format fmt (* value 100)))
-                             '("ÑøÀÏ %.1f%%" "Ò½ÁÆ %.1f%%" "Ê§Òµ %.1f%%" "¹«»ı½ğ %.1f%%")
+                             '("å…»è€ %.1f%%" "åŒ»ç–— %.1f%%" "å¤±ä¸š %.1f%%" "å…¬ç§¯é‡‘ %.1f%%")
                              (list
                               salary-pension-insurance-rate
                               salary-medical-insurance-rate
                               salary-unemployment-insurance-rate
                               salary-housing-fund-rate))
-                    (list (format "Ò½ÁÆ¶îÍâ %d Ôª" salary-medical-insurance-extra)))
+                    (list (format "åŒ»ç–—é¢å¤– %d å…ƒ" salary-medical-insurance-extra)))
                    items))))
 
 (defconst salary-tax-table
-  ;; from  to     rate ¿Û³ı¶î?
-  '((0     500    0.10 0)               ; (0, 500]
-    (500   2000   0.10 25)
-    (2000  5000   0.15 125)
-    (5000  20000  0.20 375)
-    (20000 40000  0.25 1375)
-    (40000 60000  0.30 3375)
-    (60000 80000  0.35 6375)
-    (80000 100000 0.40 10375)
+  ;; from  to     rate æ‰£é™¤é¢?
+  '(;; (0     500    0.10 0)               ; (0, 500]
+    ;; (500   2000   0.10 25)
+    ;; (2000  5000   0.15 125)
+    ;; (5000  20000  0.20 375)
+    ;; (20000 40000  0.25 1375)
+    ;; (40000 60000  0.30 3375)
+    ;; (60000 80000  0.35 6375)
+    ;; (80000 100000 0.40 10375)
+    ;; (10000 0.45 15375)
 
-    (10000 0.45 15375)))
+    ;; 2011/04/20
+    (0 1500 0.03 0)
+
+    (1500  4500  0.10 105)
+    (4500  9000  0.20 555)
+    (9000  35000 0.25 1005)
+    (35000 55000 0.30 2755)
+    (55000 80000 0.35 5505)
+
+    (80000 0.45  13505)
+    ))
 
 (defun salary-tax (salary)
   (let ((table salary-tax-table)
@@ -123,15 +134,15 @@
           (format "%d%% base %d" (* rate 100) salary-tax-base))))
 
 (defun salary-at-hand (salary)
-  "³ıµô¸öË°¡¢±£ÏÕºóÕæÕıµ½ÊÖµÄÇ®¡£"
+  "é™¤æ‰ä¸ªç¨ã€ä¿é™©åçœŸæ­£åˆ°æ‰‹çš„é’±ã€‚"
   (- salary (car (salary-insurances salary)) (car (salary-tax salary))))
 
 ;;;###autoload
 (defun salary-show (salary)
   "Calculate how much we finally get in our pocket.
 SALARY is before tax.  With prefix argument, insert result at point."
-  (interactive "nË°Ç°£º")
-  (let ((s (format "Ë°Ç°(%d) - ¸öË°%S - ËÄÏÕÒ»½ğ%S = ×îºóµ½ÊÖ(%d)"
+  (interactive "nç¨å‰ï¼š")
+  (let ((s (format "ç¨å‰(%d) - ä¸ªç¨%S - å››é™©ä¸€é‡‘%S = æœ€ååˆ°æ‰‹(%d)"
                    salary
                    (salary-tax salary)
                    (salary-insurances salary)
