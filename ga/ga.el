@@ -79,7 +79,8 @@
                                 (pkgsrc  "sudo")
                                 (apt-cyg "sh apt-cyg")
                                 (yum     "sudo yum")
-                                (chicken "chicken-install"))
+                                (chicken "chicken-install")
+                                (brew    "brew"))
   "A list of backend methods.
 Each member is consist of two elements, first is the backend
 symbol, second is the core command prefix string.  e.g.,
@@ -89,7 +90,7 @@ symbol, second is the core command prefix string.  e.g.,
   :type 'list
   :group 'ga)
 
-(defcustom ga-backend-list '(apt-get fink pkgsrc apt-cyg yum chicken)
+(defcustom ga-backend-list '(apt-get fink pkgsrc apt-cyg yum chicken brew)
   "Supported backends."
   :type 'list
   :group 'ga)
@@ -380,13 +381,11 @@ Here is a brief list of the most useful commamnds:
 (defun ga-process-filter (process output)
   "Filter ga command outputs."
   (with-current-buffer (process-buffer process)
-    (save-excursion
-      (let ((inhibit-read-only t)
-            ;; wget, curl
-            (progress-regex "[0-9]\\{1,3\\}%\\|[0-9]:[0-9][0-9]:[0-9][0-9]"))
-
+    (let ((inhibit-read-only t)
+          ;; wget, curl
+          (progress-regex "[0-9]\\{1,3\\}%\\|[0-9]:[0-9][0-9]:[0-9][0-9]"))
+      (save-excursion
         (setq output (replace-regexp-in-string "\r" "\n" output))
-
         ;; zip multiple progress line
         (when (string-match progress-regex output)
           (with-temp-buffer
@@ -416,7 +415,9 @@ Here is a brief list of the most useful commamnds:
             (delete-region (line-beginning-position) (point-max))))
 
         (goto-char (point-max))
-        (insert output)))))
+        (let ((start (point)))
+          (insert output)
+          (ansi-color-apply-on-region start (point-max)))))))
 
 (defun ga-kill ()
   "Kill ga process."
